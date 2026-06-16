@@ -1,3 +1,18 @@
+/*
+  feat/systools
+
+Provides common utilities used for system administration and associated functionality.
+
+Exposes:
+
+- flake.nixosModules."feat/systools":
+  - Installs user CLI tools
+  - Enables udisks2.
+
+- flake.homeModules."feat/systools":
+  - Installs user CLI tools (deduplicated against NixOS systemPackages)
+  - Configures udiskie automounting.
+*/
 let
   systoolsPackages = pkgs:
     with pkgs; [
@@ -25,6 +40,7 @@ let
       ripgrep
       smartmontools
       timg
+      tmux
       tree
       unzip
       usbutils

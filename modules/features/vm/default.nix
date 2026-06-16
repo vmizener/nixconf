@@ -1,3 +1,17 @@
+/*
+  feat/vm
+
+Provides QEMU virtual machine runner generation for NixOS configurations.
+
+Exposes:
+
+- flake.nixosModules."feat/vm":
+  - Enables virtualization features and associated packages (see below).
+
+- perSystem.packages:
+  - Generates `vm-run-<hostname>` package (to run the <hostname> VM).
+  - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
+*/
 { self, ... }: {
   flake.nixosModules."feat/vm" = { lib, config, ... }: {
     options.features.vm = {

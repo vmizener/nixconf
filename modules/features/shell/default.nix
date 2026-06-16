@@ -1,3 +1,16 @@
+/*
+  feat/shell
+
+Provides interactive shell environments via selection (see subfeatures for options).
+
+Exposes:
+
+- flake.nixosModules."feat/shell":
+  - Selector module for NixOS shells (defaults to zsh).
+
+- flake.homeModules."feat/shell":
+  - Selector module for Home Manager shells (defaults to zsh).
+*/
 { self, ... }: {
   flake.homeModules = self.lib.mkSelectorFeature {
     featureName = "shell";
