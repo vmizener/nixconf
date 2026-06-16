@@ -17,7 +17,7 @@ in {
       useUserPackages = true;
       users.${username} = { pkgs, ... }: {
         imports = [
-          self.homeModules."feat/shell"
+          self.homeModules."feat/shell/zsh"
           self.homeModules."feat/nvim"
         ];
         home = {
@@ -45,7 +45,7 @@ in {
   #       home.stateVersion = "25.11";
   #       home.username = username;
   #     }
-  #     self.homeModules."feat/shell"
+  #     self.homeModules."feat/shell/zsh"
   #     self.homeModules."feat/nvim"
   #   ];
   # };

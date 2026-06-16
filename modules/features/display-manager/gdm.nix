@@ -1,10 +1,14 @@
-{ self, ... }: {
-  flake.nixosModules = self.lib.mkSelectorChoice {
-    featureName = "display-manager";
-    selectionName = "gdm";
-    target = "nixosModules";
-    module = {
-      services.displayManager.gdm.enable = true;
-    };
+/*
+  feat/display-manager/gdm
+
+Enables the GNOME Display Manager (GDM).
+
+Exposes:
+
+- flake.nixosModules."feat/display-manager/gdm":
+*/
+{
+  flake.nixosModules."feat/display-manager/gdm" = {
+    services.displayManager.gdm.enable = true;
   };
 }

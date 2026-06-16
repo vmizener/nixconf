@@ -1,9 +1,12 @@
-{ self, ... }: {
-  flake.nixosModules = self.lib.mkSelectorChoice {
-    featureName = "shell";
-    selectionName = "bash";
-    target = "nixosModules";
-    module = {
-    };
-  };
+/*
+  feat/shell/bash
+
+Enables the interactive Bash shell environment.
+
+Exposes:
+
+- flake.nixosModules."feat/shell/bash":
+*/
+{
+  flake.nixosModules."feat/shell/bash" = {};
 }

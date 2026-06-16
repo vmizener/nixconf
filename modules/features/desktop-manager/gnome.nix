@@ -1,17 +1,23 @@
-{ self, ... }: {
-  flake.nixosModules = self.lib.mkSelectorChoice {
-    featureName = "desktop-manager";
-    selectionName = "gnome";
-    target = "nixosModules";
-    module = {
-      services = {
-        desktopManager.gnome.enable = true;
-        xserver = {
-          enable = true;
-          xkb = {
-            layout = "us";
-            variant = "";
-          };
+/*
+  feat/desktop-manager/gnome
+
+Enables the GNOME desktop environment and X11 windowing system.
+
+Exposes:
+
+- flake.nixosModules."feat/desktop-manager/gnome":
+  - Enables GNOME desktop manager
+  - Configures X11 windowing system.
+*/
+{
+  flake.nixosModules."feat/desktop-manager/gnome" = {
+    services = {
+      desktopManager.gnome.enable = true;
+      xserver = {
+        enable = true;
+        xkb = {
+          layout = "us";
+          variant = "";
         };
       };
     };

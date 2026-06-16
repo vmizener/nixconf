@@ -15,9 +15,8 @@ in
       self.nixosModules."users/bao@igros"
       self.nixosModules."users/ramza@igros"
 
-      self.nixosModules."feat/desktop-manager"
       self.nixosModules."feat/desktop-manager/gnome"
-      self.nixosModules."feat/display-manager"
+      self.nixosModules."feat/display-manager/gdm"
       self.nixosModules."feat/secrets"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/vm"
