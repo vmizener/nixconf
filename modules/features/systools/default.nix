@@ -31,6 +31,7 @@ let
       gparted
       hardinfo2
       jq
+      just
       killall
       libnotify
       mlocate
