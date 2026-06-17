@@ -15,7 +15,7 @@ in
       self.nixosModules."users/bao@igros"
       self.nixosModules."users/ramza@igros"
 
-      self.nixosModules."feat/desktop-manager/awesome"
+      self.nixosModules."feat/desktop-manager/kde-plasma"
       self.nixosModules."feat/login-manager/greetd"
       self.nixosModules."feat/greeter"
       self.nixosModules."feat/greeter/tuigreet"

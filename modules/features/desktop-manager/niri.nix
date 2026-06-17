@@ -64,7 +64,7 @@ in
         niri = {
           compositorPrettyName = "Niri";
           compositorComment = "Niri compositor managed by UWSM";
-          compositorBinPath = "${localPkg}/bin/niri-session";
+          compositorBinPath = "${localPkg}/bin/niri";
         };
       };
       environment ={
