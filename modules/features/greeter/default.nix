@@ -1,14 +1,4 @@
-/*
-  feat/greeter
-
-Provides greeter interface options and verification for greetd login sessions.
-
-Exposes:
-
-- flake.nixosModules."feat/greeter":
-  - Declares `features.greeter.command` option (defaults to tuigreet)
-  - Asserts that `services.greetd.enable` is true when imported.
-*/
+#TODO: make options separate from modules so you don't have to import them
 {
   flake.nixosModules."feat/greeter" = { config, lib, pkgs, ... }: {
     options.features.greeter = {

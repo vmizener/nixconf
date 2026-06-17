@@ -9,12 +9,8 @@ Exposes:
   - Enables greetd login manager
   - Imports `feat/greeter` interface.
 */
-{ self, ... }: {
+{
   flake.nixosModules."feat/login-manager/greetd" = { config, ... }: {
-    imports = [
-      self.nixosModules."feat/greeter"
-    ];
-
     services.greetd = {
       enable = true;
       settings = {

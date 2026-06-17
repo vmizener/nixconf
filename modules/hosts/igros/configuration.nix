@@ -15,8 +15,11 @@ in
       self.nixosModules."users/bao@igros"
       self.nixosModules."users/ramza@igros"
 
-      self.nixosModules."feat/desktop-manager/gnome"
-      self.nixosModules."feat/display-manager/gdm"
+      self.nixosModules."feat/desktop-manager/awesome"
+      self.nixosModules."feat/login-manager/greetd"
+      self.nixosModules."feat/greeter"
+      self.nixosModules."feat/greeter/tuigreet"
+
       self.nixosModules."feat/secrets"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/vm"
