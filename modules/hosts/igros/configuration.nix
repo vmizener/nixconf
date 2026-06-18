@@ -11,13 +11,13 @@ in
   flake.nixosModules."host/${hostname}" = {
     imports = [
       self.nixosModules."hardware/${hostname}"
+      self.nixosModules."default/options"
 
       self.nixosModules."users/bao@igros"
       self.nixosModules."users/ramza@igros"
 
       self.nixosModules."feat/desktop-manager/kde-plasma"
       self.nixosModules."feat/login-manager/greetd"
-      self.nixosModules."feat/greeter"
       self.nixosModules."feat/greeter/tuigreet"
 
       self.nixosModules."feat/secrets"

@@ -13,7 +13,7 @@ Exposes:
   - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
 */
 { self, ... }: {
-  flake.nixosModules."feat/vm" = { lib, config, ... }: {
+  flake.nixosModules."default/options" = { lib, ... }: {
     options.features.vm = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -26,6 +26,8 @@ Exposes:
         description = "Directory to store VM disk images";
       };
     };
+  };
+  flake.nixosModules."feat/vm" = { lib, config, ... }: {
     config = lib.mkIf config.features.vm.enable {
       virtualisation.vmVariant = {
         boot.kernelModules = [ "vkms" ];

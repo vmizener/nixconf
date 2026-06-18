@@ -15,6 +15,7 @@ in {
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;
+      backupFileExtension = "backup";
       users.${username} = { pkgs, ... }: {
         imports = [
           self.homeModules."feat/desktop-manager/kde-plasma"
