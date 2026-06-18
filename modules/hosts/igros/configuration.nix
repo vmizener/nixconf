@@ -8,7 +8,7 @@ in
       self.nixosModules."host/${hostname}"
     ];
   };
-  flake.nixosModules."host/${hostname}" = {
+  flake.nixosModules."host/${hostname}" = { pkgs, ... }: {
     imports = [
       self.nixosModules."core"
       self.nixosModules."hardware/${hostname}"
@@ -31,8 +31,15 @@ in
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";
 
-    boot.loader.systemd-boot.enable = true;
-    boot.loader.efi.canTouchEfiVariables = true;
+    boot.loader = {
+      grub = {
+        enable = true;
+        device = "nodev"; # "nodev" is used for UEFI
+        efiSupport = true;
+        memtest86.enable = true;  # Enable Memtest86+
+      };
+      efi.canTouchEfiVariables = true;
+    };
     services = {
       openssh.enable = true;
       printing.enable = true;
