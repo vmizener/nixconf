@@ -18,6 +18,7 @@ in {
       backupFileExtension = "backup";
       users.${username} = { pkgs, ... }: {
         imports = [
+          self.homeModules."feat/browser/firefox"
           self.homeModules."feat/desktop-manager/kde-plasma"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/streamlink"
