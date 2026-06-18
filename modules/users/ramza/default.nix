@@ -19,6 +19,8 @@ in {
       users.${username} = { pkgs, ... }: {
         imports = [
           self.homeModules."feat/desktop-manager/kde-plasma"
+          self.homeModules."feat/gaming/discord"
+          self.homeModules."feat/gaming/streamlink"
           self.homeModules."feat/shell/zsh"
           self.homeModules."feat/nvim"
         ];

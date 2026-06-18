@@ -21,6 +21,8 @@ in
       self.nixosModules."feat/greeter/tuigreet"
 
       self.nixosModules."feat/audio"
+      self.nixosModules."feat/gaming/steam"
+      self.nixosModules."feat/gaming/sunshine"
       self.nixosModules."feat/secrets"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/vm"
