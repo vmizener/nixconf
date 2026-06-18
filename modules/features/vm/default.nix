@@ -13,7 +13,7 @@ Exposes:
   - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
 */
 { self, ... }: {
-  flake.nixosModules."default/options" = { lib, ... }: {
+  flake.nixosModules."core/options" = { lib, ... }: {
     options.features.vm = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -38,7 +38,7 @@ Exposes:
           WLR_RENDERER_ALLOW_SOFTWARE = "1";
         };
         virtualisation = {
-          memorySize = 2048; # use 2GiB memory
+          memorySize = 4096; # use 4GiB memory
           cores = 3;         # use 3 cpu cores
           qemu.options = [
             "-vga virtio"

@@ -1,6 +1,5 @@
-#TODO: make options separate from modules so you don't have to import them
 {
-  flake.nixosModules."default/options" = { config, lib, pkgs, ... }: {
+  flake.nixosModules."core/options" = { config, lib, ... }: {
     options.features.greeter = {
       command = lib.mkOption {
         type = lib.types.str;
