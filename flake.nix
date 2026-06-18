@@ -12,15 +12,20 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     import-tree.url = "github:vic/import-tree";
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixgl.url = "github:nix-community/nixGL";
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
 
     # Feature Flakes
     awww.url = "git+https://codeberg.org/LGFae/awww";
     niri.url = "github:sodiboo/niri-flake";
-    nix-index-database = {
-      url = "github:nix-community/nix-index-database";
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
   };
 }

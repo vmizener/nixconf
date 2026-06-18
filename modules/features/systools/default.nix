@@ -13,7 +13,7 @@ Exposes:
   - Installs user CLI tools (deduplicated against NixOS systemPackages)
   - Configures udiskie automounting.
 */
-let
+{ inputs, ... }: let
   systoolsPackages = pkgs:
     with pkgs; [
       bat
@@ -53,12 +53,18 @@ let
     ];
 in {
   flake.homeModules."feat/systools" = {pkgs, lib, osConfig ? {}, ...}: {
+    imports = [
+      inputs.nix-index-database.homeModules.nix-index
+    ];
     # Don't install packages already present in systemPackages
     home.packages = (
       lib.subtractLists 
       (osConfig.environment.systemPackages or [])
       (systoolsPackages pkgs)
-    );
+    ) ++ (with pkgs; [
+      comma
+    ]);
+    programs.nix-index.enable = true;
     services = {
       udiskie = {
         enable = true;

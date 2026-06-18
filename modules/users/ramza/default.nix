@@ -17,6 +17,7 @@ in {
       useUserPackages = true;
       users.${username} = { pkgs, ... }: {
         imports = [
+          self.homeModules."feat/desktop-manager/kde-plasma"
           self.homeModules."feat/shell/zsh"
           self.homeModules."feat/nvim"
         ];
