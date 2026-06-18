@@ -28,6 +28,7 @@ Exposes:
         iconTheme = "Papirus-Dark";
         # wallpaper = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Patak/contents/images/1080x1920.png";
         wallpaper = ../../../assets/media/girl_leaving_apartment.jpg;
+        wallpaperFillMode = "stretch";
       };
       hotkeys.commands."launch-konsole" = {
         name = "Launch Konsole";
