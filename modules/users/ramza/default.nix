@@ -9,7 +9,14 @@ in {
     users.users.${username} = {
       isNormalUser = true;
       description = "${username}";
-      extraGroups = [ "networkmanager" "wheel" ];
+      extraGroups = [
+        "audio"
+        "bluetooth"
+        "input"
+        "networkmanager"
+        "video"
+        "wheel"
+      ];
       initialPassword = "gobears";
     };
     home-manager = {
@@ -19,7 +26,7 @@ in {
       users.${username} = { pkgs, ... }: {
         imports = [
           self.homeModules."feat/browser/firefox"
-          self.homeModules."feat/desktop-manager/kde-plasma"
+          # self.homeModules."feat/desktop-manager/kde-plasma"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/streamlink"
           self.homeModules."feat/shell/zsh"

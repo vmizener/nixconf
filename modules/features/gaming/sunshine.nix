@@ -9,11 +9,16 @@ Exposes:
 */
 {
   flake.nixosModules."feat/gaming/sunshine" = {
-    services.sunshine = {
-      enable = true;
-      autoStart = true;  # optional: starts Sunshine automatically on login
-      capSysAdmin = true;
-      openFirewall = true;
+    services = {
+      sunshine = {
+        enable = true;
+        autoStart = true;  # optional: starts Sunshine automatically on login
+        capSysAdmin = true;
+        openFirewall = true;
+      };
+      udev.extraRules = ''
+        KERNEL=="uinput", MODE="0660", GROUP="input", SYMLINK+="uinput"
+      '';
     };
     networking.firewall = {
       enable = true;
