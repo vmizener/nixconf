@@ -51,13 +51,18 @@ in
         powerManagement.enable = false;
         powerManagement.finegrained = false;
       };
+      uinput.enable = true;
     };
     services = {
       getty.autologinUser = "ramza";
       openssh.enable = true;
       printing.enable = true;
-      xserver.videoDrivers = ["nvidia"];
+      xserver = {
+        videoDrivers = ["nvidia"];
+        updateDbusEnvironment = true;
+      };
     };
+    fonts.enableDefaultPackages = true;
     time.timeZone = "America/Los_Angeles";
     i18n = {
       defaultLocale = "en_US.UTF-8";

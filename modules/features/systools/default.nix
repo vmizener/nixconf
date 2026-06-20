@@ -52,16 +52,11 @@ Exposes:
       zip
     ];
 in {
-  flake.homeModules."feat/systools" = {pkgs, lib, osConfig ? {}, ...}: {
+  flake.homeModules."feat/systools" = {pkgs, ...}: {
     imports = [
       inputs.nix-index-database.homeModules.nix-index
     ];
-    # Don't install packages already present in systemPackages
-    home.packages = (
-      lib.subtractLists 
-      (osConfig.environment.systemPackages or [])
-      (systoolsPackages pkgs)
-    ) ++ (with pkgs; [
+    home.packages = (systoolsPackages pkgs) ++ (with pkgs; [
       comma
     ]);
     programs.nix-index.enable = true;
