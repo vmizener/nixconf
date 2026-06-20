@@ -17,6 +17,7 @@ Exposes:
         xfce.enable = true;
         xterm.enable = false;
       };
+      displayManager.startx.enable = true;
     };
   };
 }

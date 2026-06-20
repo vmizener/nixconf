@@ -8,7 +8,7 @@ in
       self.nixosModules."host/${hostname}"
     ];
   };
-  flake.nixosModules."host/${hostname}" = { pkgs, ... }: {
+  flake.nixosModules."host/${hostname}" = { config, ... }: {
     imports = [
       self.nixosModules."core"
       self.nixosModules."hardware/${hostname}"
@@ -16,7 +16,7 @@ in
       self.nixosModules."users/bao@igros"
       self.nixosModules."users/ramza@igros"
 
-      self.nixosModules."feat/desktop-manager/kde-plasma"
+      self.nixosModules."feat/desktop-manager/xfce"
       self.nixosModules."feat/login-manager/greetd"
       self.nixosModules."feat/greeter/tuigreet"
 
@@ -40,10 +40,23 @@ in
       };
       efi.canTouchEfiVariables = true;
     };
+    nixpkgs.config.nvidia.acceptLicense = true;
+    hardware = {
+      graphics.enable = true;
+      nvidia = {
+        modesetting.enable = true;
+        nvidiaSettings = true;
+        # open = false;
+        package = config.boot.kernelPackages.nvidiaPackages.legacy_470;
+        powerManagement.enable = false;
+        powerManagement.finegrained = false;
+      };
+    };
     services = {
+      getty.autologinUser = "ramza";
       openssh.enable = true;
       printing.enable = true;
-      getty.autologinUser = "ramza";
+      xserver.videoDrivers = ["nvidia"];
     };
     time.timeZone = "America/Los_Angeles";
     i18n = {
