@@ -13,12 +13,12 @@ Exposes:
   - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
 */
 { self, ... }: {
-  flake.nixosModules."core/options" = { lib, ... }: {
+  flake.nixosModules."core" = { lib, ... }: {
     options.features.vm = {
-      enable = lib.mkOption {
+      isVm = lib.mkOption {
         type = lib.types.bool;
-        default = true;
-        description = "Enable VM runner generation";
+        default = false;
+        description = "Config describes VM";
       };
       storageDir = lib.mkOption {
         type = lib.types.str;
@@ -27,22 +27,17 @@ Exposes:
       };
     };
   };
-  flake.nixosModules."feat/vm" = { lib, config, ... }: {
-    config = lib.mkIf config.features.vm.enable {
+  flake.nixosModules."feat/vm" = {
+    config = {
       virtualisation.vmVariant = {
-        boot.kernelModules = [ "vkms" ];
-        environment.variables = {
-          LIBGL_ALWAYS_SOFTWARE = "1";
-          WLR_NO_HARDWARE_CURSORS = "1";
-          WLR_RENDERER = "pixman";
-          WLR_RENDERER_ALLOW_SOFTWARE = "1";
-        };
+        features.vm.isVm = true;
+        services.qemuGuest.enable = true;
         virtualisation = {
           memorySize = 4096; # use 4GiB memory
           cores = 3;         # use 3 cpu cores
           qemu.options = [
-            "-vga virtio"
-            "-display gtk,gl=on"
+            "-device virtio-vga-gl"
+            "-display sdl,gl=on"
           ];
         };
       };
@@ -60,12 +55,7 @@ Exposes:
       packages =
         self.nixosConfigurations
         |> lib.filterAttrs (
-          hostname: hostconf:
-          # Must enable the vm feature (enabled by importing module)
-          (lib.hasAttrByPath [ "features" "vm" "enable" ] hostconf.options)
-          && hostconf.config.features.vm.enable
-          # ... and use the current "perSystem" system
-          && hostconf.config.nixpkgs.hostPlatform.system == system
+          hostname: hostconf: hostconf.config.nixpkgs.hostPlatform.system == system
         )
         # Generate both VM runner and reset packages
         |> (

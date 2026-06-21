@@ -11,27 +11,14 @@ Exposes:
 - flake.nixosModules."feat/desktop-manager/niri":
   - Enables Niri wayland session and UWSM integration.
 */
-{ self, inputs, ... }:
+{ inputs, self, ... }:
 let
   package = "local/niri";
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}.${package} // {
     cargoBuildNoDefaultFeatures = false;
     cargoBuildFeatures = [];
   };
-  niriSettings = lib: pkgs: {
-    environment = {
-      DISPLAY = ":0";
-      QT_QPA_PLATFORM = "wayland";
-      NIRI_NO_HARDWARE_CURSORS = "1";
-      WAYLAND_DISPLAY = "wayland-1";
-    };
-    input.keyboard = {
-      xkb.layout = "us";
-    };
-    spawn-at-startup = [
-      "${lib.getExe pkgs.foot}"
-    ];
-  };
+  niriSettings = import ./_config.nix;
 in
 {
   flake.homeModules."feat/desktop-manager/niri" = { config, lib, osConfig ? null, pkgs, ... }: let
@@ -84,7 +71,7 @@ in
     };
   };
 
-  perSystem = { lib, pkgs, ... }: {
+  perSystem = { config, lib, pkgs, ... }: {
     packages.${package} = inputs.wrapper-modules.wrappers.niri.wrap {
       inherit pkgs;
       runtimeLibs = with pkgs; [
@@ -104,7 +91,7 @@ in
         udev
         vulkan-loader
       ];
-      settings = niriSettings lib pkgs;
+      settings = niriSettings config lib pkgs;
     };
   };
 }

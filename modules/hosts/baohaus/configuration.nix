@@ -39,6 +39,13 @@ in
       };
       efi.canTouchEfiVariables = true;
     };
+    hardware = {
+      graphics = {
+        enable = true;
+        enable32Bit = true;
+      };
+      uinput.enable = true;
+    };
     services = {
       getty.autologinUser = "bao";
       openssh.enable = true;
