@@ -10,7 +10,7 @@ Exposes:
   - Imports `feat/greeter` interface.
 */
 {
-  flake.nixosModules."feat/login-manager/greetd" = { config, ... }: {
+  flake.nixosModules."feat/login-manager/greetd" = {config, ...}: {
     services.greetd = {
       enable = true;
       settings = {

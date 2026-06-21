@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/greeter/regreet":
 */
 {
-  flake.nixosModules."feat/greeter/regreet" = { pkgs, ... }: {
+  flake.nixosModules."feat/greeter/regreet" = {pkgs, ...}: {
     features.greeter.command = "${pkgs.cage}/bin/cage -s -- ${pkgs.greetd.regreet}/bin/regreet";
   };
 }

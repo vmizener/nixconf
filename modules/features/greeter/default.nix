@@ -1,5 +1,9 @@
 {
-  flake.nixosModules."core/options" = { config, lib, ... }: {
+  flake.nixosModules."core/options" = {
+    config,
+    lib,
+    ...
+  }: {
     options.features.greeter = {
       command = lib.mkOption {
         type = lib.types.str;

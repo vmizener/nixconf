@@ -12,7 +12,12 @@ Exposes:
   - Enables system-wide Zsh.
 */
 {
-  flake.homeModules."feat/terminal/shell/zsh" = { config, lib, pkgs, ... }: let
+  flake.homeModules."feat/terminal/shell/zsh" = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: let
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
   in {
@@ -30,7 +35,7 @@ Exposes:
       packages = with pkgs; [
         fzf
       ];
-      sessionPath = [ "${config.home.profileDirectory}/bin" ];
+      sessionPath = ["${config.home.profileDirectory}/bin"];
     };
   };
 

@@ -12,8 +12,8 @@ Exposes:
   - Generates `vm-run-<hostname>` package (to run the <hostname> VM).
   - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
 */
-{ self, ... }: {
-  flake.nixosModules."core" = { lib, ... }: {
+{self, ...}: {
+  flake.nixosModules."core/options" = {lib, ...}: {
     options.features.vm = {
       isVm = lib.mkOption {
         type = lib.types.bool;
@@ -34,7 +34,7 @@ Exposes:
         services.qemuGuest.enable = true;
         virtualisation = {
           memorySize = 4096; # use 4GiB memory
-          cores = 3;         # use 3 cpu cores
+          cores = 3; # use 3 cpu cores
           qemu.options = [
             "-device virtio-vga-gl"
             "-display sdl,gl=on"
@@ -44,42 +44,48 @@ Exposes:
     };
   };
 
-  perSystem = { lib, pkgs, system, ... }: {
+  perSystem = {
+    lib,
+    pkgs,
+    system,
+    ...
+  }: {
     packages =
       # Generate both VM runner and reset packages per nixosConfiguration
       self.nixosConfigurations
       |> lib.filterAttrs (hostname: hostconf: hostconf.config.nixpkgs.hostPlatform.system == system)
       |> (
-        configs:
-        let
+        configs: let
           vmRunners =
             configs
-            |> lib.mapAttrs' (hostname: hostconf: lib.nameValuePair "vm-run-${hostname}" (pkgs.writeShellApplication {
-              name = "vm-run-${hostname}";
-              text = ''
-                STORAGE_DIR="${hostconf.config.features.vm.storageDir}"
-                mkdir -p "$STORAGE_DIR"
-                export NIX_DISK_IMAGE="''${NIX_DISK_IMAGE:-$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2}"
-                ${hostconf.config.system.build.vm}/bin/run-${hostconf.config.networking.hostName}-vm "$@"
-              '';
-            }));
+            |> lib.mapAttrs' (hostname: hostconf:
+              lib.nameValuePair "vm-run-${hostname}" (pkgs.writeShellApplication {
+                name = "vm-run-${hostname}";
+                text = ''
+                  STORAGE_DIR="${hostconf.config.features.vm.storageDir}"
+                  mkdir -p "$STORAGE_DIR"
+                  export NIX_DISK_IMAGE="''${NIX_DISK_IMAGE:-$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2}"
+                  ${hostconf.config.system.build.vm}/bin/run-${hostconf.config.networking.hostName}-vm "$@"
+                '';
+              }));
           vmResetters =
             configs
-            |> lib.mapAttrs' (hostname: hostconf: lib.nameValuePair "vm-reset-${hostname}" (pkgs.writeShellApplication {
-              name = "vm-reset-${hostname}";
-              text = ''
-                STORAGE_DIR="${hostconf.config.features.vm.storageDir}"
-                NIX_DISK_IMAGE="$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2"
-                if [ -f "$NIX_DISK_IMAGE" ]; then
-                    echo "Removing $NIX_DISK_IMAGE"
-                    rm "$NIX_DISK_IMAGE"
-                else
-                    echo "No image found at $NIX_DISK_IMAGE"
-                fi
-              '';
-            }));
+            |> lib.mapAttrs' (hostname: hostconf:
+              lib.nameValuePair "vm-reset-${hostname}" (pkgs.writeShellApplication {
+                name = "vm-reset-${hostname}";
+                text = ''
+                  STORAGE_DIR="${hostconf.config.features.vm.storageDir}"
+                  NIX_DISK_IMAGE="$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2"
+                  if [ -f "$NIX_DISK_IMAGE" ]; then
+                      echo "Removing $NIX_DISK_IMAGE"
+                      rm "$NIX_DISK_IMAGE"
+                  else
+                      echo "No image found at $NIX_DISK_IMAGE"
+                  fi
+                '';
+              }));
         in
-        vmRunners // vmResetters
-    );
+          vmRunners // vmResetters
+      );
   };
 }

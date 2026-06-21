@@ -1,4 +1,8 @@
-{ self, inputs, ... }: let
+{
+  self,
+  inputs,
+  ...
+}: let
   username = "ramza";
 in {
   # @Igros (Nixos)
@@ -23,7 +27,7 @@ in {
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "backup";
-      users.${username} = { pkgs, ... }: {
+      users.${username} = {pkgs, ...}: {
         imports = [
           self.homeModules."feat/browser/firefox"
           # self.homeModules."feat/desktop-manager/kde-plasma"

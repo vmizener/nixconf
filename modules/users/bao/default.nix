@@ -1,4 +1,8 @@
-{ self, inputs, ... }: let
+{
+  self,
+  inputs,
+  ...
+}: let
   username = "bao";
 in {
   # @Igros (Nixos)
@@ -9,7 +13,7 @@ in {
     users.users.${username} = {
       isNormalUser = true;
       description = "${username}";
-      extraGroups = [ "networkmanager" "wheel" ];
+      extraGroups = ["networkmanager" "wheel"];
       initialPassword = "gobears";
     };
   };
@@ -35,7 +39,7 @@ in {
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "backup";
-      users.${username} = { pkgs, ... }: {
+      users.${username} = {pkgs, ...}: {
         imports = [
           self.homeModules."feat/browser/helium"
           self.homeModules."feat/desktop-manager/niri"

@@ -8,7 +8,7 @@ Exposes:
 - flake.homeModules."feat/gaming/discord":
 */
 {
-  flake.homeModules."feat/gaming/discord" = { pkgs, ... }: {
+  flake.homeModules."feat/gaming/discord" = {pkgs, ...}: {
     home.packages = with pkgs; [
       discord
     ];
@@ -21,4 +21,3 @@ Exposes:
     };
   };
 }
-

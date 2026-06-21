@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/greeter/tuigreet":
 */
 {
-  flake.nixosModules."feat/greeter/tuigreet" = { pkgs, ... }: {
+  flake.nixosModules."feat/greeter/tuigreet" = {pkgs, ...}: {
     features.greeter.command = "${pkgs.tuigreet}/bin/tuigreet --time";
   };
 }

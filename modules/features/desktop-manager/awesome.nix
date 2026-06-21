@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/desktop-manager/awesome":
 */
 {
-  flake.nixosModules."feat/desktop-manager/awesome" = { pkgs, ... }: {
+  flake.nixosModules."feat/desktop-manager/awesome" = {pkgs, ...}: {
     services.displayManager = {
       defaultSession = "none+awesome";
     };

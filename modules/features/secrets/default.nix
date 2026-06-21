@@ -9,7 +9,7 @@ Exposes:
   - Enables GNOME Keyring service
   - Configures PAM integration for login and greetd.
 */
-{ self, ... }: {
+{self, ...}: {
   flake.nixosModules."feat/secrets" = {
     config = {
       services.gnome.gnome-keyring.enable = true;

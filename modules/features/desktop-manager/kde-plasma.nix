@@ -9,8 +9,8 @@ Exposes:
   - Enables KDE Plasma 6 desktop manager
   - Configures X11/Wayland windowing system.
 */
-{ inputs, ... }: {
-  flake.homeModules."feat/desktop-manager/kde-plasma" = { pkgs, ... }: {
+{inputs, ...}: {
+  flake.homeModules."feat/desktop-manager/kde-plasma" = {pkgs, ...}: {
     imports = [
       inputs.plasma-manager.homeModules.plasma-manager
     ];

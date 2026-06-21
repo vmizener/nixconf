@@ -1,14 +1,16 @@
-{ self, inputs, ... }:
-let
-  hostname = "baohaus";
-in
 {
+  self,
+  inputs,
+  ...
+}: let
+  hostname = "baohaus";
+in {
   flake.nixosConfigurations.${hostname} = inputs.nixpkgs.lib.nixosSystem {
     modules = [
       self.nixosModules."host/${hostname}"
     ];
   };
-  flake.nixosModules."host/${hostname}" = { ... }: {
+  flake.nixosModules."host/${hostname}" = {...}: {
     imports = [
       self.nixosModules."core"
       self.nixosModules."hardware/${hostname}"
@@ -25,7 +27,6 @@ in
       self.nixosModules."feat/secrets"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/vm"
-
     ];
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";
@@ -35,7 +36,7 @@ in
         enable = true;
         device = "nodev"; # "nodev" is used for UEFI
         efiSupport = true;
-        memtest86.enable = true;  # Enable Memtest86+
+        memtest86.enable = true; # Enable Memtest86+
       };
       efi.canTouchEfiVariables = true;
     };

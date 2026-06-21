@@ -13,7 +13,7 @@ Exposes:
   - Installs user CLI tools (deduplicated against NixOS systemPackages)
   - Configures udiskie automounting.
 */
-{ inputs, ... }: let
+{inputs, ...}: let
   systoolsPackages = pkgs:
     with pkgs; [
       bat
@@ -56,9 +56,11 @@ in {
     imports = [
       inputs.nix-index-database.homeModules.nix-index
     ];
-    home.packages = (systoolsPackages pkgs) ++ (with pkgs; [
-      comma
-    ]);
+    home.packages =
+      (systoolsPackages pkgs)
+      ++ (with pkgs; [
+        comma
+      ]);
     programs.nix-index.enable = true;
     services = {
       udiskie = {

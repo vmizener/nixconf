@@ -8,7 +8,7 @@ Exposes:
 - flake.homeModules."feat/browser/firefox":
 */
 {
-  flake.homeModules."feat/browser/firefox" = { config, ... }: {
+  flake.homeModules."feat/browser/firefox" = {config, ...}: {
     programs.firefox = {
       enable = true;
       configPath = "${config.xdg.configHome}/mozilla/firefox";

@@ -8,7 +8,12 @@ Exposes:
 - flake.homeModules."feat/terminal/emulator/foot":
 */
 {
-  flake.homeModules."feat/terminal/emulator/foot" = { config, lib, pkgs, ... }: {
+  flake.homeModules."feat/terminal/emulator/foot" = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       nerd-fonts.fira-code
@@ -31,7 +36,10 @@ Exposes:
           font-decrease = "Control+Shift+minus Control+KP_Subtract";
           pipe-scrollback = let
             hasNvim = lib.elem pkgs.neovim config.home.packages;
-            editor = if hasNvim ? nvim then "nvim" else "vi";
+            editor =
+              if hasNvim ? nvim
+              then "nvim"
+              else "vi";
           in [
             "[sh -c \"f=$(mktemp) && cat - > $f; foot ${editor} $f -u NONE -c 'set nonumber nolist showtabline=0 foldcolumn=0 virtualedit=block' -c 'autocmd VimEnter * normal G' -c 'map q :qa!<CR>' -c 'map i <NOP>' -c 'map I <NOP>' -c 'map a <NOP>' -c 'map A <NOP>' -c 'set clipboard+=unnamedplus'; rm $f\"] Control+Shift+f"
             "[sh -c \"cat - | foot fzf --no-sort --no-mouse -i --tac\"] Control+Shift+slash"

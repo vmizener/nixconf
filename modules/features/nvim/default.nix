@@ -9,7 +9,7 @@ Exposes:
   - Enables Neovim
 */
 {
-  flake.homeModules."feat/nvim" = { pkgs, ... }: {
+  flake.homeModules."feat/nvim" = {pkgs, ...}: {
     programs.neovim = {
       enable = true;
       extraPackages = with pkgs; [

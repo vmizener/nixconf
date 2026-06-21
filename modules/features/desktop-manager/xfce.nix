@@ -10,7 +10,7 @@ Exposes:
   - Configures X11 server.
 */
 {
-  flake.homeModules."feat/desktop-manager/xfce" = { pkgs, ... }: {
+  flake.homeModules."feat/desktop-manager/xfce" = {pkgs, ...}: {
     home.packages = with pkgs; [
       kando
     ];

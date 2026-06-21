@@ -8,7 +8,7 @@ Exposes:
 - flake.homeModules."feat/gaming/streamlink":
 */
 {
-  flake.homeModules."feat/gaming/streamlink" = { pkgs, ... }: {
+  flake.homeModules."feat/gaming/streamlink" = {pkgs, ...}: {
     home.packages = with pkgs; [
       mpv
       streamlink
@@ -16,4 +16,3 @@ Exposes:
     ];
   };
 }
-

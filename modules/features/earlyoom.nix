@@ -8,11 +8,11 @@ Exposes:
 - flake.nixosModules."feat/earlyoom":
 */
 {
-  flake.nixosModules."feat/earlyoom" = { lib, ... }: {
+  flake.nixosModules."feat/earlyoom" = {lib, ...}: {
     services.earlyoom = {
       enable = true;
 
-      freeMemThreshold = 10;    # Start monitoring when free memory is below 10%
+      freeMemThreshold = 10; # Start monitoring when free memory is below 10%
       freeMemKillThreshold = 5; # Kill processes when free memory is below 5%
 
       # Enable desktop notifications
@@ -35,5 +35,3 @@ Exposes:
     };
   };
 }
-
-
