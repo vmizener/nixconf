@@ -1,4 +1,6 @@
-config: lib: pkgs: {
+lib: pkgs: let
+  # isVm = config.virtualisation.qemu.guest.enable;
+in {
   environment = {
     DISPLAY = ":0";
     QT_QPA_PLATFORM = "wayland";
@@ -7,8 +9,8 @@ config: lib: pkgs: {
   };
   input.keyboard = {
     xkb.layout = "us";
-    mod-key = lib.mkIf config.features.vm.isVm "Alt";
-    mod-key-nested = lib.mkIf config.features.vm.isVm "Mod5";
+    # mod-key = lib.mkIf isVm "Alt";
+    # mod-key-nested = lib.mkIf isVm "Mod5";
   };
   spawn-at-startup = [
     "${lib.getExe pkgs.foot}"

@@ -1,4 +1,8 @@
-{lib, self, ...}: {
+{
+  lib,
+  self,
+  ...
+}: {
   # Automatically merge homeModules, similar to nixosModules
   options.flake.homeModules = lib.mkOption {
     type = lib.types.lazyAttrsOf lib.types.deferredModule;

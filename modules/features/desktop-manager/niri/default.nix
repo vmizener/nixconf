@@ -71,7 +71,7 @@ in
     };
   };
 
-  perSystem = { config, lib, pkgs, ... }: {
+  perSystem = { lib, pkgs, ... }: {
     packages.${package} = inputs.wrapper-modules.wrappers.niri.wrap {
       inherit pkgs;
       runtimeLibs = with pkgs; [
@@ -91,7 +91,7 @@ in
         udev
         vulkan-loader
       ];
-      settings = niriSettings config lib pkgs;
+      settings = niriSettings lib pkgs;
     };
   };
 }
