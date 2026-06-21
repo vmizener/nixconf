@@ -5,14 +5,14 @@ Enables the interactive Zsh shell environment with Powerlevel10k theme.
 
 Exposes:
 
-- flake.homeModules."feat/shell/zsh":
+- flake.homeModules."feat/terminal/shell/zsh":
   - Enables Zsh for the user.
 
-- flake.nixosModules."feat/shell/zsh":
+- flake.nixosModules."feat/terminal/shell/zsh":
   - Enables system-wide Zsh.
 */
 {
-  flake.homeModules."feat/shell/zsh" = { config, lib, pkgs, ... }: let
+  flake.homeModules."feat/terminal/shell/zsh" = { config, lib, pkgs, ... }: let
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
   in {
@@ -34,5 +34,5 @@ Exposes:
     };
   };
 
-  flake.nixosModules."feat/shell/zsh" = {};
+  flake.nixosModules."feat/terminal/shell/zsh" = {};
 }

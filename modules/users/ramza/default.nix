@@ -30,8 +30,8 @@ in {
           self.homeModules."feat/desktop-manager/xfce"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/streamlink"
-          self.homeModules."feat/shell/zsh"
           self.homeModules."feat/systools"
+          self.homeModules."feat/terminal/shell/zsh"
           self.homeModules."feat/nvim"
         ];
         home = {

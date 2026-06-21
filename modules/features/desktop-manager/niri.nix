@@ -14,50 +14,57 @@ Exposes:
 { self, inputs, ... }:
 let
   package = "local/niri";
+  localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}.${package} // {
+    cargoBuildNoDefaultFeatures = false;
+    cargoBuildFeatures = [];
+  };
+  niriSettings = lib: pkgs: {
+    environment = {
+      DISPLAY = ":0";
+      QT_QPA_PLATFORM = "wayland";
+      NIRI_NO_HARDWARE_CURSORS = "1";
+      WAYLAND_DISPLAY = "wayland-1";
+    };
+    input.keyboard = {
+      xkb.layout = "us";
+    };
+    spawn-at-startup = [
+      "${lib.getExe pkgs.foot}"
+    ];
+  };
 in
 {
-  flake.homeModules."feat/desktop-manager/niri" = { osConfig ? null, lib, pkgs, ... }: let
+  flake.homeModules."feat/desktop-manager/niri" = { config, lib, osConfig ? null, pkgs, ... }: let
     isNixOs = osConfig != null;
+    useFlake = if isNixOs then !osConfig.programs.niri.enable else true;
   in {
-    imports = [ inputs.niri.homeModules.niri ];
-    config = {
-      programs.niri = {
-        enable = true;
-        settings = {
-          environment = {
-            DISPLAY = ":0";
-            QT_QPA_PLATFORM = "wayland";
-            NIRI_NO_HARDWARE_CURSORS = "1";
-            WAYLAND_DISPLAY = "wayland-1";
-          };
-          input.keyboard = {
-            xkb.layout = "us";
-          };
-          spawn-at-startup = [
-            "${lib.getExe pkgs.foot}"
-          ];
+    imports = lib.optional useFlake inputs.niri.homeModules.niri;
+    config = lib.mkMerge [
+      (lib.optionalAttrs useFlake {
+        nixpkgs.overlays = [ inputs.niri.overlays.niri ];
+        programs.niri = {
+          enable = true;
+          package = config.lib.nixGL.wrap (localPkg pkgs);
         };
-      };
-      environment ={
-        sessionVariables.NIXOS_OZONE_WL = lib.mkIf isNixOs "1";
-        systemPackages = with pkgs; [ xwayland-satellite ];
-      };
-    };
+      })
+      {
+        home.packages = with pkgs; [
+          brightnessctl
+          xwayland-satellite
+        ];
+        home.sessionVariables.NIXOS_OZONE_WL = lib.mkIf isNixOs "1";
+        targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
+      }
+    ];
   };
 
-  flake.nixosModules."feat/desktop-manager/niri" = { pkgs, ... }: let
-    localPkg = self.packages.${pkgs.stdenv.hostPlatform.system}.${package} //{
-      cargoBuildNoDefaultFeatures = false;
-      cargoBuildFeatures = [];
-
-    };
-  in {
+  flake.nixosModules."feat/desktop-manager/niri" = { pkgs, ... }: {
     imports = [ inputs.niri.nixosModules.niri ];
     config = {
       nixpkgs.overlays = [ inputs.niri.overlays.niri ];
       programs.niri = {
         enable = true;
-        package = localPkg;
+        package = localPkg pkgs;
       };
       programs.uwsm.waylandCompositors = {
         enable = true;
@@ -97,20 +104,7 @@ in
         udev
         vulkan-loader
       ];
-      settings = {
-        environment = {
-          DISPLAY = ":0";
-          QT_QPA_PLATFORM = "wayland";
-          NIRI_NO_HARDWARE_CURSORS = "1";
-          WAYLAND_DISPLAY = "wayland-1";
-        };
-        input.keyboard = {
-          xkb.layout = "us";
-        };
-        spawn-at-startup = [
-          "${lib.getExe pkgs.foot}"
-        ];
-      };
+      settings = niriSettings lib pkgs;
     };
   };
 }

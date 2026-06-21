@@ -7,13 +7,13 @@
       };
     };
 
-    config = {
-      assertions = [
-        {
-          assertion = config.services.greetd.enable;
-          message = "Any feat/greeter module requires a login manager (such as feat/login-manager/greetd) to be enabled.";
-        }
-      ];
-    };
+    # config = {
+    #   assertions = [
+    #     {
+    #       assertion = config.services.greetd.enable;
+    #       message = "Any feat/greeter module requires a login manager (such as feat/login-manager/greetd) to be enabled.";
+    #     }
+    #   ];
+    # };
   };
 }

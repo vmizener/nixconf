@@ -21,6 +21,10 @@
 
     # Feature Flakes
     awww.url = "git+https://codeberg.org/LGFae/awww";
+    helium = {
+      url = "github:schembriaiden/helium-browser-nix-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     niri.url = "github:sodiboo/niri-flake";
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
