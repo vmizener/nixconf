@@ -9,7 +9,11 @@ Exposes:
   - Enables Neovim
 */
 {
-  flake.homeModules."feat/nvim" = {pkgs, ...}: {
+  flake.homeModules."feat/nvim" = {
+    lib,
+    pkgs,
+    ...
+  }: {
     programs.neovim = {
       enable = true;
       extraPackages = with pkgs; [
@@ -23,5 +27,6 @@ Exposes:
       withPython3 = true;
       withRuby = false;
     };
+    home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
   };
 }

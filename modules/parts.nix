@@ -11,10 +11,16 @@
   };
 
   config = {
-    # Module to enable core modules and settings
-    flake.nixosModules."core" = {
+    # Modules to enable common modules and settings
+    flake.homeModules."common" = {
       imports = [
-        self.nixosModules."core/options"
+        self.homeModules."common/options"
+      ];
+      home.stateVersion = "25.11";
+    };
+    flake.nixosModules."common" = {
+      imports = [
+        self.nixosModules."common/options"
       ];
       nix.settings.experimental-features = [
         "flakes"

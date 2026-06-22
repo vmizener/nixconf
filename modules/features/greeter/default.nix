@@ -1,5 +1,5 @@
 {
-  flake.nixosModules."core/options" = {
+  flake.nixosModules."common/options" = {
     config,
     lib,
     ...

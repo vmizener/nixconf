@@ -41,11 +41,17 @@ in {
       backupFileExtension = "backup";
       users.${username} = {pkgs, ...}: {
         imports = [
+          self.homeModules."common"
           self.homeModules."feat/browser/helium"
           self.homeModules."feat/desktop-manager/niri"
+          self.homeModules."feat/desktop-shell/dms"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/streamlink"
           self.homeModules."feat/systools"
+          self.homeModules."feat/tools/awww"
+          self.homeModules."feat/tools/kando"
+          self.homeModules."feat/tools/kanshi"
+          self.homeModules."feat/tools/maestral"
           self.homeModules."feat/terminal/emulator/foot"
           self.homeModules."feat/terminal/shell/zsh"
           self.homeModules."feat/nvim"
@@ -54,10 +60,6 @@ in {
           packages = with pkgs; [
             animdl
           ];
-          sessionVariables = {
-            EDITOR = "nvim";
-          };
-          stateVersion = "25.11";
         };
       };
     };

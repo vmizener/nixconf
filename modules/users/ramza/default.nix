@@ -29,8 +29,8 @@ in {
       backupFileExtension = "backup";
       users.${username} = {pkgs, ...}: {
         imports = [
+          self.homeModules."common"
           self.homeModules."feat/browser/firefox"
-          # self.homeModules."feat/desktop-manager/kde-plasma"
           self.homeModules."feat/desktop-manager/xfce"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/streamlink"
@@ -42,10 +42,6 @@ in {
           packages = with pkgs; [
             animdl
           ];
-          sessionVariables = {
-            EDITOR = "nvim";
-          };
-          stateVersion = "25.11";
         };
       };
     };

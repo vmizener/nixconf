@@ -1,14 +1,14 @@
 /*
-  feat/earlyoom
+  feat/system/earlyoom
 
 Enables earlyoom, for automatic memory management.
 
 Exposes:
 
-- flake.nixosModules."feat/earlyoom":
+- flake.nixosModules."feat/system/earlyoom":
 */
 {
-  flake.nixosModules."feat/earlyoom" = {lib, ...}: {
+  flake.nixosModules."feat/system/earlyoom" = {lib, ...}: {
     services.earlyoom = {
       enable = true;
 

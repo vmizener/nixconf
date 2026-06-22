@@ -12,7 +12,7 @@ in {
   };
   flake.nixosModules."host/${hostname}" = {...}: {
     imports = [
-      self.nixosModules."core"
+      self.nixosModules."common"
       self.nixosModules."hardware/${hostname}"
 
       self.nixosModules."users/bao@baohaus"
@@ -20,11 +20,11 @@ in {
       self.nixosModules."feat/desktop-manager/niri"
       self.nixosModules."feat/display-manager/ly"
 
-      self.nixosModules."feat/audio"
-      self.nixosModules."feat/earlyoom"
       self.nixosModules."feat/gaming/steam"
       self.nixosModules."feat/gaming/sunshine"
       self.nixosModules."feat/secrets"
+      self.nixosModules."feat/system/audio"
+      self.nixosModules."feat/system/earlyoom"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/vm"
     ];

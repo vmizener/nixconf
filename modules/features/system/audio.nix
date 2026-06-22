@@ -1,14 +1,14 @@
 /*
-  feat/audio
+  feat/system/audio
 
 Provides audio support.
 
 Exposes:
 
-- flake.nixosModules."feat/audio":
+- flake.nixosModules."feat/system/audio":
 */
 {
-  flake.nixosModules."feat/audio" = {
+  flake.nixosModules."feat/system/audio" = {
     security.rtkit.enable = true;
     services = {
       pipewire = {

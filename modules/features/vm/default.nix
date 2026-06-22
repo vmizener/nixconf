@@ -13,7 +13,7 @@ Exposes:
   - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
 */
 {self, ...}: {
-  flake.nixosModules."core/options" = {lib, ...}: {
+  flake.nixosModules."common/options" = {lib, ...}: {
     options.features.vm = {
       isVm = lib.mkOption {
         type = lib.types.bool;

@@ -1,10 +1,11 @@
 osConfig: lib: pkgs: let
   # Checks
   isNixOs = osConfig != null;
-  isVm = isNixOs && osConfig.services.qemuGuest.enable;
+  isVm = isNixOs && osConfig.features.vm.isVm;
 
   # Commands
   cmdTerminal = "foot";
+  cmdKandoMenu = ''kando --menu "Main Menu"'';
   cmdAudioRaiseVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+";
   cmdAudioLowerVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-";
   cmdAudioMute = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
@@ -33,6 +34,7 @@ in {
       tap = toggle;
       natural-scroll = toggle;
     };
+    focus-follows-mouse = propSet {max-scroll-amount = "0%";};
     mod-key = lib.mkIf isVm "Alt";
     mod-key-nested = lib.mkIf isVm "Mod5";
   };
@@ -122,6 +124,13 @@ in {
         repeat = false;
       };
       content = {spawn-sh = "${cmdTerminal}";};
+    };
+    "Mod+M" = block {
+      props = {
+        hotkey-overlay-title = "Open Kando menu";
+        repeat = false;
+      };
+      content = {spawn-sh = "${cmdKandoMenu}";};
     };
     "XF86AudioRaiseVolume" = block {
       props = {allow-when-locked = true;};
@@ -264,4 +273,156 @@ in {
     "Ctrl+Alt+Delete" = {quit = toggle;};
     "Mod+Ctrl+Shift+P" = {power-off-monitors = toggle;};
   };
+  window-rules = [
+    {
+      matches = [
+        {
+          app-id = "^(|firefox|zen|zen-beta)#";
+          title = "^Picture.in.[Pp]icture$";
+        }
+      ];
+      default-floating-position = propSet {
+        x = 0;
+        y = 0;
+        relative-to = "top-right";
+      };
+      default-column-width = {proportion = 0.5;};
+      default-window-height = {proportion = 0.5;};
+      open-floating = true;
+      open-focused = false;
+    }
+    {
+      matches = [
+        {
+          is-focused = false;
+          is-floating = true;
+        }
+      ];
+      opacity = 0.6;
+    }
+    {
+      matches = [{app-id = "^mpv$";}];
+      open-floating = true;
+      open-fullscreen = true;
+    }
+    {
+      matches = [{title = "^Kando Menu$";}];
+      border = {off = toggle;};
+      focus-ring = {off = toggle;};
+      shadow = {off = toggle;};
+      default-floating-position = propSet {
+        x = 0;
+        y = 0;
+      };
+      open-floating = true;
+    }
+    {
+      matches = [
+        {
+          app-id = "google-chrome";
+          title = "^Meet -.*$";
+        }
+      ];
+      excludes = [
+        {
+          app-id = "google-chrome";
+          title = "^Meet -.*- Google Chrome$";
+        }
+      ];
+      default-floating-position = propSet {
+        x = 10;
+        y = 10;
+        relative-to = "top-right";
+      };
+      default-column-width = {proportion = 0.5;};
+      default-window-height = {proportion = 0.5;};
+      open-floating = true;
+      open-focused = false;
+    }
+    {
+      matches = [
+        {
+          app-id = "steam";
+          title = "^Steam$";
+        }
+      ];
+      open-on-workspace = "steam";
+      default-column-width = {proportion = 0.85;};
+      open-floating = false;
+    }
+    {
+      matches = [
+        {
+          app-id = "steam";
+          title = "^Friends List$";
+        }
+      ];
+      open-on-workspace = "steam";
+      default-column-width = {proportion = 0.15;};
+      open-floating = false;
+    }
+    {
+      matches = [
+        {
+          app-id = "steam";
+          title = "^notificationtoasts_\d+_desktop$";
+        }
+      ];
+      default-floating-position = propSet {
+        x = 10;
+        y = 50;
+        relative-to = "bottom-right";
+      };
+      open-floating = true;
+      open-focused = false;
+    }
+    {
+      matches = [
+        {
+          app-id = "dota2";
+          title = "^Dota 2$";
+        }
+      ];
+      open-maximized = true;
+      open-fullscreen = true;
+    }
+    {
+      matches = [{app-id = "steam_app_686060";}]; # Mewgenics
+      open-fullscreen = true;
+      open-floating = false;
+    }
+    {
+      matches = [{app-id = "^Slay the Spire 2$";}];
+      open-floating = false;
+    }
+    {
+      matches = [{app-id = "qemu";}];
+      open-maximized = true;
+    }
+    {
+      matches = [{app-id = "^discord$";}];
+      open-maximized = true;
+    }
+    {
+      matches = [{app-id = "^foot$";}];
+      clip-to-geometry = true;
+      background-effect = {
+        blur = true;
+        xray = false;
+      };
+    }
+  ];
+  layer-rules = [
+    {
+      matches = [{namespace = "^awww-daemon$";}];
+      place-within-backdrop = true;
+    }
+    {
+      matches = [{namespace = "^dms:bar$";}];
+      background-effect = {
+        blur = true;
+        xray = false;
+      };
+    }
+  ];
 }
