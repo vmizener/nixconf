@@ -17,7 +17,11 @@ Exposes:
       };
     };
   };
-  flake.nixosModules."feat/gaming/steam" = {config, pkgs, ...}: {
+  flake.nixosModules."feat/gaming/steam" = {
+    config,
+    pkgs,
+    ...
+  }: {
     programs.steam = {
       enable = true;
       extest.enable = config.features.steam.enableExtest;
