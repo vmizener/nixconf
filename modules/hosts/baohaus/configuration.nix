@@ -28,6 +28,8 @@ in {
       self.nixosModules."feat/systools"
       self.nixosModules."feat/vm"
     ];
+    features.steam.enableExtest = true;
+
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";
 

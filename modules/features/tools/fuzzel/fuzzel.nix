@@ -1,7 +1,7 @@
 /*
   feat/tools/fuzzel
 
-Enables the Fuzzel launcher tool.
+Enables the Fuzzel Wayland app launcher tool.
 
 Exposes:
 
