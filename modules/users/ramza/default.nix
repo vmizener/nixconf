@@ -35,6 +35,9 @@ in {
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/streamlink"
           self.homeModules."feat/systools"
+          self.homeModules."feat/tools/kando"
+          self.homeModules."feat/tools/maestral"
+          self.homeModules."feat/terminal/emulator/foot"
           self.homeModules."feat/terminal/shell/zsh"
           self.homeModules."feat/nvim"
         ];

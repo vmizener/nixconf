@@ -26,6 +26,7 @@ in {
       self.nixosModules."feat/gaming/sunshine"
       self.nixosModules."feat/secrets"
       self.nixosModules."feat/system/audio"
+      self.nixosModules."feat/system/earlyoom"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/vm"
     ];
