@@ -8,13 +8,12 @@ Exposes:
 - flake.homeModules."feat/tools/kando":
 */
 {
-  flake.homeModules."common/options" = {
-  };
   flake.homeModules."feat/tools/kando" = {
     lib,
     pkgs,
     ...
   }: {
+    features.tools = ["kando"];
     home.packages = with pkgs; [kando];
     systemd.user.services.kando-launcher = {
       Install = {

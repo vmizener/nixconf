@@ -8,12 +8,11 @@ Exposes:
 - flake.homeModules."feat/tools/awww":
 */
 {inputs, ...}: {
-  flake.homeModules."common/options" = {
-  };
   flake.homeModules."feat/tools/awww" = {pkgs, ...}: let
     img = ../../../assets/media/girl_leaving_apartment.jpg;
     pkg = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
   in {
+    features.tools = ["awww"];
     home.packages = [pkg];
     systemd.user.services.awww = {
       Install = {

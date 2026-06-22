@@ -13,6 +13,7 @@ Exposes:
     pkgs,
     ...
   }: {
+    features.tools = ["maestral"];
     home.packages = with pkgs; [
       maestral
       maestral-gui

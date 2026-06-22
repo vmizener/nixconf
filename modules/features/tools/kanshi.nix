@@ -8,8 +8,6 @@ Exposes:
 - flake.homeModules."feat/tools/kanshi":
 */
 {
-  flake.homeModules."common/options" = {
-  };
   flake.homeModules."feat/tools/kanshi" = {
     config,
     pkgs,
@@ -20,6 +18,7 @@ Exposes:
     #   ${flakepath}/scripts/run theme::reset
     # ''));
   in {
+    features.tools = ["kanshi"];
     home.packages = with pkgs; [kanshi];
     services.kanshi = {
       enable = true;

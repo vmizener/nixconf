@@ -33,7 +33,7 @@ Exposes:
         udev
         vulkan-loader
       ];
-      settings = niriSettings osConfig lib pkgs;
+      settings = niriSettings {inherit osConfig lib pkgs;};
     }
     // {
       cargoBuildNoDefaultFeatures = false;
@@ -48,15 +48,20 @@ in {
     ...
   }: let
     isNixOs = osConfig != null;
-    useFlake =
-      if isNixOs
-      then !osConfig.programs.niri.enable
-      else true;
+    osNiriEnabled = isNixOs && osConfig.programs.niri.enable;
+    useFlakeNiri = !isNixOs || (isNixOs && !osNiriEnabled);
     pkg = niriPackage osConfig lib pkgs;
+    niriHmConfig = inputs.wrapper-modules.wrappers.niri.wrap {
+      inherit pkgs;
+      settings = niriSettings {
+        inherit osConfig lib pkgs;
+        hmConfig = config;
+      };
+    };
   in {
-    imports = lib.optional useFlake inputs.niri.homeModules.niri;
+    imports = lib.optional useFlakeNiri inputs.niri.homeModules.niri;
     config = lib.mkMerge [
-      (lib.optionalAttrs useFlake {
+      (lib.optionalAttrs useFlakeNiri {
         nixpkgs.overlays = [inputs.niri.overlays.niri];
         programs.niri = {
           enable = true;
@@ -64,6 +69,7 @@ in {
         };
       })
       {
+        programs.niri.config = niriHmConfig.generatedConfig;
         home.packages = with pkgs; [
           brightnessctl
           xwayland-satellite
