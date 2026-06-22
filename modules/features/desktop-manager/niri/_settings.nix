@@ -5,6 +5,7 @@ osConfig: lib: pkgs: let
 
   # Commands
   cmdTerminal = "foot";
+  cmdLauncher = "dms ipc spotlight open";
   cmdKandoMenu = ''kando --menu "Main Menu"'';
   cmdAudioRaiseVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+";
   cmdAudioLowerVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-";
@@ -98,7 +99,7 @@ in {
   prefer-no-csd = toggle;
   screenshot-path = "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png";
   xwayland-satellite = {
-    path = "${pkgs.xwayland-satellite}";
+    path = "${lib.getExe pkgs.xwayland-satellite}";
   };
   blur = {
     passes = 2;
@@ -125,9 +126,16 @@ in {
       };
       content = {spawn-sh = "${cmdTerminal}";};
     };
+    "Mod+D" = block {
+      props = {
+        hotkey-overlay-title = "Open Launcher";
+        repeat = false;
+      };
+      content = {spawn-sh = "${cmdLauncher}";};
+    };
     "Mod+M" = block {
       props = {
-        hotkey-overlay-title = "Open Kando menu";
+        hotkey-overlay-title = "Open Kando Menu";
         repeat = false;
       };
       content = {spawn-sh = "${cmdKandoMenu}";};
