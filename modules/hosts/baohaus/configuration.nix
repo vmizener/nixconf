@@ -10,7 +10,7 @@ in {
       self.nixosModules."host/${hostname}"
     ];
   };
-  flake.nixosModules."host/${hostname}" = {...}: {
+  flake.nixosModules."host/${hostname}" = {pkgs, ...}: {
     imports = [
       self.nixosModules."common"
       self.nixosModules."hardware/${hostname}"
@@ -33,14 +33,14 @@ in {
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";
 
-    boot.loader = {
-      grub = {
+    boot = {
+      loader.grub = {
         enable = true;
-        device = "nodev"; # "nodev" is used for UEFI
-        efiSupport = true;
+        device = "/dev/sda";
+        useOSProber = true;
         memtest86.enable = true; # Enable Memtest86+
       };
-      efi.canTouchEfiVariables = true;
+      kernelPackages = pkgs.linuxPackages_latest;
     };
     hardware = {
       graphics = {
