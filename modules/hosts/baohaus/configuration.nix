@@ -26,6 +26,7 @@ in {
       self.nixosModules."feat/system/audio"
       self.nixosModules."feat/system/earlyoom"
       self.nixosModules."feat/systools"
+      self.nixosModules."feat/tools/ckb-next"
       self.nixosModules."feat/vm"
     ];
     features.steam.enableExtest = true;
