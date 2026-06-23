@@ -9,7 +9,7 @@ Exposes:
 */
 {inputs, ...}: {
   flake.homeModules."feat/tools/awww" = {pkgs, ...}: let
-    img = ../../../assets/media/girl_leaving_apartment.jpg;
+    img = ../../../assets/media/girl_leaving_apartment--zy1xjw-wallhaven.jpg;
     pkg = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
   in {
     features.tools = ["awww"];
@@ -21,7 +21,6 @@ Exposes:
       Unit = {
         Description = "AWWW daemon";
         After = ["graphical-session.target"];
-        WantedBy = ["graphical-session.target"];
       };
       Service = {
         Type = "simple";
