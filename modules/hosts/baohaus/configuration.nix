@@ -25,6 +25,7 @@ in {
       self.nixosModules."feat/secrets"
       self.nixosModules."feat/system/audio"
       self.nixosModules."feat/system/earlyoom"
+      self.nixosModules."feat/system/theme"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/tools/ckb-next"
       self.nixosModules."feat/vm"
