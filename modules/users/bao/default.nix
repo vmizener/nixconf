@@ -50,6 +50,7 @@ in {
           self.homeModules."feat/system/theme"
           self.homeModules."feat/systools"
           self.homeModules."feat/tools/awww"
+          self.homeModules."feat/tools/git"
           self.homeModules."feat/tools/kando"
           self.homeModules."feat/tools/kanshi"
           self.homeModules."feat/tools/maestral"
