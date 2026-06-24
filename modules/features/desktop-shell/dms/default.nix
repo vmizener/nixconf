@@ -1,5 +1,5 @@
 /*
-  feat/desktop-shell/dms
+ feat/desktop-shell/dms
 
 Enables the Dank Material Shell Wayland desktop shell.
 
@@ -32,11 +32,7 @@ Exposes:
       enableAudioWavelength = true;
       enableCalendarEvents = true;
       enableClipboardPaste = true;
-      settings = {
-        currentThemeName = "blue";
-        currentThemeCategory = "generic";
-        screenPreferences.wallpaper = [];
-      };
+      settings = builtins.fromJSON (builtins.readFile ./_settings.json);
     };
     programs.dsearch.enable = true;
   };
