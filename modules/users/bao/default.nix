@@ -54,9 +54,9 @@ in {
           self.homeModules."feat/tools/kando"
           self.homeModules."feat/tools/kanshi"
           self.homeModules."feat/tools/maestral"
+          self.homeModules."feat/tools/nvim"
           self.homeModules."feat/terminal/emulator/foot"
           self.homeModules."feat/terminal/shell/zsh"
-          self.homeModules."feat/nvim"
         ];
         home = {
           packages = with pkgs; [

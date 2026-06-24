@@ -1,15 +1,15 @@
 /*
-  feat/nvim
+  feat/tools/nvim
 
 Provides Neovim.
 
 Exposes:
 
-- flake.homeModules."feat/nvim":
+- flake.homeModules."feat/tools/nvim":
   - Enables Neovim
 */
 {
-  flake.homeModules."feat/nvim" = {
+  flake.homeModules."feat/tools/nvim" = {
     lib,
     pkgs,
     ...
