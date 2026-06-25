@@ -15,7 +15,7 @@ Exposes:
   }: {
     features.tools = ["kando"];
     home.packages = with pkgs; [kando];
-    systemd.user.services.kando-launcher = {
+    systemd.user.services.kando = {
       Install = {
         WantedBy = ["graphical-session.target"];
       };
@@ -27,8 +27,11 @@ Exposes:
       Service = {
         Type = "simple";
         ExecStart = "${lib.getExe pkgs.kando}";
+        ExecStop = "kill -TERM $MAINPID";
+        ExecStopPost = "kill -KILL $MAINPID";
+        TimeoutStopSec = "1";
         Restart = "on-failure";
-        RestartSec = "1";
+        RestartSec = "5";
       };
     };
   };
