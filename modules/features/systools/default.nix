@@ -40,6 +40,7 @@ Exposes:
       pstree
       ripgrep
       smartmontools
+      st
       timg
       tmux
       tree

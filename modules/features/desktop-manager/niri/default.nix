@@ -11,35 +11,7 @@ Exposes:
 - flake.nixosModules."feat/desktop-manager/niri":
   - Enables Niri wayland session and UWSM integration.
 */
-{inputs, ...}: let
-  niriSettings = import ./_settings.nix;
-  niriPackage = osConfig: lib: pkgs:
-    inputs.wrapper-modules.wrappers.niri.wrap {
-      inherit pkgs;
-      runtimeLibs = with pkgs; [
-        libdrm
-        libGL
-        libinput
-        libX11
-        libxcursor
-        libXext
-        libXfixes
-        libXi
-        libxkbcommon
-        libXrandr
-        libXrender
-        mesa
-        seatd
-        udev
-        vulkan-loader
-      ];
-      settings = niriSettings {inherit osConfig lib pkgs;};
-    }
-    // {
-      cargoBuildNoDefaultFeatures = false;
-      cargoBuildFeatures = [];
-    };
-in {
+{inputs, ...}: {
   flake.homeModules."feat/desktop-manager/niri" = {
     config,
     lib,
@@ -50,14 +22,6 @@ in {
     isNixOs = osConfig != null;
     osNiriEnabled = isNixOs && osConfig.programs.niri.enable;
     useFlakeNiri = !isNixOs || (isNixOs && !osNiriEnabled);
-    pkg = niriPackage osConfig lib pkgs;
-    niriHmConfig = inputs.wrapper-modules.wrappers.niri.wrap {
-      inherit pkgs;
-      settings = niriSettings {
-        inherit osConfig lib pkgs;
-        hmConfig = config;
-      };
-    };
   in {
     imports = lib.optional useFlakeNiri inputs.niri.homeModules.niri;
     config = lib.mkMerge [
@@ -65,11 +29,21 @@ in {
         nixpkgs.overlays = [inputs.niri.overlays.niri];
         programs.niri = {
           enable = true;
-          package = config.lib.nixGL.wrap pkg;
+          package = config.lib.nixGL.wrap pkgs.niri-unstable;
         };
       })
       {
-        programs.niri.config = niriHmConfig.generatedConfig;
+        programs.niri.config = let
+          toKdl = inputs.wrapper-modules.lib.toKdl;
+          rawSettings = import ./_settings.nix {
+            inherit osConfig lib pkgs;
+            hmConfig = config;
+          };
+        in
+          toKdl (_: {
+            version = 1;
+            content = rawSettings;
+          });
         home.packages = with pkgs; [
           brightnessctl
           xwayland-satellite
@@ -80,13 +54,8 @@ in {
     ];
   };
 
-  flake.nixosModules."feat/desktop-manager/niri" = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: let
-    pkg = niriPackage config lib pkgs;
+  flake.nixosModules."feat/desktop-manager/niri" = {pkgs, ...}: let
+    pkg = pkgs.niri-unstable;
   in {
     imports = [inputs.niri.nixosModules.niri];
     config = {

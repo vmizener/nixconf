@@ -28,7 +28,7 @@ Exposes:
         ExecStartPost = "${pkg}/bin/awww img ${img}";
         ExecStop = "${pkg}/bin/awww kill";
         Restart = "on-failure";
-        RestartSec = "1";
+        RestartSec = "3";
       };
     };
   };
