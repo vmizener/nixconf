@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/system/audio":
 */
 {
-  flake.nixosModules."feat/system/audio" = {
+  flake.nixosModules."feat/system/audio" = {...}: {
     security.rtkit.enable = true;
     services = {
       pipewire = {

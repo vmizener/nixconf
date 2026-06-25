@@ -3,7 +3,7 @@
   self,
   ...
 }: {
-  flake.homeModules."common" = {
+  flake.homeModules."common" = {...}: {
     imports = [
       self.homeModules."common/options"
     ];
@@ -17,7 +17,7 @@
     };
   };
 
-  flake.nixosModules."common" = {
+  flake.nixosModules."common" = {...}: {
     imports = [
       self.nixosModules."common/options"
     ];

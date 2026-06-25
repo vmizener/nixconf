@@ -10,7 +10,7 @@ Exposes:
   - Configures PAM integration for login and greetd.
 */
 {self, ...}: {
-  flake.nixosModules."feat/secrets" = {
+  flake.nixosModules."feat/secrets" = {...}: {
     config = {
       services.gnome.gnome-keyring.enable = true;
       security.pam.services = {

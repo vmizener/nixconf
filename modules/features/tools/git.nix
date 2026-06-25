@@ -11,7 +11,7 @@ Exposes:
 - flake.homeModules."feat/tools/git":
 */
 {
-  flake.homeModules."feat/tools/git" = {
+  flake.homeModules."feat/tools/git" = {...}: {
     features.tools = ["git"];
     programs.git = {
       enable = true;

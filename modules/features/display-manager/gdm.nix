@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/display-manager/gdm":
 */
 {
-  flake.nixosModules."feat/display-manager/gdm" = {
+  flake.nixosModules."feat/display-manager/gdm" = {...}: {
     services.displayManager.gdm.enable = true;
   };
 }

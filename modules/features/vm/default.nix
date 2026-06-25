@@ -27,7 +27,7 @@ Exposes:
       };
     };
   };
-  flake.nixosModules."feat/vm" = {
+  flake.nixosModules."feat/vm" = {...}: {
     config = {
       virtualisation.vmVariant = {
         features.vm.isVm = true;

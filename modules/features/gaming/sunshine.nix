@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/gaming/sunshine":
 */
 {
-  flake.nixosModules."feat/gaming/sunshine" = {
+  flake.nixosModules."feat/gaming/sunshine" = {...}: {
     services = {
       sunshine = {
         enable = true;

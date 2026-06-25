@@ -6,7 +6,7 @@
   username = "ramza";
 in {
   # @Igros (Nixos)
-  flake.nixosModules."users/${username}@igros" = {
+  flake.nixosModules."users/${username}@igros" = {...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
     ];

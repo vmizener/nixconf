@@ -37,6 +37,7 @@ Exposes:
     home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
     xdg.configFile."nvim".source = let
       cfgPath = config.flakePath + "/modules/features/tools/nvim/config";
-    in config.lib.file.mkOutOfStoreSymlink cfgPath;
+    in
+      config.lib.file.mkOutOfStoreSymlink cfgPath;
   };
 }

@@ -10,7 +10,7 @@ Exposes:
   - Configures X11 windowing system.
 */
 {
-  flake.nixosModules."feat/desktop-manager/gnome" = {
+  flake.nixosModules."feat/desktop-manager/gnome" = {...}: {
     services = {
       desktopManager.gnome.enable = true;
       xserver = {

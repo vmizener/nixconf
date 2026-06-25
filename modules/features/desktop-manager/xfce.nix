@@ -21,7 +21,7 @@ Exposes:
       };
     };
   };
-  flake.nixosModules."feat/desktop-manager/xfce" = {
+  flake.nixosModules."feat/desktop-manager/xfce" = {...}: {
     services.xserver = {
       enable = true;
       desktopManager = {

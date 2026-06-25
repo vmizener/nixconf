@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/display-manager/ly":
 */
 {
-  flake.nixosModules."feat/display-manager/ly" = {
+  flake.nixosModules."feat/display-manager/ly" = {...}: {
     services.displayManager.ly.enable = true;
   };
 }

@@ -12,7 +12,7 @@
   config = {
     ################
     # Home-Manager common options
-    flake.homeModules."common/options" = {
+    flake.homeModules."common/options" = {...}: {
       options.flakePath = lib.mkOption {
         type = lib.types.path;
         apply = builtins.toString;

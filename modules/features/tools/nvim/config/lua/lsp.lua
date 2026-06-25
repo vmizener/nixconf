@@ -74,9 +74,9 @@ M.CONFIGS = {
           local is_nixos = vim.uv.fs_stat(config_nixos) ~= nil
 
           if vim.uv.fs_stat(config_nixos .. "/flake.nix") then
-            flake_path = config_nixos
+            flake_path = vim.uv.fs_realpath(config_nixos)
           elseif vim.uv.fs_stat(config_home_manager .. "/flake.nix") then
-            flake_path = config_home_manager
+            flake_path = vim.uv.fs_realpath(config_home_manager)
           else
             vim.notify("Neither /etc/nixos/flake.nix nor ~/.config/home-manager/flake.nix found.", vim.log.levels.WARN)
           end
@@ -85,8 +85,8 @@ M.CONFIGS = {
             return {}
           end
 
-          local flake_expr = '(builtins.getFlake("' .. flake_path .. '"))'
           if is_nixos then
+            local flake_expr = '(builtins.getFlake("' .. flake_path .. '"))'
             return {
               nixos = {
                 expr = table.concat({
@@ -106,14 +106,24 @@ M.CONFIGS = {
               },
             }
           else
+            local nix_expr = table.concat({
+              "let",
+              "  lib = (import <nixpkgs> {}).lib;",
+              '  flake = builtins.getFlake "' .. flake_path .. '";',
+              "  config = flake.homeConfigurations or {};",
+              "  configName = lib.lists.findFirst",
+              "    (name: builtins.hasAttr name config)",
+              '    ""',
+              "    [",
+              '      "' .. username .. "@" .. hostname .. '"',
+              '      "' .. username .. '"',
+              "    ];",
+              "in",
+              "  config.${configName}.options or {}",
+            }, "\n")
             return {
               home_manager = {
-                expr = table.concat({
-                  flake_expr,
-                  "homeConfigurations",
-                  '"' .. username .. "@" .. hostname .. '"',
-                  "options",
-                }, "."),
+                expr = nix_expr,
               },
             }
           end

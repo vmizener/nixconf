@@ -1,5 +1,5 @@
 {lib, ...}: {
-  flake.homeModules."common/options" = {
+  flake.homeModules."common/options" = {...}: {
     options.features.terminal = {
       emulators = lib.mkOption {
         type = lib.types.listOf lib.types.str;

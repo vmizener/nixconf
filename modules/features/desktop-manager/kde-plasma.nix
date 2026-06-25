@@ -44,7 +44,7 @@ Exposes:
     };
   };
 
-  flake.nixosModules."feat/desktop-manager/kde-plasma" = {
+  flake.nixosModules."feat/desktop-manager/kde-plasma" = {...}: {
     services = {
       desktopManager.plasma6.enable = true;
       xserver = {
