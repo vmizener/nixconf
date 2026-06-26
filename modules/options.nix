@@ -15,22 +15,18 @@
     flake.homeModules."common/options" = {config, ...}: {
       options.flakePath = lib.mkOption {
         type = lib.types.path;
-        apply = builtins.toString;
         default = let
-          path = (
-            lib.lists.findFirst
-            (path: builtins.pathExists path)
-            (lib.warn "`flakePath` option unset; symlink features may break" null)
-            [
-              "/etc/nixos"
-              "${config.xdg.configHome}/home-manager"
-            ]
-          );
+          candidates = [
+            "/etc/nixos"
+            "${config.xdg.configHome}/home-manager"
+          ];
+          path = lib.lists.findFirst (p: builtins.pathExists p) null candidates;
+          fallback = ./..;
         in
           if path == null
-          then ./..
+          then fallback
           else builtins.toPath path;
-        description = "Absolute path to the Nix flake.  Used by some home-manager features to symlink configs.";
+        description = "Absolute path to this Nix flake.  Used by some home-manager features to symlink configs.";
       };
     };
   };
