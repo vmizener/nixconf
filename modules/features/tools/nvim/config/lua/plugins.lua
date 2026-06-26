@@ -27,10 +27,10 @@ M.configs = {
   -- }}}
   -- LSP Symbols {{{
   {
-    "simrat39/symbols-outline.nvim",
+    "hedyhli/outline.nvim",
     priority = 0,
     config = function()
-      require("symbols-outline").setup()
+      require("outline").setup()
     end,
   },
   -- }}}
@@ -113,16 +113,6 @@ M.configs = {
             return " " .. icon .. count
           end,
         },
-      })
-    end,
-  },
-  -- }}}
-  -- Colorizer automatically highlights color codes {{{
-  {
-    "norcalli/nvim-colorizer.lua",
-    config = function()
-      require("colorizer").setup(nil, {
-        --names = false,
       })
     end,
   },
@@ -252,6 +242,16 @@ M.configs = {
     end,
   },
   -- }}}
+  -- Nvim-Highlight-Colors automatically highlights color codes {{{
+  {
+    "brenoprata10/nvim-highlight-colors",
+    config = function()
+      -- Ensure termguicolors is enabled if not already
+      vim.opt.termguicolors = true
+      require("nvim-highlight-colors").setup({})
+    end,
+  },
+  -- }}}
   -- Nvim-Tree provides a lua-based file-explorer {{{
   {
     "nvim-tree/nvim-tree.lua",
@@ -297,14 +297,6 @@ M.configs = {
   -- Peekaboo displays a preview window of register contents {{{
   "junegunn/vim-peekaboo",
   -- }}}
-  -- Project provides "superior project management", but primarily cd'ing to a project root {{{
-  {
-    "ahmedkhalf/project.nvim",
-    config = function()
-      require("project_nvim").setup()
-    end,
-  },
-  -- }}}
   -- Pounce is a motion plugin akin to Hop/Sneak/Lightspeed with fuzzy matching {{{
   {
     "rlane/pounce.nvim",
@@ -325,6 +317,7 @@ M.configs = {
       "nvim-lua/popup.nvim",
       "nvim-lua/plenary.nvim",
       "nvim-telescope/telescope-ui-select.nvim",
+      "nvim-telescope/telescope-project.nvim",
     },
     priority = 10,
     config = function()
@@ -353,6 +346,7 @@ M.configs = {
         },
       })
       require("telescope").load_extension("ui-select")
+      require("telescope").load_extension("project")
     end,
   },
   -- }}}
