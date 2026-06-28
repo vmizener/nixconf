@@ -27,9 +27,6 @@ Exposes:
       Service = {
         Type = "simple";
         ExecStart = "${lib.getExe pkgs.kando}";
-        ExecStop = "kill -TERM $MAINPID";
-        ExecStopPost = "kill -KILL $MAINPID";
-        TimeoutStopSec = "1";
         Restart = "on-failure";
         RestartSec = "5";
       };

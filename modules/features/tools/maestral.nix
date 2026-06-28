@@ -47,9 +47,6 @@ Exposes:
       Service = {
         Type = "simple";
         ExecStart = "${pkgs.maestral-gui}/bin/maestral_qt";
-        ExecStop = "kill -TERM $MAINPID";
-        ExecStopPost = "kill -KILL $MAINPID";
-        TimeoutStopSec = "1";
         Restart = "on-failure";
         RestartSec = "5";
       };
