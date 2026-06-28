@@ -82,6 +82,18 @@ Exposes:
           ]
         )
         ++ (
+          if builtins.elem pkgs.tmux homePkgs
+          then [
+            "alias tl='tmux list-sessions'"
+            "alias td='tmux detach'"
+            "alias ts='tmux new -s'"
+            "alias tt='tmux attach -t'"
+            "alias tR='tmux attach'"
+          ]
+          else [
+          ]
+        )
+        ++ (
           if builtins.elem pkgs.comma homePkgs
           then [
             "alias nl='nix-locate'"
