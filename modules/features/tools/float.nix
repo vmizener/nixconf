@@ -6,12 +6,14 @@ Floating terminal utility.
 Exposes:
 
 - flake.homeModules."feat/tools/float":
+- flake.nixosModules."feat/tools/float":
 - local package: "nix run '.#float'"
 */
 {self, ...}: let
   pkgName = "float";
-  pkgVersion = "v1.2.1";
-  pkgHash = "f39b21a0f167afce17f07117a589daad9fb89364";
+  tag = "v1.2.1";
+  pkgHash = "sha256-ngklCMJ54ZFPaWB3c79mzcRKGSiB9sw4KcAKWcVPgao=";
+  cargoHash = "sha256-/xlH29DM/psGOME0w2a1v5kG7uxlKsMlP4r+5NENA6M=";
 in {
   flake.homeModules."feat/tools/float" = {pkgs, ...}: {
     features.tools = ["float"];
@@ -27,15 +29,15 @@ in {
     ...
   }: {
     packages.${pkgName} = pkgs.rustPlatform.buildRustPackage {
-      pname = "${pkgName}";
-      version = pkgVersion;
+      pname = pkgName;
+      version = tag;
       src = pkgs.fetchFromGitHub {
         owner = "henktorius";
-        repo = "float";
-        rev = pkgHash;
-        hash = "sha256-ngklCMJ54ZFPaWB3c79mzcRKGSiB9sw4KcAKWcVPgao=";
+        repo = pkgName;
+        tag = tag;
+        hash = pkgHash;
       };
-      cargoHash = "sha256-/xlH29DM/psGOME0w2a1v5kG7uxlKsMlP4r+5NENA6M=";
+      cargoHash = cargoHash;
       meta.mainProgram = "float-mux";
     };
     apps.${pkgName} = {

@@ -28,6 +28,8 @@ in {
       self.nixosModules."feat/system/theme"
       self.nixosModules."feat/systools"
       self.nixosModules."feat/tools/ckb-next"
+      self.nixosModules."feat/tools/ditto"
+      self.nixosModules."feat/tools/float"
       self.nixosModules."feat/vm"
     ];
     features.steam.enableExtest = true;

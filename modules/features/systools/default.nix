@@ -41,6 +41,7 @@ Exposes:
       ripgrep
       smartmontools
       st
+      tdf
       timg
       tmux
       tree

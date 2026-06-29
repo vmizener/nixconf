@@ -49,6 +49,7 @@ in {
           self.homeModules."feat/gaming/streamlink"
           self.homeModules."feat/system/theme"
           self.homeModules."feat/systools"
+          self.homeModules."feat/tools/ani-cli"
           self.homeModules."feat/tools/awww"
           self.homeModules."feat/tools/git"
           self.homeModules."feat/tools/kanshi"
