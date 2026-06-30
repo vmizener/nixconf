@@ -3,11 +3,14 @@
   self,
   ...
 }: {
-  flake.homeModules."common" = {...}: {
+  flake.homeModules."common" = {config, ...}: {
     imports = [
       self.homeModules."common/options"
     ];
-    home.stateVersion = "25.11";
+    home = {
+      stateVersion = "25.11";
+      sessionPath = ["${config.home.profileDirectory}/bin"];
+    };
     nix.nixPath = ["nixpkgs=${inputs.nixpkgs}"];
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
     systemd.user.startServices = "sd-switch"; # Reload system units on config change
