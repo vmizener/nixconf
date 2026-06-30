@@ -29,5 +29,6 @@
       "nix-command"
       "pipe-operators"
     ];
+    services.openssh.enable = true;
   };
 }
