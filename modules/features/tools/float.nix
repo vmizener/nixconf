@@ -23,11 +23,7 @@ in {
     features.tools = ["float"];
     environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
   };
-  perSystem = {
-    pkgs,
-    config,
-    ...
-  }: {
+  perSystem = {pkgs, ...}: {
     packages.${pkgName} = pkgs.rustPlatform.buildRustPackage {
       pname = pkgName;
       version = tag;
@@ -39,10 +35,6 @@ in {
       };
       cargoHash = cargoHash;
       meta.mainProgram = "float-mux";
-    };
-    apps.${pkgName} = {
-      type = "app";
-      program = "${config.packages.${pkgName}}/bin/float-mux";
     };
   };
 }
