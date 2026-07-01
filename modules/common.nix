@@ -14,10 +14,7 @@
     nix.nixPath = ["nixpkgs=${inputs.nixpkgs}"];
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
     systemd.user.startServices = "sd-switch"; # Reload system units on config change
-    xdg = {
-      enable = true; # Enable XDG directory management
-      mime.enable = true; # Enable MIME-type support
-    };
+    xdg.enable = true; # Enable XDG directory management
   };
 
   flake.nixosModules."common" = {...}: {
