@@ -47,6 +47,7 @@ in {
           self.homeModules."feat/desktop-shell/dms"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/streamlink"
+          self.homeModules."feat/system/mime"
           self.homeModules."feat/system/theme"
           self.homeModules."feat/systools"
           self.homeModules."feat/tools/ani-cli"

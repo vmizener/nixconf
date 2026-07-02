@@ -46,7 +46,10 @@ Exposes:
       withPython3 = true;
       withRuby = true;
     };
-    home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
     xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink cfgPath;
+
+    # Mark neovim as preferred editor
+    features.system.mime.categories.editors = lib.mkIf config.features.system.mime.enable (lib.mkOrder 100 ["nvim.desktop"]);
+    home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
   };
 }
