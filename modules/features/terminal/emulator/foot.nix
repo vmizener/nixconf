@@ -50,5 +50,6 @@ Exposes:
         };
       };
     };
+    features.system.mime.categories.terminals = lib.mkIf config.features.system.mime.enable (lib.mkOrder 100 ["foot.desktop"]);
   };
 }
