@@ -381,6 +381,22 @@
     },
     "nixpkgs_5": {
       "locked": {
+        "lastModified": 1777954456,
+        "narHash": "sha256-hGdgeU2Nk87RAuZyYjyDjFL6LK7dAZN5RE9+hrDTkDU=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "549bd84d6279f9852cae6225e372cc67fb91a4c1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_6": {
+      "locked": {
         "lastModified": 1780336545,
         "narHash": "sha256-vhVhuXzFrIOfcssC/9hDHx7MHzDKjF3keHuREOQqQiQ=",
         "owner": "NixOS",
@@ -455,6 +471,7 @@
         "nixgl": "nixgl",
         "nixpkgs": "nixpkgs_4",
         "plasma-manager": "plasma-manager",
+        "torrra": "torrra",
         "wrapper-modules": "wrapper-modules"
       }
     },
@@ -509,6 +526,24 @@
         "type": "github"
       }
     },
+    "torrra": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_5"
+      },
+      "locked": {
+        "lastModified": 1778255338,
+        "narHash": "sha256-pnYZfrCj1imoAeBPFNcPNkXTS6lRWjYl/yURu23ZwaA=",
+        "owner": "stabldev",
+        "repo": "torrra",
+        "rev": "cf865db405cf62d095dd1c5b457a90a946281478",
+        "type": "github"
+      },
+      "original": {
+        "owner": "stabldev",
+        "repo": "torrra",
+        "type": "github"
+      }
+    },
     "utils": {
       "inputs": {
         "systems": "systems"
@@ -529,7 +564,7 @@
     },
     "wrapper-modules": {
       "inputs": {
-        "nixpkgs": "nixpkgs_5"
+        "nixpkgs": "nixpkgs_6"
       },
       "locked": {
         "lastModified": 1780661205,
