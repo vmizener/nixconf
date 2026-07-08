@@ -8,9 +8,7 @@ Exposes:
 - flake.nixosModules."feat/tools/jackett":
 */
 {
-  flake.nixosModules."feat/tools/jackett" = {
-    ...
-  }: {
+  flake.nixosModules."feat/tools/jackett" = {...}: {
     features.tools = ["jackett"];
     services.jackett = {
       enable = true;

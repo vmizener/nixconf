@@ -36,10 +36,11 @@ Exposes:
         };
       });
       target = "${config.xdg.configHome}/torrra/config.toml";
-    in lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p "$(dirname "${target}")"
-      cp -f "${cfgFile}" "${target}"
-      chmod +w "${target}"
-    '';
+    in
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
+        mkdir -p "$(dirname "${target}")"
+        cp -f "${cfgFile}" "${target}"
+        chmod +w "${target}"
+      '';
   };
 }
