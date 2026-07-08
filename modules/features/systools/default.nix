@@ -14,45 +14,7 @@ Exposes:
   - Configures udiskie automounting.
 */
 {inputs, ...}: let
-  systoolsPackages = pkgs:
-    with pkgs; [
-      bat
-      bc
-      btop
-      delta
-      dex
-      eza
-      fastfetch
-      fd
-      findutils
-      fzf
-      git
-      gnumake
-      gparted
-      hardinfo2
-      jq
-      just
-      killall
-      libnotify
-      mlocate
-      nh
-      pavucontrol
-      pstree
-      ripgrep
-      smartmontools
-      st
-      tdf
-      timg
-      tmux
-      tree
-      unzip
-      usbutils
-      vim
-      wev
-      wget
-      yazi
-      zip
-    ];
+  systoolsPackages = import ./_packages.nix;
 in {
   flake.homeModules."feat/systools" = {pkgs, ...}: {
     imports = [
