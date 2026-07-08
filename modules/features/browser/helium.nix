@@ -8,7 +8,12 @@ Exposes:
 - flake.homeModules."feat/browser/helium":
 */
 {inputs, ...}: {
-  flake.homeModules."feat/browser/helium" = {config, lib, pkgs, ...}: {
+  flake.homeModules."feat/browser/helium" = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: {
     home.packages = [
       inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
