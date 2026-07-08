@@ -31,6 +31,7 @@ in {
       self.nixosModules."feat/tools/ckb-next"
       self.nixosModules."feat/tools/ditto"
       self.nixosModules."feat/tools/float"
+      self.nixosModules."feat/tools/jackett"
       self.nixosModules."feat/vm"
     ];
     features.steam.enableExtest = true;
