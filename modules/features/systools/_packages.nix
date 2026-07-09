@@ -28,6 +28,8 @@ with pkgs; [
   gparted
   # System info and benchmarking tool
   hardinfo2
+  # Image editing library
+  imagemagick
   # JSON parser
   jq
   # Modern Makefile alternative
@@ -36,6 +38,10 @@ with pkgs; [
   killall
   # Library for desktop notifications
   libnotify
+  # SIXEL library for console graphics
+  libsixel
+  # Thumbnail support in terminal via SIXEL graphics
+  lsix
   # Utility to index and quickly search for files
   mlocate
   # Nix CLI wrapper
