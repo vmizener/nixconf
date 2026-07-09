@@ -25,7 +25,8 @@ Exposes:
           ''[[ -f "${hmSessionVars}" ]] && source "${hmSessionVars}"''
           ''[[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"''
           "${builtins.readFile ./zshrc}"
-          "alias cdf='cd ${config.flakePath}'"
+          "source ${./p10k.zsh}"
+          "alias cdf='cd -P ${config.flakePath}'"
         ]
         ++ (import ./_aliases.nix {
           inherit pkgs;
@@ -36,7 +37,9 @@ Exposes:
       packages = with pkgs; [
         fzf
       ];
-      file.".p10k.zsh".source = ./p10k.zsh;
     };
+  };
+  flake.nixosModules."feat/terminal/shell/zsh" = {...}: {
+    programs.zsh.enable = true;
   };
 }

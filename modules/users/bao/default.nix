@@ -18,9 +18,10 @@ in {
     };
   };
   # @Baohaus (Nixos)
-  flake.nixosModules."users/${username}@baohaus" = {...}: {
+  flake.nixosModules."users/${username}@baohaus" = {pkgs, ...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
+      self.nixosModules."feat/terminal/shell/zsh"
     ];
     users.users.${username} = {
       isNormalUser = true;
@@ -34,6 +35,7 @@ in {
         "wheel"
       ];
       initialPassword = "gobears";
+      shell = pkgs.zsh;
     };
     home-manager = {
       useGlobalPkgs = true;
