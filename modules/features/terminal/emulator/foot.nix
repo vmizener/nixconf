@@ -29,7 +29,10 @@ Exposes:
         main = {
           font = "HackNerdFont:size=12";
         };
-        colors = {
+        colors-dark = {
+          alpha = "0.7";
+        };
+        colors-light = {
           alpha = "0.7";
         };
         key-bindings = {
