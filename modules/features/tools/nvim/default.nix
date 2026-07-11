@@ -18,7 +18,33 @@ Exposes:
     cfgPath = config.flakePath + "/modules/features/tools/nvim/config";
     tsParsers = pkgs.symlinkJoin {
       name = "treesitter-parsers";
-      paths = pkgs.vimPlugins.nvim-treesitter.withAllGrammars.dependencies;
+      # paths = pkgs.vimPlugins.nvim-treesitter.withAllGrammars.dependencies;
+      paths =
+        (pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
+          p.bash
+          p.c
+          p.cpp
+          p.csv
+          p.go
+          p.html
+          p.jq
+          p.json
+          p.json5
+          p.kdl
+          p.latex
+          p.lua
+          p.markdown
+          p.nix
+          p.python
+          p.regex
+          p.scss
+          p.tmux
+          p.vim
+          p.vimdoc
+          p.yaml
+          p.xml
+          p.zsh
+        ])).dependencies;
     };
   in {
     programs.neovim = {
