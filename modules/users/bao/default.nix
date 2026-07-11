@@ -61,6 +61,10 @@ in {
           self.homeModules."feat/tools/torrra"
           self.homeModules."feat/terminal/emulator/foot"
           self.homeModules."feat/terminal/shell/zsh"
+
+          ({...}: {
+            features.awww.img = ../../../assets/media/fog_forest--kGhIyoh-imgur.webp;
+          })
         ];
         home = {
           packages = with pkgs; [
