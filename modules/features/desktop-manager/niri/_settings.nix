@@ -17,6 +17,10 @@
   # Commands
   cmdTerminal = cmdByFeat "st" [
     {
+      cmd = "ghostty";
+      checker = cfg: hasFeat "ghostty" cfg ["features" "terminal" "emulators"];
+    }
+    {
       cmd = "foot";
       checker = cfg: hasFeat "foot" cfg ["features" "terminal" "emulators"];
     }
@@ -512,7 +516,7 @@ in [
   }
   {
     window-rule = [
-      {match = propSet {app-id = "^foot$";};}
+      {match = propSet {app-id = "^(foot|com.mitchellh.ghostty)$";};}
       {clip-to-geometry = true;}
       {
         background-effect = {

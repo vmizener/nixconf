@@ -60,6 +60,7 @@ in {
           self.homeModules."feat/tools/nvim"
           self.homeModules."feat/tools/torrra"
           self.homeModules."feat/terminal/emulator/foot"
+          self.homeModules."feat/terminal/emulator/ghostty"
           self.homeModules."feat/terminal/shell/zsh"
 
           ({...}: {
