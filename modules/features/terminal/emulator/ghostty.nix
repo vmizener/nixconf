@@ -38,6 +38,6 @@ Exposes:
         theme = "Nocturnal Winter";
       };
     };
-    features.system.mime.categories.terminals = lib.mkIf config.features.system.mime.enable (lib.mkOrder 50 ["ghostty.desktop"]);
+    features.system.mime.categories.terminals = lib.mkIf config.features.system.mime.enable (lib.mkOrder 150 ["ghostty.desktop"]);
   };
 }

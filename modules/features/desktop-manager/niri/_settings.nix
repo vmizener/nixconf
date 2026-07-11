@@ -17,12 +17,12 @@
   # Commands
   cmdTerminal = cmdByFeat "st" [
     {
-      cmd = "ghostty";
-      checker = cfg: hasFeat "ghostty" cfg ["features" "terminal" "emulators"];
-    }
-    {
       cmd = "foot";
       checker = cfg: hasFeat "foot" cfg ["features" "terminal" "emulators"];
+    }
+    {
+      cmd = "ghostty";
+      checker = cfg: hasFeat "ghostty" cfg ["features" "terminal" "emulators"];
     }
     {
       cmd = "kitty";
