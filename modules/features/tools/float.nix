@@ -11,7 +11,7 @@ Exposes:
 */
 {self, ...}: let
   pkgName = "float";
-  tag = "v1.2.1";
+  version = "1.2.1";
   pkgHash = "sha256-ngklCMJ54ZFPaWB3c79mzcRKGSiB9sw4KcAKWcVPgao=";
   cargoHash = "sha256-/xlH29DM/psGOME0w2a1v5kG7uxlKsMlP4r+5NENA6M=";
 in {
@@ -26,11 +26,11 @@ in {
   perSystem = {pkgs, ...}: {
     packages.${pkgName} = pkgs.rustPlatform.buildRustPackage {
       pname = pkgName;
-      version = tag;
+      version = version;
       src = pkgs.fetchFromGitHub {
         owner = "henktorius";
         repo = pkgName;
-        tag = tag;
+        tag = "v${version}";
         hash = pkgHash;
       };
       cargoHash = cargoHash;

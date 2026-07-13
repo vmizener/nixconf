@@ -11,7 +11,7 @@ Exposes:
 */
 {self, ...}: let
   pkgName = "ditto";
-  tag = "v1.0.3";
+  version = "1.0.3";
   pkgHash = "sha256-i0WBLonmTLuvEtCjySca2Vx2ZvdyUZcb0uBpj9bRXIU=";
   vendorHash = "sha256-vk+ahWFGowJt19qk+iCpInKIq0GFIT34HqbSQVSPJrY=";
 in {
@@ -26,11 +26,11 @@ in {
   perSystem = {pkgs, ...}: {
     packages.${pkgName} = pkgs.buildGoModule {
       pname = pkgName;
-      version = tag;
+      version = version;
       src = pkgs.fetchFromGitHub {
         owner = "arvingarciabtw";
         repo = pkgName;
-        tag = tag;
+        tag = "v${version}";
         hash = pkgHash;
       };
       vendorHash = vendorHash;

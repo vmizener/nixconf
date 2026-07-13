@@ -11,7 +11,7 @@ Exposes:
 */
 {self, ...}: let
   pkgName = "ani-cli";
-  tag = "v4.14";
+  version = "4.14";
   hash = "sha256-OyCKDN89sBz59+3JncMDyNOq8UMqqjara+A0Owo3oko=";
 in {
   flake.homeModules."feat/tools/ani-cli" = {pkgs, ...}: {
@@ -24,11 +24,11 @@ in {
   };
   perSystem = {pkgs, ...}: {
     packages.${pkgName} = pkgs.ani-cli.overrideAttrs (_: {
-      version = tag;
+      version = version;
       src = pkgs.fetchFromGitHub {
         owner = "pystardust";
         repo = pkgName;
-        tag = tag;
+        tag = "v${version}";
         hash = hash;
       };
     });
