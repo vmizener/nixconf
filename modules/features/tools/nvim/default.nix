@@ -47,6 +47,7 @@ Exposes:
         ])).dependencies;
     };
   in {
+    features.tools = ["nvim"];
     programs.neovim = {
       enable = true;
       sideloadInitLua = true;
