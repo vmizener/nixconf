@@ -3,7 +3,7 @@
   self,
   ...
 }: {
-  flake.homeModules."common" = {config, ...}: {
+  flake.homeModules."common" = {config, pkgs, ...}: {
     imports = [
       self.homeModules."common/options"
     ];
@@ -22,6 +22,16 @@
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
     systemd.user.startServices = "sd-switch"; # Reload system units on config change
     xdg.enable = true; # Enable XDG directory management
+    xdg.portal = {
+      enable = true;
+      config = {
+        common.default = ["gtk"];
+      };
+      extraPortals = with pkgs; [
+        xdg-desktop-portal-gtk
+      ];
+      xdgOpenUsePortal = true;
+    };
   };
   flake.nixosModules."common" = {...}: {
     imports = [

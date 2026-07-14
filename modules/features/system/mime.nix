@@ -87,6 +87,7 @@ Exposes:
             cfg.categories.fileManagers
             [
               "inode/directory"
+              "x-scheme-handler/file"
             ])
           (setCategory
             cfg.categories.imageViewers

@@ -47,6 +47,7 @@ in {
           self.homeModules."feat/browser/helium"
           self.homeModules."feat/desktop-manager/niri"
           self.homeModules."feat/desktop-shell/dms"
+          self.homeModules."feat/file-manager/thunar"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/retroarch"
           self.homeModules."feat/gaming/streamlink"
