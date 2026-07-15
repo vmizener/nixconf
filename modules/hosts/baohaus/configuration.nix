@@ -19,7 +19,6 @@ in {
 
       self.nixosModules."feat/desktop-manager/niri"
       self.nixosModules."feat/display-manager/ly"
-
       self.nixosModules."feat/gaming/steam"
       self.nixosModules."feat/gaming/sunshine"
       self.nixosModules."feat/secrets"

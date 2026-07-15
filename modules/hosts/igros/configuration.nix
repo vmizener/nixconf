@@ -19,8 +19,7 @@ in {
       self.nixosModules."users/ramza@igros"
 
       self.nixosModules."feat/desktop-manager/xfce"
-      self.nixosModules."feat/login-manager/greetd"
-      self.nixosModules."feat/greeter/tuigreet"
+      self.nixosModules."feat/display-manager/greetd"
 
       self.nixosModules."feat/gaming/steam"
       self.nixosModules."feat/gaming/sunshine"
