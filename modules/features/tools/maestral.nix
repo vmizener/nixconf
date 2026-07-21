@@ -44,6 +44,10 @@ Exposes:
       Install = {
         WantedBy = ["default.target"];
       };
+      Unit = {
+        Requires = ["maestral.service"];
+        After = ["maestral.service"];
+      };
       Service = {
         Type = "simple";
         ExecStart = "${pkgs.maestral-gui}/bin/maestral_qt";
