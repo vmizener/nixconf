@@ -206,6 +206,50 @@
         "type": "github"
       }
     },
+    "inputactions-ctl": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1773159728,
+        "narHash": "sha256-TAdVHlU/954FaqXOkC5rF6X2P7pOm3S2mgr73hpl/Fw=",
+        "ref": "refs/heads/main",
+        "rev": "7ced2a43488b3fd810619e51aeca5d188ed583a8",
+        "revCount": 7,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/InputActions/ctl"
+      },
+      "original": {
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/InputActions/ctl"
+      }
+    },
+    "inputactions-standalone": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1780752479,
+        "narHash": "sha256-/mT1ZZ/6jNQ2rok4Uy2UK9djYz08k8jm+vIJ/6uSGIQ=",
+        "ref": "refs/heads/main",
+        "rev": "f4d5890fc16cdc288e16c1571bfaa5f420243326",
+        "revCount": 25,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/InputActions/standalone"
+      },
+      "original": {
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/InputActions/standalone"
+      }
+    },
     "niri": {
       "inputs": {
         "niri-stable": "niri-stable",
@@ -460,6 +504,8 @@
         "helium": "helium",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
+        "inputactions-ctl": "inputactions-ctl",
+        "inputactions-standalone": "inputactions-standalone",
         "niri": "niri",
         "nix-index-database": "nix-index-database",
         "nixgl": "nixgl",

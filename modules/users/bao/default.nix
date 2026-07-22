@@ -22,6 +22,7 @@ in {
     imports = [
       inputs.home-manager.nixosModules.home-manager
       self.nixosModules."feat/terminal/shell/zsh"
+      self.nixosModules."feat/tools/input-actions"
     ];
     users.users.${username} = {
       isNormalUser = true;
@@ -57,6 +58,7 @@ in {
           self.homeModules."feat/tools/ani-cli"
           self.homeModules."feat/tools/awww"
           self.homeModules."feat/tools/git"
+          self.homeModules."feat/tools/input-actions"
           self.homeModules."feat/tools/kanshi"
           self.homeModules."feat/tools/maestral"
           self.homeModules."feat/tools/nvim"

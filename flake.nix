@@ -37,6 +37,14 @@
       url = "github:schembriaiden/helium-browser-nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    inputactions-ctl = {
+      url = "git+https://github.com/InputActions/ctl?submodules=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    inputactions-standalone = {
+      url = "git+https://github.com/InputActions/standalone?submodules=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     niri.url = "github:sodiboo/niri-flake";
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
