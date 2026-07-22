@@ -39,8 +39,8 @@ Exposes:
       kdePackages.breeze-icons
       kdePackages.breeze.qt5
       kdePackages.breeze
-      catppuccin-cursors # Mouse cursor theme
-      catppuccin-papirus-folders # Icon theme, e.g. for pcmanfm-qt
+      # catppuccin-cursors # Mouse cursor theme
+      # catppuccin-papirus-folders # Icon theme, e.g. for pcmanfm-qt
       papirus-folders # For the catppucing stuff work
     ];
     qt = {
