@@ -3,7 +3,11 @@
   self,
   ...
 }: {
-  flake.homeModules."common" = {config, pkgs, ...}: {
+  flake.homeModules."common" = {
+    config,
+    pkgs,
+    ...
+  }: {
     imports = [
       self.homeModules."common/options"
     ];
