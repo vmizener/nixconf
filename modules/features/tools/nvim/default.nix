@@ -49,11 +49,13 @@ Exposes:
     };
     xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink cfgPath;
 
-    # Ensure the symlink target remains alive for GC
-    home.activation.nvimConfigGcRoot = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      # Root name is stable; if `cfgPath` changes across updates, this updates its target
-      nix-store --add-root home-manager-nvim-config -r ${lib.escapeShellArg cfgPath}
-    '';
+    # Ensure the symlink target remains alive for GC (only if target is in store)
+    home.activation.nvimConfigGcRoot = lib.mkIf (lib.hasPrefix builtins.storeDir (toString cfgPath)) (
+      lib.hm.dag.entryAfter ["writeBoundary"] ''
+        # Root name is stable; if `cfgPath` changes across updates, this updates its target
+        nix-store --add-root home-manager-nvim-config -r ${lib.escapeShellArg cfgPath}
+      ''
+    );
 
     # Mark neovim as preferred editor
     features.system.mime.categories.editors = lib.mkIf config.features.system.mime.enable (lib.mkOrder 100 ["nvim.desktop"]);
