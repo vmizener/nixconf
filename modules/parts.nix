@@ -1,5 +1,4 @@
-{ inputs, ... }:
-{
+{inputs, ...}: {
   config = {
     # Declare supported systems
     systems = [
