@@ -1,3 +1,4 @@
+{ inputs, ... }:
 {
   config = {
     # Declare supported systems
@@ -5,6 +6,9 @@
       "x86_64-linux"
       "aarch64-linux"
     ];
+
+    # Expose schemas output from flake-schemas
+    flake.schemas = inputs.flake-schemas.schemas;
 
     # Define standard formatter
     perSystem = {pkgs, ...}: {
