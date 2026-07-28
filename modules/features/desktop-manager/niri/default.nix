@@ -12,6 +12,15 @@ Exposes:
   - Enables Niri wayland session and UWSM integration.
 */
 {inputs, ...}: {
+  flake.homeModules."common/options" = {lib, ...}: {
+    options.features.niri = {
+      extraConfig = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "Any additional config entries to add";
+      };
+    };
+  };
   flake.homeModules."feat/desktop-manager/niri" = {
     config,
     lib,
@@ -40,10 +49,13 @@ Exposes:
             hmConfig = config;
           };
         in
-          toKdl (_: {
-            version = 1;
-            content = rawSettings;
-          });
+          lib.strings.concatStringsSep "\n" [
+            (toKdl (_: {
+              version = 1;
+              content = rawSettings;
+            }))
+            config.features.niri.extraConfig
+          ];
         home.packages = with pkgs; [
           brightnessctl
           xwayland-satellite
