@@ -12,21 +12,11 @@
   config = {
     ################
     # Home-Manager common options
-    flake.homeModules."common/options" = {config, ...}: {
+    flake.homeModules."common/options" = {config, osConfig ? null, ...}: {
       options.flakePath = lib.mkOption {
         type = lib.types.path;
-        default = let
-          candidates = [
-            "/etc/nixos"
-            "${config.xdg.configHome}/home-manager"
-          ];
-          path = lib.lists.findFirst (p: builtins.pathExists p) null candidates;
-          fallback = ./..;
-        in
-          if path == null
-          then fallback
-          else builtins.toPath path;
-        description = "Absolute path to this Nix flake.  Used by some home-manager features to symlink configs.";
+        default = if osConfig != null then "/etc/nixos" else "${config.xdg.configHome}/home-manager";
+        description = "Absolute path to this Nix flake (outside Nix store).  Used for out-of-store symlinks.";
       };
     };
   };
