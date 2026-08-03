@@ -20,7 +20,7 @@ Exposes:
     # Copy a writable config
     home.activation."torrra-config" = let
       toml = pkgs.formats.toml {};
-      cfgFile = config.lib.file.mkOutOfStoreSymlink (toml.generate "config.toml" {
+      cfgFile = toml.generate "config.toml" {
         general = {
           download_path = "${config.home.homeDirectory}/Downloads/Torrents";
           theme = "textual-dark";
@@ -34,7 +34,7 @@ Exposes:
             api_key = "o0nqlfxefdqni64o3lgv5dx47fmarnzr";
           };
         };
-      });
+      };
       target = "${config.xdg.configHome}/torrra/config.toml";
     in
       lib.hm.dag.entryAfter ["writeBoundary"] ''
