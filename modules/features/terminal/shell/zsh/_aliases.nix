@@ -1,4 +1,5 @@
 {
+  config,
   installed,
   pkgs,
 }: let
@@ -8,7 +9,10 @@
     else elseCond;
   addIf = want: ifCond: (addIfElse want ifCond []);
 in (
-  addIf pkgs.bat [
+  [
+    "alias cdf='cd -P ${config.flakePath}'"
+  ]
+  ++ addIf pkgs.bat [
     "alias cat='bat'"
   ]
   ++ addIf pkgs.comma [

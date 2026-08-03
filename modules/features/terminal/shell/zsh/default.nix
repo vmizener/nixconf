@@ -26,10 +26,9 @@ Exposes:
           ''[[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"''
           "${builtins.readFile ./zshrc}"
           "source ${./p10k.zsh}"
-          "alias cdf='cd -P ${config.flakePath}'"
         ]
         ++ (import ./_aliases.nix {
-          inherit pkgs;
+          inherit config pkgs;
           installed = config.home.packages;
         }));
     };
