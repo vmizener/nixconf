@@ -14,11 +14,7 @@
     flake.schemas = inputs.flake-schemas.schemas;
 
     # Define standard formatter & pre-commit hooks
-    perSystem = {
-      pkgs,
-      config,
-      ...
-    }: {
+    perSystem = {pkgs, ...}: {
       formatter = pkgs.alejandra;
 
       pre-commit = {
@@ -34,13 +30,6 @@
             pass_filenames = false;
           };
         };
-      };
-
-      # Automatically install the pre-commit hook when entering dev-shell
-      devShells.default = pkgs.mkShell {
-        shellHook = ''
-          ${config.pre-commit.installationScript}
-        '';
       };
     };
   };
