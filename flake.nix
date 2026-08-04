@@ -8,6 +8,10 @@
     # Core Utils
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-schemas.url = "github:DeterminateSystems/flake-schemas";
+    git-hooks-nix = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
