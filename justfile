@@ -1,3 +1,6 @@
+dev shell="zsh":
+    nix develop -c {{shell}}
+
 format:
     nix fmt -- $(fd '^[^.]*\.nix$' .)
 
