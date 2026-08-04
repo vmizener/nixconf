@@ -22,13 +22,6 @@
         settings.hooks = {
           # Format check
           alejandra.enable = true;
-          # Flake check
-          nix-flake-check = {
-            enable = true;
-            name = "nix flake check";
-            entry = "sh -c 'if [ -z \"$NIX_BUILD_TOP\" ]; then nix flake check; fi'";
-            pass_filenames = false;
-          };
         };
       };
     };

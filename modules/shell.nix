@@ -10,7 +10,7 @@
           pre-commit
         ];
         shellHook = ''
-          ${config.pre-commit.installationScript}
+          ${config.pre-commit.shellHook}
         '';
       };
     };
