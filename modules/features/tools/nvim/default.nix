@@ -15,7 +15,6 @@ Exposes:
     pkgs,
     ...
   }: let
-    cfgPath = config.flakePath + "/modules/features/tools/nvim/config";
     tsParsers = pkgs.symlinkJoin {
       name = "treesitter-parsers";
       paths = pkgs.vimPlugins.nvim-treesitter.withAllGrammars.dependencies;
@@ -47,7 +46,7 @@ Exposes:
       withPython3 = true;
       withRuby = true;
     };
-    xdg.configFile."nvim".source = config.lib.file.mkOutOfStoreSymlink cfgPath;
+    xdg.configFile."nvim".source = config.mutableLink ./config;
 
     # Mark neovim as preferred editor
     features.system.mime.categories.editors = lib.mkIf config.features.system.mime.enable (lib.mkOrder 100 ["nvim.desktop"]);
