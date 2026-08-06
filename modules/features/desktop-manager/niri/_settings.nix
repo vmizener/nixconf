@@ -481,6 +481,27 @@ in [
     window-rule = [
       {
         match = propSet {
+          app-id = "(steam_proton|steam_app_2076010)";
+          title = ".*[Ww]ine [Dd]esktop.*";
+        };
+      }
+      {
+        default-floating-position = propSet {
+          x = 10;
+          y = 10;
+          relative-to = "top-right";
+        };
+      }
+      {default-column-width = {proportion = 0.7;};}
+      {default-window-height = {proportion = 0.7;};}
+      {open-floating = true;}
+      {open-focused = false;}
+    ];
+  }
+  {
+    window-rule = [
+      {
+        match = propSet {
           app-id = "dota2";
           title = "^Dota 2$";
         };

@@ -26,6 +26,7 @@ Exposes:
       enable = true;
       extest.enable = config.features.steam.enableExtest;
       dedicatedServer.openFirewall = true; # Open ports for Source Dedicated Server hosting
+      protontricks.enable = true; # Enable protontricks wrapper
       remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
       extraPackages = with pkgs; [
         hidapi # Steam Controller dependency
@@ -44,6 +45,9 @@ Exposes:
         seatd
         udev
         vulkan-loader
+      ];
+      extraCompatPackages = with pkgs; [
+        proton-ge-bin
       ];
     };
   };
