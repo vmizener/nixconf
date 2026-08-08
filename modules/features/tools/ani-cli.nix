@@ -11,8 +11,8 @@ Exposes:
 */
 {self, ...}: let
   pkgName = "ani-cli";
-  version = "4.14";
-  hash = "sha256-OyCKDN89sBz59+3JncMDyNOq8UMqqjara+A0Owo3oko=";
+  version = "5.0";
+  hash = "sha256-rRQESi0Skoyf1jy/dRRK6ooKRPQhkak107kk5ulwZYI=";
 in {
   flake.homeModules."feat/tools/ani-cli" = {pkgs, ...}: {
     features.tools = ["ani-cli"];
