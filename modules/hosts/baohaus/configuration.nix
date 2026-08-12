@@ -26,7 +26,7 @@ in {
       self.nixosModules."feat/system/earlyoom"
       self.nixosModules."feat/system/locale"
       self.nixosModules."feat/system/theme"
-      self.nixosModules."feat/systools"
+      self.nixosModules."feat/system/systools"
       self.nixosModules."feat/tools/ckb-next"
       self.nixosModules."feat/tools/ditto"
       self.nixosModules."feat/tools/float"

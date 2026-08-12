@@ -27,7 +27,7 @@ in {
       self.nixosModules."feat/system/audio"
       self.nixosModules."feat/system/earlyoom"
       self.nixosModules."feat/system/locale"
-      self.nixosModules."feat/systools"
+      self.nixosModules."feat/system/systools"
       self.nixosModules."feat/vm"
     ];
     system.stateVersion = "24.05";

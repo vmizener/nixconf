@@ -3,7 +3,7 @@
 
 Enables git VCS.
 
-Note that git is also installed by feat/systools.
+Note that git is also installed by feat/system/systools.
 This feature also includes git configs.
 
 Exposes:
