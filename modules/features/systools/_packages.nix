@@ -42,6 +42,8 @@ with pkgs; [
   libsixel
   # Thumbnail support in terminal via SIXEL graphics
   lsix
+  # Fast CLI documentation searcher for Nix
+  manix
   # Utility to index and quickly search for files
   mlocate
   # Nix CLI wrapper
