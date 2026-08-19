@@ -11,6 +11,7 @@
     ];
 
     # Expose schemas output from flake-schemas
+    # (this doesn't work; pending https://github.com/NixOS/nix/pull/8892)
     flake.schemas = inputs.flake-schemas.schemas;
 
     # Define standard formatter & pre-commit hooks
