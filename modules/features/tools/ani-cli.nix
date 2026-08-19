@@ -23,7 +23,7 @@ in {
     environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
   };
   perSystem = {pkgs, ...}: {
-    packages.${pkgName} = pkgs.ani-cli.overrideAttrs (_: {
+    packages."pkg:${pkgName}" = pkgs.ani-cli.overrideAttrs (_: {
       version = version;
       src = pkgs.fetchFromGitHub {
         owner = "pystardust";

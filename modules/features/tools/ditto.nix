@@ -11,9 +11,9 @@ Exposes:
 */
 {self, ...}: let
   pkgName = "ditto";
-  version = "1.0.3";
-  pkgHash = "sha256-i0WBLonmTLuvEtCjySca2Vx2ZvdyUZcb0uBpj9bRXIU=";
-  vendorHash = "sha256-vk+ahWFGowJt19qk+iCpInKIq0GFIT34HqbSQVSPJrY=";
+  version = "1.3.3";
+  pkgHash = "sha256-pn8uFVSR409dEGDSqJXJZ3h7NzdClew57YMPankCtw8=";
+  vendorHash = "sha256-+DDBmGSsllHJ7D4/koKWq1MEVuUJJRebn3J8mxEQ8p8=";
 in {
   flake.homeModules."feat/tools/ditto" = {pkgs, ...}: {
     features.tools = ["ditto"];
@@ -24,7 +24,7 @@ in {
     environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
   };
   perSystem = {pkgs, ...}: {
-    packages.${pkgName} = pkgs.buildGoModule {
+    packages."pkg:${pkgName}" = pkgs.buildGoModule {
       pname = pkgName;
       version = version;
       src = pkgs.fetchFromGitHub {

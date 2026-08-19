@@ -24,7 +24,7 @@ in {
     environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
   };
   perSystem = {pkgs, ...}: {
-    packages.${pkgName} = pkgs.rustPlatform.buildRustPackage {
+    packages."pkg:${pkgName}" = pkgs.rustPlatform.buildRustPackage {
       pname = pkgName;
       version = version;
       src = pkgs.fetchFromGitHub {
