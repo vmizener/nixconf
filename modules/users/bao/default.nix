@@ -57,6 +57,7 @@ in {
           self.homeModules."feat/system/theme"
           self.homeModules."feat/tools/ani-cli"
           self.homeModules."feat/tools/awww"
+          self.homeModules."feat/tools/evince"
           self.homeModules."feat/tools/git"
           self.homeModules."feat/tools/input-actions"
           self.homeModules."feat/tools/kanshi"
