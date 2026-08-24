@@ -14,14 +14,16 @@ Exposes:
   version = "1.2.1";
   pkgHash = "sha256-ngklCMJ54ZFPaWB3c79mzcRKGSiB9sw4KcAKWcVPgao=";
   cargoHash = "sha256-/xlH29DM/psGOME0w2a1v5kG7uxlKsMlP4r+5NENA6M=";
+
+  localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
   flake.homeModules."feat/tools/float" = {pkgs, ...}: {
     features.tools = ["float"];
-    home.packages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
+    home.packages = [(localPkg pkgs)];
   };
   flake.nixosModules."feat/tools/float" = {pkgs, ...}: {
     features.tools = ["float"];
-    environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
+    environment.systemPackages = [(localPkg pkgs)];
   };
   perSystem = {pkgs, ...}: {
     packages."pkg:${pkgName}" = pkgs.rustPlatform.buildRustPackage {

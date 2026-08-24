@@ -14,14 +14,16 @@ Exposes:
   version = "1.3.3";
   pkgHash = "sha256-pn8uFVSR409dEGDSqJXJZ3h7NzdClew57YMPankCtw8=";
   vendorHash = "sha256-+DDBmGSsllHJ7D4/koKWq1MEVuUJJRebn3J8mxEQ8p8=";
+
+  localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
   flake.homeModules."feat/tools/ditto" = {pkgs, ...}: {
     features.tools = ["ditto"];
-    home.packages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
+    home.packages = [(localPkg pkgs)];
   };
   flake.nixosModules."feat/tools/ditto" = {pkgs, ...}: {
     features.tools = ["ditto"];
-    environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
+    environment.systemPackages = [(localPkg pkgs)];
   };
   perSystem = {pkgs, ...}: {
     packages."pkg:${pkgName}" = pkgs.buildGoModule {

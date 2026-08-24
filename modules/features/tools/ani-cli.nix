@@ -13,14 +13,16 @@ Exposes:
   pkgName = "ani-cli";
   version = "5.0";
   hash = "sha256-rRQESi0Skoyf1jy/dRRK6ooKRPQhkak107kk5ulwZYI=";
+
+  localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
   flake.homeModules."feat/tools/ani-cli" = {pkgs, ...}: {
     features.tools = ["ani-cli"];
-    home.packages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
+    home.packages = [(localPkg pkgs)];
   };
   flake.nixosModules."feat/tools/ani-cli" = {pkgs, ...}: {
     features.tools = ["ani-cli"];
-    environment.systemPackages = [self.packages.${pkgs.stdenv.hostPlatform.system}.${pkgName}];
+    environment.systemPackages = [(localPkg pkgs)];
   };
   perSystem = {pkgs, ...}: {
     packages."pkg:${pkgName}" = pkgs.ani-cli.overrideAttrs (_: {
