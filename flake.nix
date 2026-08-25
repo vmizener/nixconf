@@ -50,7 +50,11 @@
       url = "git+https://github.com/InputActions/standalone?submodules=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    niri.url = "github:sodiboo/niri-flake";
+    soh-flake = {
+      url = "github:vmizener/soh-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    niri.url = "github:epireyn/niri-flake";
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";

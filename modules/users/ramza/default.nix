@@ -44,7 +44,7 @@ in {
         ];
         home = {
           packages = with pkgs; [
-            animdl
+            # animdl
           ];
         };
       };

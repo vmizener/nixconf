@@ -51,6 +51,7 @@ in {
           self.homeModules."feat/file-manager/thunar"
           self.homeModules."feat/gaming/discord"
           self.homeModules."feat/gaming/retroarch"
+          self.homeModules."feat/gaming/soh"
           self.homeModules."feat/gaming/streamlink"
           self.homeModules."feat/system/mime"
           self.homeModules."feat/system/systools"
@@ -69,13 +70,16 @@ in {
           self.homeModules."feat/terminal/emulator/ghostty"
           self.homeModules."feat/terminal/shell/zsh"
 
-          ({...}: {
+          ({config, ...}: {
             features.awww.img = ../../../assets/media/fog_forest--kGhIyoh-imgur.webp;
+            features.gaming.soh.gamepaths = [
+              "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
+            ];
           })
         ];
         home = {
           packages = with pkgs; [
-            animdl
+            # animdl
           ];
         };
       };
