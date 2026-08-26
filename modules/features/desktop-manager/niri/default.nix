@@ -42,20 +42,20 @@ Exposes:
         };
       })
       {
-        programs.niri.config = let
-          toKdl = inputs.wrapper-modules.lib.toKdl;
-          rawSettings = import ./_settings.nix {
-            inherit osConfig lib pkgs;
-            hmConfig = config;
-          };
-        in
-          lib.strings.concatStringsSep "\n" [
-            (toKdl (_: {
-              version = 1;
-              content = rawSettings;
-            }))
-            config.features.niri.extraConfig
-          ];
+        xdg.configFile = {
+          "niri/config.kdl".source = config.mutableLink ./config.kdl;
+          "niri/local.kdl".source = pkgs.writeText "local.kdl" config.features.niri.extraConfig;
+          "niri/generated.kdl".text = let
+            toKdl = inputs.wrapper-modules.lib.toKdl;
+            rawSettings = import ./_settings.nix {
+              inherit osConfig lib pkgs;
+              hmConfig = config;
+            };
+          in toKdl (_: {
+            version = 1;
+            content = rawSettings;
+          });
+        };
         home.packages = with pkgs; [
           brightnessctl
           xwayland-satellite

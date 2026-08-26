@@ -1,0 +1,149 @@
+window-rule {
+    // This app-id regular expression will work for both:
+    // - host Firefox (app-id is "firefox")
+    // - Flatpak Firefox (app-id is "org.mozilla.firefox")
+    match app-id=r#"^(|firefox|zen|zen-beta)$"# title=r#"^Picture.in.[Pp]icture$"#
+    default-floating-position x=0 y=0 relative-to="top-right"
+    default-column-width { proportion 0.5; }
+    default-window-height { proportion 0.5; }
+    open-floating true
+    open-focused false
+}
+
+// Dim inactive floating windows
+window-rule {
+    match is-focused=false is-floating=true
+    opacity 0.6
+}
+
+// MPV
+window-rule {
+    match app-id=r#"^mpv$"#
+    open-floating true
+    open-fullscreen true
+}
+
+// Kando menu
+window-rule {
+    match title="^Kando Menu$"
+    border { off; }
+    focus-ring { off; }
+    shadow { off; }
+    default-floating-position x=0 y=0
+    open-floating true
+}
+
+// Chrome
+window-rule {
+    // Set floating and transparency for Google Meet windows by default, but only when not in browser
+    match app-id="google-chrome" title=r#"^Meet -.*$"#
+    exclude app-id="google-chrome" title=r#"^Meet -.*- Google Chrome$"#
+
+    opacity 0.8
+    default-floating-position x=10 y=10 relative-to="top-right"
+    default-window-height{ proportion 0.5; }
+    default-column-width { proportion 0.5; }
+    open-floating true
+    open-focused false
+}
+
+// Steam windows
+window-rule {
+    match app-id="steam"
+    open-on-workspace "steam"
+    open-floating true
+}
+window-rule {
+    match app-id="steam" title=r#"^Steam$"#
+    open-on-workspace "steam"
+    default-column-width { proportion 0.85; }
+    open-floating false
+}
+window-rule {
+    match app-id="steam" title=r#"^Friends List$"#
+    open-on-workspace "steam"
+    default-column-width { proportion 0.15; }
+    open-floating false
+}
+window-rule {
+    match app-id="steam" title=r#"^notificationtoasts_\d+_desktop$"#
+    opacity 0.8
+    default-floating-position x=10 y=50 relative-to="bottom-right"
+    open-focused false
+}
+window-rule {
+    match app-id="(steam_proton|steam_app_2076010)" title=".*[Ww]ine [Dd]esktop.*"
+    default-floating-position x=10 y=10 relative-to="top-right"
+    default-column-width { proportion 0.7; }
+    default-window-height { proportion 0.7; }
+    open-floating true
+    open-focused false
+}
+
+// Games
+window-rule {
+    match app-id="dota2" title=r#"^Dota 2$"#
+    open-maximized true
+    open-fullscreen true
+}
+window-rule {
+    match app-id="steam_app_686060"  // Mewgenics
+    open-fullscreen true
+    open-floating false
+}
+window-rule {
+    match app-id=r#"^(Slay the Spire 2)$"#
+    open-floating true
+}
+
+// Other Apps
+window-rule {
+    match app-id=r#"qemu"#
+    open-maximized true
+}
+window-rule {
+    match app-id=r#"^discord$"#
+    open-maximized true
+}
+
+window-rule {
+    match app-id=r#"^(firefox|zen)$"#
+    open-maximized true
+}
+
+window-rule {
+    match app-id=r#"^kitty$"#
+    open-maximized true
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+window-rule {
+    match app-id=r#"^(foot|com.mitchellh.ghostty)$"#
+    clip-to-geometry true
+    background-effect {
+        blur true
+        xray false
+    }
+
+}
+// Make the wallpaper stationary, rather than moving with workspaces.
+layer-rule {
+    // This is for awww; change for other wallpaper tools.
+    // Find the right namespace by running niri msg layers.
+    match namespace="^awww-daemon$"
+    place-within-backdrop true
+}
+
+layer-rule {
+    match namespace="^dms:bar$"
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+include "generated.kdl"
+include "local.kdl"
