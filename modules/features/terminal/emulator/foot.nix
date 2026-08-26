@@ -23,6 +23,44 @@ Exposes:
       nerd-fonts.jetbrains-mono
       nerd-fonts.inconsolata
     ];
+    xdg.configFile = {
+      "foot/fzf-scrollback.sh" = {
+        executable = true;
+        text = ''
+          #!/bin/sh
+
+          f=$(mktemp)
+          trap 'rm -f "$f"' EXIT
+
+          cat >"$f"
+
+          foot sh -c 'fzf --no-sort --no-mouse -i --tac < "$1"' sh "$f"
+        '';
+      };
+      "foot/edit-scrollback.sh" = {
+        executable = true;
+        text = ''
+          #!/bin/sh
+
+          f=$(mktemp)
+          trap 'rm -f "$f"' EXIT
+
+          cat >"$f"
+
+          editor=${if lib.elem "nvim" config.features.tools then "nvim" else "vim"}
+
+          foot $editor -u NONE "$f" \
+            -c 'set nonumber nolist showtabline=0 foldcolumn=0 virtualedit=block' \
+            -c 'autocmd VimEnter * normal G' \
+            -c 'map q :qa!<CR>' \
+            -c 'map i <NOP>' \
+            -c 'map I <NOP>' \
+            -c 'map a <NOP>' \
+            -c 'map A <NOP>' \
+            -c 'set clipboard+=unnamedplus'
+        '';
+      };
+    };
     programs.foot = {
       enable = true;
       settings = {
@@ -39,14 +77,10 @@ Exposes:
           font-increase = "Control+Shift+plus Control+Shift+equal Control+KP_Add";
           font-decrease = "Control+Shift+minus Control+KP_Subtract";
           pipe-scrollback = let
-            hasNvim = lib.elem pkgs.neovim config.home.packages;
-            editor =
-              if hasNvim ? nvim
-              then "nvim"
-              else "vi";
+            footCfg = "${config.xdg.configHome}/foot";
           in [
-            "[sh -c \"f=$(mktemp) && cat - > $f; foot ${editor} $f -u NONE -c 'set nonumber nolist showtabline=0 foldcolumn=0 virtualedit=block' -c 'autocmd VimEnter * normal G' -c 'map q :qa!<CR>' -c 'map i <NOP>' -c 'map I <NOP>' -c 'map a <NOP>' -c 'map A <NOP>' -c 'set clipboard+=unnamedplus'; rm $f\"] Control+Shift+f"
-            "[sh -c \"cat - | foot fzf --no-sort --no-mouse -i --tac\"] Control+Shift+slash"
+            "[sh -c \"${footCfg}/edit-scrollback.sh\"] Control+Shift+f"
+            "[sh -c \"${footCfg}/fzf-scrollback.sh\"] Control+Shift+slash"
           ];
           show-urls-launch = "Control+Shift+o";
           show-urls-copy = "Control+Shift+y";
