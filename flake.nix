@@ -22,6 +22,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixgl.url = "github:nix-community/nixGL";
+    sops-nix.url = "github:Mic92/sops-nix";
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
 
     # Feature Flakes

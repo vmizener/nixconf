@@ -13,6 +13,12 @@ show:
 update-packages:
     ./scripts/update-packages.sh
 
+sops-init:
+    ./scripts/sops-init.sh
+
+sops-update:
+    ./scripts/sops-update.sh
+
 vm-run hostname *args="":
     nix run ".#vm-run-{{hostname}}" -- {{args}}
 

@@ -10,6 +10,7 @@
   }: {
     imports = [
       self.homeModules."common/options"
+      self.homeModules."common/sops"
     ];
     home = {
       stateVersion = "25.11";
@@ -40,6 +41,7 @@
   flake.nixosModules."common" = {...}: {
     imports = [
       self.nixosModules."common/options"
+      self.nixosModules."common/sops"
     ];
     nix = {
       gc = {

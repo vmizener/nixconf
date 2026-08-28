@@ -1,0 +1,11 @@
+keys:
+  - &rvonmizener_rvm-x age1dddfqv05f3exl4jcj9zlys5lnvel8cx862a3zaa4p8jyd4uppyuqtwa7wc
+  - &bao_baohaus age1dpm0v62azp3d6859hl35jdnjlfe7hn946ttds00vm627r3u2e4xqnneck7
+  - &host_baohaus age1vtntuta74huc7w89l6wlkj3k3xzteex9spk7qqk2wly6cpctgqjs5rqvyk
+creation_rules:
+  - path_regex: secrets/secrets.yaml$
+    key_groups:
+      - age:
+          - *rvonmizener_rvm-x
+          - *bao_baohaus
+          - *host_baohaus
