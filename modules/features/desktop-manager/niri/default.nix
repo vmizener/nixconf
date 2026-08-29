@@ -51,10 +51,11 @@ Exposes:
               inherit osConfig lib pkgs;
               hmConfig = config;
             };
-          in toKdl (_: {
-            version = 1;
-            content = rawSettings;
-          });
+          in
+            toKdl (_: {
+              version = 1;
+              content = rawSettings;
+            });
         };
         home.packages = with pkgs; [
           brightnessctl

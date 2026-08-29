@@ -18,7 +18,7 @@ Exposes:
     };
   };
   flake.homeModules."feat/gaming/soh" = {config, ...}: {
-    imports = [ inputs.soh-flake.homeManagerModules.default ];
+    imports = [inputs.soh-flake.homeManagerModules.default];
     programs.shipofharkinian = {
       enable = true;
       gamepaths = config.features.gaming.soh.gamepaths;

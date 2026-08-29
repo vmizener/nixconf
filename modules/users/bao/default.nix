@@ -18,7 +18,11 @@ in {
     };
   };
   # @Baohaus (Nixos)
-  flake.nixosModules."users/${username}@baohaus" = {config, pkgs, ...}: {
+  flake.nixosModules."users/${username}@baohaus" = {
+    config,
+    pkgs,
+    ...
+  }: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
       self.nixosModules."feat/terminal/shell/zsh"

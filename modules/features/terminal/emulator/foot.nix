@@ -47,7 +47,11 @@ Exposes:
 
           cat >"$f"
 
-          editor=${if lib.elem "nvim" config.features.tools then "nvim" else "vim"}
+          editor=${
+            if lib.elem "nvim" config.features.tools
+            then "nvim"
+            else "vim"
+          }
 
           foot $editor -u NONE "$f" \
             -c 'set nonumber nolist showtabline=0 foldcolumn=0 virtualedit=block' \
