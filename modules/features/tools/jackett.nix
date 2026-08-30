@@ -10,8 +10,9 @@ Exposes:
 {
   flake.nixosModules."feat/tools/jackett" = {...}: {
     features.tools = ["jackett"];
-    services.jackett = {
-      enable = true;
+    services = {
+      jackett.enable = true;
+      flaresolverr.enable = true;
     };
   };
 }
