@@ -31,7 +31,7 @@ in (
     "alias la='ls -Fha'"
     "alias ll='ls -Fhal'"
     "alias lt='tree'"
-    "alias lT=\"tree -CpDh | sed -e 's/\(.*\)\[\([^]]*\)\]/\2 \1/'\""
+    "alias lT=\"tree -CpDh | sed -e 's/\\\\(.*\\\\)\\\\[\\\\([^]]*\\\\)\\\\]/\\\\2 \\\\1/'\""
   ]
   ++ addIf pkgs.git [
     "alias cdr='cd $(git rev-parse --show-toplevel)'"

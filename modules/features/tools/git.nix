@@ -21,8 +21,8 @@ Exposes:
           # -- Show the change history for FILE
           changes = "log -p -M --follow --stat --";
           # `git squash N`
-          # -- Squash the last N commits together into one commit
-          squash = "!f(){ git reset --soft HEAD~$${1} && git commit --edit -m\"$(git log --format=%B --reverse HEAD..HEAD@{1})\"; };f";
+          # -- Squash the last N commits together into one commit (default: N=2)
+          squash = "!f(){ git reset --soft HEAD~\${1:-2} && git commit --edit -m\"$(git log --format=%B --reverse HEAD..HEAD@{1})\"; };f";
           # `git tree`
           # -- Show the commit tree for the current branch
           tree = "log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all";
