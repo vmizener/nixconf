@@ -1,0 +1,79 @@
+# assets/media/manifest.toml
+# Media asset catalog with source metadata, dimensions, and color schemes.
+
+[fog_forest]
+file = "wallpapers/fog_forest.webp"
+description = "Foggy forest landscape"
+source = "imgur"
+source_id = "kGhIyoh"
+url = "https://imgur.com/kGhIyoh"
+width = 1920
+height = 1080
+aspect_ratio = "16:9"
+color_scheme = "dark"
+dominant_color = "#7b736f"
+palette = ["#c8b6ac", "#b2a298", "#887e77", "#625f5c", "#424444"]
+
+[girl_adjusting_glasses]
+file = "wallpapers/girl_adjusting_glasses.png"
+description = "Girl adjusting glasses"
+source = "pixiv"
+source_id = "96yottea"
+url = "https://www.pixiv.net/en/users/96yottea"
+width = 5120
+height = 2880
+aspect_ratio = "16:9"
+color_scheme = "dark"
+dominant_color = "#5e272e"
+palette = ["#b2507b", "#e21e16", "#3e3b45", "#5b1614", "#080d0e"]
+
+[girl_leaving_apartment]
+file = "wallpapers/girl_leaving_apartment.jpg"
+description = "Girl leaving apartment"
+source = "wallhaven"
+source_id = "zy1xjw"
+url = "https://wallhaven.cc/w/zy1xjw"
+width = 1200
+height = 848
+aspect_ratio = "75:53"
+color_scheme = "dark"
+dominant_color = "#426178"
+palette = ["#7c9bb2", "#507e9e", "#456c89", "#38566d", "#233542"]
+
+[girls_outside_door]
+file = "wallpapers/girls_outside_door.jpg"
+description = "Girls outside door"
+source = "x"
+source_id = "nemuiZZZxN"
+url = "https://x.com/nemuiZZZxN"
+width = 3664
+height = 2059
+aspect_ratio = "16:9"
+color_scheme = "dark"
+dominant_color = "#41473e"
+palette = ["#81a790", "#5a6c5f", "#4d4c41", "#352f29", "#151716"]
+
+[pixel_city_art]
+file = "wallpapers/pixel_city_art.gif"
+description = "Pixel city art"
+source = "pixiv"
+source_id = "waneella"
+url = "https://www.pixiv.net/en/users/waneella"
+width = 1500
+height = 900
+aspect_ratio = "5:3"
+color_scheme = "dark"
+dominant_color = "#152127"
+palette = ["#41475d", "#0e1f26", "#07110d", "#010f0d", "#000d0b"]
+
+[baozi]
+file = "icons/baozi.png"
+description = "Baozi mascot / avatar"
+source = "local"
+source_id = "baozi"
+width = 744
+height = 490
+aspect_ratio = "372:245"
+color_scheme = "light"
+dominant_color = "#a58d6c"
+palette = ["#faefd9", "#e5d2b3", "#bba57f", "#947247", "#523822"]

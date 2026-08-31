@@ -80,7 +80,7 @@ in {
           self.homeModules."feat/terminal/shell/zsh"
 
           ({config, ...}: {
-            features.awww.img = ../../../assets/media/fog_forest--kGhIyoh-imgur.webp;
+            features.awww.img = ../../../assets/media/wallpapers/fog_forest.webp;
             features.gaming.soh.gamepaths = [
               "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
             ];

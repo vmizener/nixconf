@@ -13,7 +13,7 @@ Exposes:
       img = lib.mkOption {
         type = lib.types.path;
         description = "Path to image used for wallpaper";
-        default = ../../../assets/media/girl_leaving_apartment--zy1xjw-wallhaven.jpg;
+        default = ../../../assets/media/wallpapers/girl_leaving_apartment.jpg;
       };
       flags = lib.mkOption {
         type = lib.types.str;
