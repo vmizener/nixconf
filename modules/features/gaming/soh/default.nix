@@ -23,8 +23,5 @@ Exposes:
       enable = true;
       gamepaths = config.features.gaming.soh.gamepaths;
     };
-    xdg.dataFile = {
-      "shipofharkinian/shipofharkinian.json".source = config.mutableLink ./shipofharkinian.json;
-    };
   };
 }
