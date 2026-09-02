@@ -8,13 +8,8 @@ Exposes:
 - flake.homeModules."feat/file-manager/thunar":
 */
 {
-  flake.homeModules."feat/file-manager/thunar" = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
-    features.system.mime.categories.fileManagers = lib.mkIf config.features.system.mime.enable (lib.mkOrder 150 ["thunar.desktop"]);
+  flake.homeModules."feat/file-manager/thunar" = {pkgs, ...}: {
     home.packages = with pkgs; [thunar];
+    features.system.mime.add.fileManager."thunar.desktop" = 150;
   };
 }

@@ -8,12 +8,7 @@ Exposes:
 - flake.homeModules."feat/terminal/emulator/ghostty":
 */
 {
-  flake.homeModules."feat/terminal/emulator/ghostty" = {
-    config,
-    lib,
-    pkgs,
-    ...
-  }: {
+  flake.homeModules."feat/terminal/emulator/ghostty" = {pkgs, ...}: {
     features.terminal.emulators = ["ghostty"];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
@@ -38,6 +33,6 @@ Exposes:
         theme = "Nocturnal Winter";
       };
     };
-    features.system.mime.categories.terminals = lib.mkIf config.features.system.mime.enable (lib.mkOrder 150 ["ghostty.desktop"]);
+    features.system.mime.add.terminal."ghostty.desktop" = 150;
   };
 }

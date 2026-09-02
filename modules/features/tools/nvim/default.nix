@@ -49,7 +49,7 @@ Exposes:
     xdg.configFile."nvim".source = config.mutableLink ./config;
 
     # Mark neovim as preferred editor
-    features.system.mime.categories.editors = lib.mkIf config.features.system.mime.enable (lib.mkOrder 100 ["nvim.desktop"]);
+    features.system.mime.add.editor."nvim.desktop" = 100;
     home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
   };
 }

@@ -30,6 +30,30 @@ Exposes:
         audioPlayers = mkCategory "audio media players";
         videoPlayers = mkCategory "video media players";
       };
+      # Add entries for general MIME type categories by mapping desktop entries to priority numbers.
+      # Lower numbers take precedence (e.g. 100 comes before 150).
+      add = let
+        mkAdd = name:
+          lib.mkOption {
+            type = lib.types.attrsOf (lib.types.either lib.types.int (lib.types.enum [true]));
+            default = {};
+            description = "Map of desktop entries to priority for ${name}.";
+            example = lib.literalExpression ''
+              {
+                "helium.desktop" = 100;
+              }
+            '';
+          };
+      in {
+        browser = mkAdd "web browsers";
+        editor = mkAdd "text editors";
+        fileManager = mkAdd "file managers";
+        imageViewer = mkAdd "image viewers";
+        pdfViewer = mkAdd "PDF viewers";
+        terminal = mkAdd "terminal emulators";
+        audioPlayer = mkAdd "audio media players";
+        videoPlayer = mkAdd "video media players";
+      };
       # Add entries associated with specific MIME types.
       # Note that these entries will appear as options (e.g. in "Open With" menus), but never be selected for automatic execution (as with the defaultApplications list).
       associations = lib.mkOption {
@@ -59,6 +83,29 @@ Exposes:
       mime.enable = true;
       mimeApps = let
         cfg = config.features.system.mime;
+
+        resolveCategory = addMap: explicitList: let
+          pairs =
+            lib.mapAttrsToList (name: val: {
+              inherit name;
+              priority =
+                if val == true
+                then 100
+                else val;
+            })
+            addMap;
+          sorted =
+            builtins.sort (
+              a: b: a.priority < b.priority || (a.priority == b.priority && a.name < b.name)
+            )
+            pairs;
+          sortedNames = map (p: p.name) sorted;
+        in
+          lib.unique (sortedNames ++ explicitList);
+
+        getCategory = singular: plural:
+          resolveCategory cfg.add.${singular} cfg.categories.${plural};
+
         setCategory = category: mimes:
           if category == []
           then {} # Don't override if option is empty (the default)
@@ -67,7 +114,7 @@ Exposes:
         enable = true;
         defaultApplications = lib.attrsets.zipAttrsWith (_: values: lib.lists.flatten values) [
           (setCategory
-            cfg.categories.browsers
+            (getCategory "browser" "browsers")
             [
               "application/xhtml+xml"
               "text/html"
@@ -77,20 +124,20 @@ Exposes:
               "x-scheme-handler/unknown"
             ])
           (setCategory
-            cfg.categories.editors
+            (getCategory "editor" "editors")
             [
               "text/plain"
               "text/markdown"
               "text/x-shellscript"
             ])
           (setCategory
-            cfg.categories.fileManagers
+            (getCategory "fileManager" "fileManagers")
             [
               "inode/directory"
               "x-scheme-handler/file"
             ])
           (setCategory
-            cfg.categories.imageViewers
+            (getCategory "imageViewer" "imageViewers")
             [
               "image/jpeg"
               "image/gif"
@@ -99,24 +146,24 @@ Exposes:
               "image/webp"
             ])
           (setCategory
-            cfg.categories.pdfViewers
+            (getCategory "pdfViewer" "pdfViewers")
             [
               "application/pdf"
             ])
           (setCategory
-            cfg.categories.terminals
+            (getCategory "terminal" "terminals")
             [
               "x-scheme-handler/terminal"
             ])
           (setCategory
-            cfg.categories.audioPlayers
+            (getCategory "audioPlayer" "audioPlayers")
             [
               "audio/flac"
               "audio/mpeg"
               "audio/wav"
             ])
           (setCategory
-            cfg.categories.videoPlayers
+            (getCategory "videoPlayer" "videoPlayers")
             [
               "video/mp4"
               "video/quicktime"

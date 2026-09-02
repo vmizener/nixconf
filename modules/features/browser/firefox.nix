@@ -8,15 +8,11 @@ Exposes:
 - flake.homeModules."feat/browser/firefox":
 */
 {
-  flake.homeModules."feat/browser/firefox" = {
-    config,
-    lib,
-    ...
-  }: {
+  flake.homeModules."feat/browser/firefox" = {config, ...}: {
     programs.firefox = {
       enable = true;
       configPath = "${config.xdg.configHome}/mozilla/firefox";
     };
-    features.system.mime.categories.browsers = lib.mkIf config.features.system.mime.enable (lib.mkOrder 150 ["firefox.desktop"]);
+    features.system.mime.add.browser."firefox.desktop" = 150;
   };
 }
