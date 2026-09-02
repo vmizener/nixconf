@@ -44,10 +44,22 @@ Exposes:
       Service = {
         Type = "simple";
         ExecStart = "${pkg}/bin/awww-daemon";
-        ExecStartPost = "${pkg}/bin/awww img ${flags} ${img}";
+        ExecStartPost = pkgs.writeShellScript "awww-set-wallpaper" ''
+          ${pkg}/bin/awww clear-cache
+          for i in $(seq 1 10); do
+            if ${pkg}/bin/awww img ${flags} ${img}; then
+              exit 0
+            fi
+            sleep 0.25
+          done
+
+          echo "awww-daemon did not become ready" >&2
+          exit 1
+        '';
         ExecStop = "${pkg}/bin/awww kill";
         Restart = "on-failure";
         RestartSec = "3";
+        TimeoutStopSec = "1s";
       };
     };
   };
