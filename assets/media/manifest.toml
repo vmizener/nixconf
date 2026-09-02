@@ -28,17 +28,17 @@ dominant_color = "#5e272e"
 palette = ["#b2507b", "#e21e16", "#3e3b45", "#5b1614", "#080d0e"]
 
 [girl_leaving_apartment]
-file = "wallpapers/girl_leaving_apartment.jpg"
+file = "wallpapers/girl_leaving_apartment.png"
 description = "Girl leaving apartment"
 source = "wallhaven"
 source_id = "zy1xjw"
 url = "https://wallhaven.cc/w/zy1xjw"
-width = 1200
-height = 848
-aspect_ratio = "75:53"
+width = 1920
+height = 1080
+aspect_ratio = "16:9"
 color_scheme = "dark"
-dominant_color = "#426178"
-palette = ["#7c9bb2", "#507e9e", "#456c89", "#38566d", "#233542"]
+dominant_color = "#436379"
+palette = ["#829fb3", "#5180a2", "#476f8c", "#38576d", "#20313d"]
 
 [girls_outside_door]
 file = "wallpapers/girls_outside_door.jpg"
