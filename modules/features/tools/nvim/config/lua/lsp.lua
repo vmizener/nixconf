@@ -66,12 +66,9 @@ M.CONFIGS = {
           command = { "nixfmt" },
         },
         options = (function()
-          local username = vim.env["USER"]
-          local hostname = vim.system({ "uname", "-n" }, { text = true }):wait()["stdout"]:gsub("\n", "")
           local flake_path = nil
           local config_nixos = "/etc/nixos"
           local config_home_manager = vim.fn.expand("~/.config/home-manager")
-          local is_nixos = vim.uv.fs_stat(config_nixos) ~= nil
 
           if vim.uv.fs_stat(config_nixos .. "/flake.nix") then
             flake_path = vim.uv.fs_realpath(config_nixos)
@@ -85,48 +82,23 @@ M.CONFIGS = {
             return {}
           end
 
-          if is_nixos then
-            local flake_expr = '(builtins.getFlake("' .. flake_path .. '"))'
-            return {
-              nixos = {
-                expr = table.concat({
-                  flake_expr,
-                  "nixosConfigurations",
-                  hostname,
-                  "options",
-                }, "."),
-              },
-              home_manager = {
-                expr = table.concat({
-                  flake_expr,
-                  "nixosConfigurations",
-                  hostname,
-                  "options.home-manager.users.type.getSubOptions []",
-                }, "."),
-              },
-            }
-          else
-            local nix_expr = table.concat({
+          local function expr(type)
+            return table.concat({
               "let",
-              "  lib = (import <nixpkgs> {}).lib;",
               '  flake = builtins.getFlake "' .. flake_path .. '";',
-              "  config = flake.homeConfigurations or {};",
-              "  configName = lib.lists.findFirst",
-              "    (name: builtins.hasAttr name config)",
-              '    ""',
-              "    [",
-              '      "' .. username .. "@" .. hostname .. '"',
-              '      "' .. username .. '"',
-              "    ];",
+              "  target = (",
+              "    flake." .. type .. ".options",
+              "    or flake.inputs.nixconf." .. type .. ".options",
+              "    or null",
+              "  );",
               "in",
-              "  config.${configName}.options or {}",
+              "  if target != null then target.options else {}",
             }, "\n")
-            return {
-              home_manager = {
-                expr = nix_expr,
-              },
-            }
           end
+          return {
+            home_manager = { expr = expr("homeConfigurations") },
+            nixos = { expr = expr("nixosConfigurations") },
+          }
         end)(),
       },
     },
