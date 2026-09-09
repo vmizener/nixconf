@@ -4,7 +4,7 @@ default:
 
 # Open nix dev shell
 dev shell="zsh":
-    nix develop -c {{shell}}
+    nix develop -c env SHELL="$(which {{shell}})" {{shell}}
 
 # Run nix formatter
 format:
