@@ -7,13 +7,15 @@ Exposes:
 
 - flake.homeModules."feat/tools/fuzzel":
 */
-{
-  flake.homeModules."feat/tools/fuzzel" = {
+let
+  moduleName = "feat/tools/fuzzel";
+in {
+  flake.homeModules.${moduleName} = {
     config,
     pkgs,
     ...
   }: {
-    features.tools = ["fuzzel"];
+    flake.imported = [moduleName];
     home.packages = with pkgs; [fuzzel];
     xdg.configFile = {
       "fuzzel/fuzzel.ini".source = config.lib.file.mkOutOfStoreSymLink ./fuzzel.ini;

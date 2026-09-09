@@ -7,13 +7,15 @@ Exposes:
 
 - flake.homeModules."feat/tools/tmux":
 */
-{
-  flake.homeModules."feat/tools/tmux" = {
+let
+  moduleName = "feat/tools/tmux";
+in {
+  flake.homeModules.${moduleName} = {
     config,
     pkgs,
     ...
   }: {
-    features.tools = ["tmux"];
+    flake.imported = [moduleName];
     programs.tmux = {
       enable = true;
 

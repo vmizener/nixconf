@@ -7,8 +7,11 @@ Exposes:
 
 - flake.homeModules."feat/gaming/streamlink":
 */
-{
-  flake.homeModules."feat/gaming/streamlink" = {pkgs, ...}: {
+{...}: let
+  moduleName = "feat/gaming/streamlink";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     home.packages = with pkgs; [
       mpv
       streamlink

@@ -7,10 +7,13 @@ Exposes:
 
 - flake.homeModules."feat/gaming/retroarch":
 */
-{
+{...}: let
+  moduleName = "feat/gaming/retroarch";
+in {
   flake.nixosModules."common/options" = {...}: {
   };
-  flake.homeModules."feat/gaming/retroarch" = {config, ...}: {
+  flake.homeModules.${moduleName} = {config, ...}: {
+    flake.imported = [moduleName];
     programs.retroarch = {
       enable = true;
       cores = {

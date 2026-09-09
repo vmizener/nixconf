@@ -11,9 +11,11 @@ Exposes:
 - flake.nixosModules."feat/desktop-manager/niri":
   - Enables Niri wayland session and UWSM integration.
 */
-{inputs, ...}: {
+{inputs, ...}: let
+  moduleName = "feat/desktop-manager/niri";
+in {
   flake.homeModules."common/options" = {lib, ...}: {
-    options.features.niri = {
+    options.features.desktop-manager.niri = {
       extraConfig = lib.mkOption {
         type = lib.types.str;
         default = "";
@@ -21,7 +23,7 @@ Exposes:
       };
     };
   };
-  flake.homeModules."feat/desktop-manager/niri" = {
+  flake.homeModules.${moduleName} = {
     config,
     lib,
     osConfig ? null,
@@ -42,9 +44,10 @@ Exposes:
         };
       })
       {
+        flake.imported = [moduleName];
         xdg.configFile = {
           "niri/config.kdl".source = config.mutableLink ./config.kdl;
-          "niri/local.kdl".source = pkgs.writeText "local.kdl" config.features.niri.extraConfig;
+          "niri/local.kdl".source = pkgs.writeText "local.kdl" config.features.desktop-manager.niri.extraConfig;
           "niri/generated.kdl".text = let
             toKdl = inputs.wrapper-modules.lib.toKdl;
             rawSettings = import ./_settings.nix {
@@ -67,11 +70,12 @@ Exposes:
     ];
   };
 
-  flake.nixosModules."feat/desktop-manager/niri" = {pkgs, ...}: let
+  flake.nixosModules.${moduleName} = {pkgs, ...}: let
     pkg = pkgs.niri-unstable;
   in {
     imports = [inputs.niri.nixosModules.niri];
     config = {
+      flake.imported = [moduleName];
       nixpkgs.overlays = [inputs.niri.overlays.niri];
       programs.niri = {
         enable = true;

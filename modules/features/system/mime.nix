@@ -7,7 +7,9 @@ Exposes:
 
 - flake.homeModules."feat/system/mime":
 */
-{
+{...}: let
+  moduleName = "feat/system/mime";
+in {
   flake.homeModules."common/options" = {lib, ...}: {
     options.features.system.mime = {
       enable = lib.mkEnableOption "XDG MIME types and default application lists";
@@ -68,12 +70,13 @@ Exposes:
       };
     };
   };
-  flake.homeModules."feat/system/mime" = {
+  flake.homeModules.${moduleName} = {
     config,
     lib,
     pkgs,
     ...
   }: {
+    flake.imported = [moduleName];
     features.system.mime.enable = true;
     home.packages = with pkgs; [
       handlr-regex # https://github.com/Anomalocaridid/handlr-regex

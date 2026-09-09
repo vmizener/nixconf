@@ -9,8 +9,11 @@ Exposes:
   - Enables GNOME desktop manager
   - Configures X11 windowing system.
 */
-{
-  flake.nixosModules."feat/desktop-manager/gnome" = {...}: {
+{...}: let
+  moduleName = "feat/desktop-manager/gnome";
+in {
+  flake.nixosModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
     services = {
       desktopManager.gnome.enable = true;
       xserver = {

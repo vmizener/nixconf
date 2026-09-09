@@ -7,8 +7,11 @@ Exposes:
 
 - flake.nixosModules."feat/system/audio":
 */
-{
-  flake.nixosModules."feat/system/audio" = {...}: {
+{...}: let
+  moduleName = "feat/system/audio";
+in {
+  flake.nixosModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
     security.rtkit.enable = true;
     services = {
       pipewire = {

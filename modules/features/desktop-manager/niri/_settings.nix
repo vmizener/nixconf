@@ -36,13 +36,13 @@
     }
     {
       cmd = "fuzzel";
-      checker = cfg: hasFeat "fuzzel" cfg ["features" "tools"];
+      checker = cfg: hasFeat "feat/tools/fuzzel" cfg ["flake" "imported"];
     }
   ];
   cmdKandoMenu = cmdByFeat null [
     {
       cmd = ''kando --menu "Main Menu"'';
-      checker = cfg: hasFeat "kando" cfg ["features" "tools"];
+      checker = cfg: hasFeat "feat/tools/kando" cfg ["flake" "imported"];
     }
   ];
   cmdAudioRaiseVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+";

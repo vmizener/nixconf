@@ -7,8 +7,11 @@ Exposes:
 
 - flake.nixosModules."feat/system/earlyoom":
 */
-{
-  flake.nixosModules."feat/system/earlyoom" = {lib, ...}: {
+{...}: let
+  moduleName = "feat/system/earlyoom";
+in {
+  flake.nixosModules.${moduleName} = {lib, ...}: {
+    flake.imported = [moduleName];
     services.earlyoom = {
       enable = true;
 

@@ -33,7 +33,7 @@ in {
       self.nixosModules."feat/tools/jackett"
       self.nixosModules."feat/vm"
     ];
-    features.steam.enableExtest = true;
+    features.gaming.steam.enableExtest = true;
 
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";

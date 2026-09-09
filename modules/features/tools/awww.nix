@@ -7,9 +7,11 @@ Exposes:
 
 - flake.homeModules."feat/tools/awww":
 */
-{inputs, ...}: {
+{inputs, ...}: let
+  moduleName = "feat/tools/awww";
+in {
   flake.homeModules."common/options" = {lib, ...}: {
-    options.features.awww = {
+    options.features.tools.awww = {
       img = lib.mkOption {
         type = lib.types.path;
         description = "Path to image used for wallpaper";
@@ -22,16 +24,16 @@ Exposes:
       };
     };
   };
-  flake.homeModules."feat/tools/awww" = {
+  flake.homeModules.${moduleName} = {
     config,
     pkgs,
     ...
   }: let
-    img = config.features.awww.img;
-    flags = config.features.awww.flags;
+    img = config.features.tools.awww.img;
+    flags = config.features.tools.awww.flags;
     pkg = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
   in {
-    features.tools = ["awww"];
+    flake.imported = [moduleName];
     home.packages = [pkg];
     systemd.user.services.awww = {
       Install = {

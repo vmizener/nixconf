@@ -8,13 +8,16 @@ Exposes:
 - flake.homeModules."feat/system/theme":
 - flake.nixosModules."feat/system/theme":
 */
-{
-  flake.homeModules."feat/system/theme" = {pkgs, ...}: let
+{...}: let
+  moduleName = "feat/system/theme";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: let
     theme = "Breeze-Dark";
     iconTheme = "cat-mocha-lavender"; # For icons, e.g. in pcmanfm-qt
     cursorTheme = "mochaLight";
     cursorSize = 16;
   in {
+    flake.imported = [moduleName];
     gtk = {
       enable = true;
       theme.name = theme;
@@ -32,7 +35,8 @@ Exposes:
       gtk4.theme = null;
     };
   };
-  flake.nixosModules."feat/system/theme" = {pkgs, ...}: {
+  flake.nixosModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     environment.systemPackages = with pkgs; [
       # Themes
       kdePackages.breeze-gtk

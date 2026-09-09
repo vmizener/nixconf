@@ -7,8 +7,11 @@ Exposes:
 
 - flake.homeModules."feat/gaming/discord":
 */
-{
-  flake.homeModules."feat/gaming/discord" = {pkgs, ...}: {
+{...}: let
+  moduleName = "feat/gaming/discord";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     home.packages = with pkgs; [
       discord
     ];

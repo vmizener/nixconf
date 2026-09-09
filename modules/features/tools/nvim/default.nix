@@ -8,8 +8,10 @@ Exposes:
 - flake.homeModules."feat/tools/nvim":
   - Enables Neovim
 */
-{
-  flake.homeModules."feat/tools/nvim" = {
+let
+  moduleName = "feat/tools/nvim";
+in {
+  flake.homeModules.${moduleName} = {
     config,
     lib,
     pkgs,
@@ -20,7 +22,7 @@ Exposes:
       paths = pkgs.vimPlugins.nvim-treesitter.withAllGrammars.dependencies;
     };
   in {
-    features.tools = ["nvim"];
+    flake.imported = [moduleName];
     programs.neovim = {
       enable = true;
       sideloadInitLua = true;

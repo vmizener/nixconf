@@ -14,9 +14,12 @@ Exposes:
   - Configures udiskie automounting.
 */
 {inputs, ...}: let
+  moduleName = "feat/system/systools";
+
   systoolsPackages = import ./_packages.nix;
 in {
-  flake.homeModules."feat/system/systools" = {pkgs, ...}: {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     imports = [
       inputs.nix-index-database.homeModules.nix-index
     ];
@@ -35,7 +38,8 @@ in {
     systemd.user.startServices = "sd-switch";
   };
 
-  flake.nixosModules."feat/system/systools" = {pkgs, ...}: {
+  flake.nixosModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     environment.systemPackages = systoolsPackages pkgs;
     services = {
       udisks2.enable = true;

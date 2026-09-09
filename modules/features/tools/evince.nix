@@ -7,8 +7,11 @@ Exposes:
 
 - flake.homeModules."feat/tools/evince":
 */
-{
-  flake.homeModules."feat/tools/evince" = {pkgs, ...}: {
+{...}: let
+  moduleName = "feat/tools/evince";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     home.packages = [pkgs.evince];
 
     features.system.mime.add.pdfViewer."evince.desktop" = 150;

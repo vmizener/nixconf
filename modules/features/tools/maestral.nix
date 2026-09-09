@@ -7,13 +7,15 @@ Exposes:
 
 - flake.homeModules."feat/tools/maestral":
 */
-{
-  flake.homeModules."feat/tools/maestral" = {
+let
+  moduleName = "feat/tools/maestral";
+in {
+  flake.homeModules.${moduleName} = {
     lib,
     pkgs,
     ...
   }: {
-    features.tools = ["maestral"];
+    flake.imported = [moduleName];
     home.packages = with pkgs; [
       maestral
       maestral-gui

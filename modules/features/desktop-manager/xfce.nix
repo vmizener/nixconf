@@ -9,8 +9,11 @@ Exposes:
   - Enables XFCE desktop manager
   - Configures X11 server.
 */
-{
-  flake.homeModules."feat/desktop-manager/xfce" = {pkgs, ...}: {
+{...}: let
+  moduleName = "feat/desktop-manager/xfce";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     home.packages = with pkgs; [
       kando
     ];
@@ -21,7 +24,8 @@ Exposes:
       };
     };
   };
-  flake.nixosModules."feat/desktop-manager/xfce" = {...}: {
+  flake.nixosModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
     services.xserver = {
       enable = true;
       desktopManager = {

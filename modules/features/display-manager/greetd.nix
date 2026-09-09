@@ -9,7 +9,9 @@ Exposes:
 - flake.nixosModules."feat/display-manager/greetd":
   - Enables greetd login manager
 */
-{
+{...}: let
+  moduleName = "feat/display-manager/greetd";
+in {
   flake.nixosModules."common/options" = {
     config,
     lib,
@@ -45,13 +47,14 @@ Exposes:
       };
     };
   };
-  flake.nixosModules."feat/display-manager/greetd" = {
+  flake.nixosModules.${moduleName} = {
     config,
     lib,
     ...
   }: let
     cfg = config.features.display-manager.greetd;
   in {
+    flake.imported = [moduleName];
     services.greetd = {
       enable = true;
       settings = {

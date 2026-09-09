@@ -7,8 +7,10 @@ Exposes:
 
 - flake.nixosModules."feat/tools/ckb-next":
 */
-{
-  flake.nixosModules."feat/tools/ckb-next" = {
+let
+  moduleName = "feat/tools/ckb-next";
+in {
+  flake.nixosModules.${moduleName} = {
     config,
     lib,
     pkgs,
@@ -23,7 +25,7 @@ Exposes:
     };
     pkg = pkgs.ckb-next.overrideAttrs (_: {inherit src;});
   in {
-    features.tools = ["ckb-next"];
+    flake.imported = [moduleName];
     environment.systemPackages = [pkg];
     hardware.ckb-next = {
       enable = true;

@@ -7,7 +7,9 @@ Exposes:
 
 - flake.homeModules."feat/gaming/soh":
 */
-{inputs, ...}: {
+{inputs, ...}: let
+  moduleName = "feat/gaming/soh";
+in {
   flake.homeModules."common/options" = {lib, ...}: {
     options.features.gaming.soh = {
       gamepaths = lib.mkOption {
@@ -17,7 +19,8 @@ Exposes:
       };
     };
   };
-  flake.homeModules."feat/gaming/soh" = {config, ...}: {
+  flake.homeModules.${moduleName} = {config, ...}: {
+    flake.imported = [moduleName];
     imports = [inputs.soh-flake.homeManagerModules.default];
     programs.shipofharkinian = {
       enable = true;

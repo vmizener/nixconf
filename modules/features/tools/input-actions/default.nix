@@ -11,12 +11,15 @@ Exposes:
 - flake.nixosModules."feat/tools/input-actions":
 - flake.homeModules."feat/tools/input-actions":
 */
-{inputs, ...}: {
-  flake.nixosModules."feat/tools/input-actions" = {pkgs, ...}: let
+{inputs, ...}: let
+  moduleName = "feat/tools/input-actions";
+in {
+  flake.nixosModules.${moduleName} = {pkgs, ...}: let
     system = pkgs.stdenv.hostPlatform.system;
     inputactions-ctl = inputs.inputactions-ctl.packages.${system}.default;
     inputactions-standalone = inputs.inputactions-standalone.packages.${system}.default;
   in {
+    flake.imported = [moduleName];
     environment.systemPackages = [
       inputactions-ctl
       inputactions-standalone
@@ -34,10 +37,11 @@ Exposes:
       };
     };
   };
-  flake.homeModules."feat/tools/input-actions" = {pkgs, ...}: let
+  flake.homeModules.${moduleName} = {pkgs, ...}: let
     system = pkgs.stdenv.hostPlatform.system;
     inputactions-standalone = inputs.inputactions-standalone.packages.${system}.default;
   in {
+    flake.imported = [moduleName];
     systemd.user.services = {
       inputactions-client = {
         Install = {

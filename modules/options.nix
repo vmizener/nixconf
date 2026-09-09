@@ -22,6 +22,12 @@
       osConfig ? null,
       ...
     }: {
+      options.flake.imported = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "List of imported modules";
+      };
+
       options.flakePath = lib.mkOption {
         type = lib.types.str;
         default =
@@ -38,6 +44,16 @@
           config.lib.file.mkOutOfStoreSymlink "${config.flakePath}/${relpath}";
         description = "Make a mutable symlink path to the given config source";
         readOnly = true;
+      };
+    };
+
+    ################
+    # NixOS common options
+    flake.nixosModules."common/options" = {...}: {
+      options.flake.imported = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "List of imported modules";
       };
     };
 

@@ -7,8 +7,11 @@ Exposes:
 
 - flake.homeModules."feat/desktop-shell/dms":
 */
-{inputs, ...}: {
-  flake.homeModules."feat/desktop-shell/dms" = {pkgs, ...}: {
+{inputs, ...}: let
+  moduleName = "feat/desktop-shell/dms";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     imports = [
       inputs.dms.homeModules.dank-material-shell
       inputs.danksearch.homeModules.default

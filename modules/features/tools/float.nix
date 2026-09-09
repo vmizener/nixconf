@@ -10,6 +10,8 @@ Exposes:
 - local package: "nix run '.#float'"
 */
 {self, ...}: let
+  moduleName = "feat/tools/float";
+
   pkgName = "float";
   version = "1.2.1";
   pkgHash = "sha256-ngklCMJ54ZFPaWB3c79mzcRKGSiB9sw4KcAKWcVPgao=";
@@ -17,12 +19,12 @@ Exposes:
 
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
-  flake.homeModules."feat/tools/float" = {pkgs, ...}: {
-    features.tools = ["float"];
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     home.packages = [(localPkg pkgs)];
   };
-  flake.nixosModules."feat/tools/float" = {pkgs, ...}: {
-    features.tools = ["float"];
+  flake.nixosModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     environment.systemPackages = [(localPkg pkgs)];
   };
   perSystem = {pkgs, ...}: {

@@ -7,8 +7,10 @@ Exposes:
 
 - flake.homeModules."feat/tools/kanshi":
 */
-{
-  flake.homeModules."feat/tools/kanshi" = {
+let
+  moduleName = "feat/tools/kanshi";
+in {
+  flake.homeModules.${moduleName} = {
     config,
     pkgs,
     ...
@@ -18,7 +20,7 @@ Exposes:
     #   ${flakepath}/scripts/run theme::reset
     # ''));
   in {
-    features.tools = ["kanshi"];
+    flake.imported = [moduleName];
     home.packages = with pkgs; [kanshi];
     services.kanshi = {
       enable = true;

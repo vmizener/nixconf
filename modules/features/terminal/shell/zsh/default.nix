@@ -8,7 +8,9 @@ Exposes:
 - flake.homeModules."feat/terminal/shell/zsh":
   - Enables Zsh for the user.
 */
-{
+{...}: let
+  moduleName = "feat/terminal/shell/zsh";
+in {
   flake.homeModules."common/options" = {lib, ...}: {
     options.features.terminal.shell.zsh = {
       extraConfig = lib.mkOption {
@@ -18,7 +20,7 @@ Exposes:
       };
     };
   };
-  flake.homeModules."feat/terminal/shell/zsh" = {
+  flake.homeModules.${moduleName} = {
     config,
     lib,
     pkgs,
@@ -29,6 +31,7 @@ Exposes:
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
   in {
+    flake.imported = [moduleName];
     programs.zsh = {
       enable = true;
       dotDir = "${config.xdg.configHome}/zsh";
@@ -52,7 +55,8 @@ Exposes:
       ];
     };
   };
-  flake.nixosModules."feat/terminal/shell/zsh" = {...}: {
+  flake.nixosModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
     programs.zsh.enable = true;
   };
 }

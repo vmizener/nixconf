@@ -7,13 +7,15 @@ Exposes:
 
 - flake.homeModules."feat/tools/kando":
 */
-{
-  flake.homeModules."feat/tools/kando" = {
+let
+  moduleName = "feat/tools/kando";
+in {
+  flake.homeModules.${moduleName} = {
     lib,
     pkgs,
     ...
   }: {
-    features.tools = ["kando"];
+    flake.imported = [moduleName];
     home.packages = with pkgs; [kando];
     systemd.user.services.kando = {
       Install = {

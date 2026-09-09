@@ -12,7 +12,9 @@ Exposes:
   - Generates `vm-run-<hostname>` package (to run the <hostname> VM).
   - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
 */
-{self, ...}: {
+{self, ...}: let
+  moduleName = "feat/vm";
+in {
   flake.nixosModules."common/options" = {lib, ...}: {
     options.features.vm = {
       isVm = lib.mkOption {
@@ -27,8 +29,9 @@ Exposes:
       };
     };
   };
-  flake.nixosModules."feat/vm" = {...}: {
+  flake.nixosModules.${moduleName} = {...}: {
     config = {
+      flake.imported = [moduleName];
       virtualisation.vmVariant = {
         features.vm.isVm = true;
         services.qemuGuest.enable = true;

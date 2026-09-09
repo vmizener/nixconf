@@ -7,6 +7,10 @@ Exposes:
 
 - flake.nixosModules."feat/terminal/shell/bash":
 */
-{
-  flake.nixosModules."feat/terminal/shell/bash" = {};
+{...}: let
+  moduleName = "feat/terminal/shell/bash";
+in {
+  flake.nixosModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
+  };
 }

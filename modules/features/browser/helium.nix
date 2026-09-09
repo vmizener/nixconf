@@ -7,8 +7,11 @@ Exposes:
 
 - flake.homeModules."feat/browser/helium":
 */
-{inputs, ...}: {
-  flake.homeModules."feat/browser/helium" = {pkgs, ...}: {
+{inputs, ...}: let
+  moduleName = "feat/browser/helium";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     home.packages = [
       inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];

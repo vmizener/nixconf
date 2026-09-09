@@ -7,8 +7,11 @@ Exposes:
 
 - flake.nixosModules."feat/display-manager/gdm":
 */
-{
-  flake.nixosModules."feat/display-manager/gdm" = {...}: {
+{...}: let
+  moduleName = "feat/display-manager/gdm";
+in {
+  flake.nixosModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
     services.displayManager.gdm.enable = true;
   };
 }

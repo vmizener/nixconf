@@ -7,13 +7,16 @@ Exposes:
 
 - flake.homeModules."feat/terminal/emulator/foot":
 */
-{
-  flake.homeModules."feat/terminal/emulator/foot" = {
+{...}: let
+  moduleName = "feat/terminal/emulator/foot";
+in {
+  flake.homeModules.${moduleName} = {
     config,
     lib,
     pkgs,
     ...
   }: {
+    flake.imported = [moduleName];
     features.terminal.emulators = ["foot"];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
@@ -48,7 +51,7 @@ Exposes:
           cat >"$f"
 
           editor=${
-            if lib.elem "nvim" config.features.tools
+            if lib.elem "feat/tools/nvim" config.flake.imported
             then "nvim"
             else "vim"
           }

@@ -7,8 +7,11 @@ Exposes:
 
 - flake.homeModules."feat/terminal/emulator/ghostty":
 */
-{
-  flake.homeModules."feat/terminal/emulator/ghostty" = {pkgs, ...}: {
+{...}: let
+  moduleName = "feat/terminal/emulator/ghostty";
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     features.terminal.emulators = ["ghostty"];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [

@@ -7,8 +7,11 @@ Exposes:
 
 - flake.nixosModules."feat/gaming/sunshine":
 */
-{
-  flake.nixosModules."feat/gaming/sunshine" = {...}: {
+{...}: let
+  moduleName = "feat/gaming/sunshine";
+in {
+  flake.nixosModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
     services = {
       sunshine = {
         enable = true;

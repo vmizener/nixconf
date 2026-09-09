@@ -10,6 +10,8 @@ Exposes:
 - local package: "nix run '.#float'"
 */
 {self, ...}: let
+  moduleName = "feat/tools/ditto";
+
   pkgName = "ditto";
   version = "1.3.3";
   pkgHash = "sha256-pn8uFVSR409dEGDSqJXJZ3h7NzdClew57YMPankCtw8=";
@@ -17,12 +19,12 @@ Exposes:
 
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
-  flake.homeModules."feat/tools/ditto" = {pkgs, ...}: {
-    features.tools = ["ditto"];
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     home.packages = [(localPkg pkgs)];
   };
-  flake.nixosModules."feat/tools/ditto" = {pkgs, ...}: {
-    features.tools = ["ditto"];
+  flake.nixosModules.${moduleName} = {pkgs, ...}: {
+    flake.imported = [moduleName];
     environment.systemPackages = [(localPkg pkgs)];
   };
   perSystem = {pkgs, ...}: {

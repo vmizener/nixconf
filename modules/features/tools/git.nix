@@ -10,9 +10,11 @@ Exposes:
 
 - flake.homeModules."feat/tools/git":
 */
-{
-  flake.homeModules."feat/tools/git" = {...}: {
-    features.tools = ["git"];
+let
+  moduleName = "feat/tools/git";
+in {
+  flake.homeModules.${moduleName} = {...}: {
+    flake.imported = [moduleName];
     programs.git = {
       enable = true;
       settings = {

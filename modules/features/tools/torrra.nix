@@ -7,14 +7,16 @@ Exposes:
 
 - flake.homeModules."feat/tools/torrra":
 */
-{inputs, ...}: {
-  flake.homeModules."feat/tools/torrra" = {
+{inputs, ...}: let
+  moduleName = "feat/tools/torrra";
+in {
+  flake.homeModules.${moduleName} = {
     config,
     lib,
     pkgs,
     ...
   }: {
-    features.tools = ["torrra"];
+    flake.imported = [moduleName];
     home.packages = [inputs.torrra.packages.${pkgs.stdenv.hostPlatform.system}.default];
 
     # Copy a writable config
