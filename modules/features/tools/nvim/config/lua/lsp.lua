@@ -104,6 +104,19 @@ M.CONFIGS = {
     },
   },
   -- }}}
+  -- Python (pyright) {{{
+  pyright = {
+    settings = {
+      python = {
+        analysis = {
+          autoSearchPaths = true,
+          useLibraryCodeForTypes = true,
+          diagnosticMode = "openFilesOnly",
+        },
+      },
+    },
+  },
+  -- }}}
 }
 
 function M.enable_config(name, config)
