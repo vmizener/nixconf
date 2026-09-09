@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/gaming/soh";
 in {
   flake.homeModules."common/options" = {lib, ...}: {
-    options.features.gaming.soh = {
+    options.mod.${moduleName} = {
       gamepaths = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
@@ -19,12 +19,14 @@ in {
       };
     };
   };
-  flake.homeModules.${moduleName} = {config, ...}: {
+  flake.homeModules.${moduleName} = {config, ...}: let
+    cfg = config.mod.${moduleName};
+  in {
     flake.imported = [moduleName];
     imports = [inputs.soh-flake.homeManagerModules.default];
     programs.shipofharkinian = {
       enable = true;
-      gamepaths = config.features.gaming.soh.gamepaths;
+      gamepaths = cfg.gamepaths;
     };
   };
 }

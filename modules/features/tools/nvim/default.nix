@@ -51,7 +51,7 @@ in {
     xdg.configFile."nvim".source = config.mutableLink ./config;
 
     # Mark neovim as preferred editor
-    features.system.mime.add.editor."nvim.desktop" = 100;
+    mod."feat/system/mime".add.editor."nvim.desktop" = 100;
     home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
   };
 }

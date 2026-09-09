@@ -23,7 +23,7 @@ in {
       tuigreet = "${pkgs.tuigreet}/bin/tuigreet --time";
     };
   in {
-    options.features.display-manager.greetd = {
+    options.mod.${moduleName} = {
       greeter = lib.mkOption {
         type = lib.types.enum (lib.attrNames greeters);
         default = "tuigreet";
@@ -32,10 +32,9 @@ in {
       # Derived value (not a user-facing option)
       command = lib.mkOption {
         type = lib.types.str;
-        default = greeters.${config.features.display-manager.greetd.greeter};
+        default = greeters.${config.mod.${moduleName}.greeter};
         readOnly = true;
       };
-
       autologinUser = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
@@ -52,7 +51,7 @@ in {
     lib,
     ...
   }: let
-    cfg = config.features.display-manager.greetd;
+    cfg = config.mod.${moduleName};
   in {
     flake.imported = [moduleName];
     services.greetd = {

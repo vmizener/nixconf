@@ -12,7 +12,6 @@ Exposes:
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
     flake.imported = [moduleName];
-    features.terminal.emulators = ["ghostty"];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       nerd-fonts.fira-code
@@ -36,6 +35,6 @@ in {
         theme = "Nocturnal Winter";
       };
     };
-    features.system.mime.add.terminal."ghostty.desktop" = 150;
+    mod."feat/system/mime".add.terminal."ghostty.desktop" = 150;
   };
 }

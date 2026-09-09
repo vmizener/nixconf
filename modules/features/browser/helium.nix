@@ -15,6 +15,6 @@ in {
     home.packages = [
       inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
-    features.system.mime.add.browser."helium.desktop" = 100;
+    mod."feat/system/mime".add.browser."helium.desktop" = 100;
   };
 }

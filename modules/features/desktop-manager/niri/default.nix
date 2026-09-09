@@ -15,7 +15,7 @@ Exposes:
   moduleName = "feat/desktop-manager/niri";
 in {
   flake.homeModules."common/options" = {lib, ...}: {
-    options.features.desktop-manager.niri = {
+    options.mod.${moduleName} = {
       extraConfig = lib.mkOption {
         type = lib.types.str;
         default = "";
@@ -30,6 +30,8 @@ in {
     pkgs,
     ...
   }: let
+    cfg = config.mod.${moduleName};
+
     isNixOs = osConfig != null;
     osNiriEnabled = isNixOs && osConfig.programs.niri.enable;
     useFlakeNiri = !isNixOs || (isNixOs && !osNiriEnabled);
@@ -47,7 +49,7 @@ in {
         flake.imported = [moduleName];
         xdg.configFile = {
           "niri/config.kdl".source = config.mutableLink ./config.kdl;
-          "niri/local.kdl".source = pkgs.writeText "local.kdl" config.features.desktop-manager.niri.extraConfig;
+          "niri/local.kdl".source = pkgs.writeText "local.kdl" cfg.extraConfig;
           "niri/generated.kdl".text = let
             toKdl = inputs.wrapper-modules.lib.toKdl;
             rawSettings = import ./_settings.nix {

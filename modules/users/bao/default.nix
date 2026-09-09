@@ -80,8 +80,9 @@ in {
           self.homeModules."feat/terminal/shell/zsh"
 
           ({config, ...}: {
-            features.tools.awww.img = ../../../assets/media/wallpapers/girl_leaving_apartment.png;
-            features.gaming.soh.gamepaths = [
+            mod."feat/tools/awww".img =
+              ../../../assets/media/wallpapers/girl_leaving_apartment.png;
+            mod."feat/gaming/soh".gamepaths = [
               "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
             ];
           })

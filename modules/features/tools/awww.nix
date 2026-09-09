@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/tools/awww";
 in {
   flake.homeModules."common/options" = {lib, ...}: {
-    options.features.tools.awww = {
+    options.mod.${moduleName} = {
       img = lib.mkOption {
         type = lib.types.path;
         description = "Path to image used for wallpaper";
@@ -29,8 +29,7 @@ in {
     pkgs,
     ...
   }: let
-    img = config.features.tools.awww.img;
-    flags = config.features.tools.awww.flags;
+    cfg = config.mod.${moduleName};
     pkg = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
   in {
     flake.imported = [moduleName];
@@ -49,7 +48,7 @@ in {
         ExecStartPost = pkgs.writeShellScript "awww-set-wallpaper" ''
           ${pkg}/bin/awww clear-cache
           for i in $(seq 1 10); do
-            if ${pkg}/bin/awww img ${flags} ${img}; then
+            if ${pkg}/bin/awww img ${cfg.flags} ${cfg.img}; then
               exit 0
             fi
             sleep 0.25

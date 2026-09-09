@@ -14,6 +14,6 @@ in {
     flake.imported = [moduleName];
     home.packages = [pkgs.evince];
 
-    features.system.mime.add.pdfViewer."evince.desktop" = 150;
+    mod."feat/system/mime".add.pdfViewer."evince.desktop" = 150;
   };
 }

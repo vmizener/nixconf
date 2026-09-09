@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/system/mime";
 in {
   flake.homeModules."common/options" = {lib, ...}: {
-    options.features.system.mime = {
+    options.mod.${moduleName} = {
       enable = lib.mkEnableOption "XDG MIME types and default application lists";
       # Add entries for general MIME type categories.
       # Use `lib.mkOrder N` to specify priority when assigning options.
@@ -77,7 +77,7 @@ in {
     ...
   }: {
     flake.imported = [moduleName];
-    features.system.mime.enable = true;
+    mod.${moduleName}.enable = true;
     home.packages = with pkgs; [
       handlr-regex # https://github.com/Anomalocaridid/handlr-regex
       xdg-utils
@@ -85,7 +85,7 @@ in {
     xdg = {
       mime.enable = true;
       mimeApps = let
-        cfg = config.features.system.mime;
+        cfg = config.mod.${moduleName};
 
         resolveCategory = addMap: explicitList: let
           pairs =

@@ -16,7 +16,7 @@ Exposes:
   moduleName = "feat/vm";
 in {
   flake.nixosModules."common/options" = {lib, ...}: {
-    options.features.vm = {
+    options.mod.${moduleName} = {
       isVm = lib.mkOption {
         type = lib.types.bool;
         default = false;
@@ -33,7 +33,7 @@ in {
     config = {
       flake.imported = [moduleName];
       virtualisation.vmVariant = {
-        features.vm.isVm = true;
+        mod."feat/vm".isVm = true;
         services.qemuGuest.enable = true;
         virtualisation = {
           memorySize = 4096; # use 4GiB memory
@@ -65,7 +65,7 @@ in {
               lib.nameValuePair "vm-run-${hostname}" (pkgs.writeShellApplication {
                 name = "vm-run-${hostname}";
                 text = ''
-                  STORAGE_DIR="${hostconf.config.features.vm.storageDir}"
+                  STORAGE_DIR="${hostconf.config.mod."feat/vm".storageDir}"
                   mkdir -p "$STORAGE_DIR"
                   export NIX_DISK_IMAGE="''${NIX_DISK_IMAGE:-$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2}"
                   ${hostconf.config.system.build.vm}/bin/run-${hostconf.config.networking.hostName}-vm "$@"
@@ -77,7 +77,7 @@ in {
               lib.nameValuePair "vm-reset-${hostname}" (pkgs.writeShellApplication {
                 name = "vm-reset-${hostname}";
                 text = ''
-                  STORAGE_DIR="${hostconf.config.features.vm.storageDir}"
+                  STORAGE_DIR="${hostconf.config.mod."feat/vm".storageDir}"
                   NIX_DISK_IMAGE="$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2"
                   if [ -f "$NIX_DISK_IMAGE" ]; then
                       echo "Removing $NIX_DISK_IMAGE"

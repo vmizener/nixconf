@@ -16,7 +16,6 @@ in {
       inputs.dms.homeModules.dank-material-shell
       inputs.danksearch.homeModules.default
     ];
-    features.desktop-shell.launchers = ["dms"];
     home.packages = with pkgs; [
       cava
       khal

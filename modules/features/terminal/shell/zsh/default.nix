@@ -12,7 +12,7 @@ Exposes:
   moduleName = "feat/terminal/shell/zsh";
 in {
   flake.homeModules."common/options" = {lib, ...}: {
-    options.features.terminal.shell.zsh = {
+    options.mod.${moduleName} = {
       extraConfig = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         description = "Additional config lines to append to zshrc";
@@ -26,7 +26,7 @@ in {
     pkgs,
     ...
   }: let
-    cfg = config.features.terminal.shell.zsh;
+    cfg = config.mod.${moduleName};
 
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";

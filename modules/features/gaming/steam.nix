@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/gaming/steam";
 in {
   flake.nixosModules."common/options" = {lib, ...}: {
-    options.features.gaming.steam = {
+    options.mod.${moduleName} = {
       enableExtest = lib.mkOption {
         type = lib.types.bool;
         description = "Enable extest library (needed for Steam Input on Wayland)";
@@ -23,11 +23,13 @@ in {
     config,
     pkgs,
     ...
-  }: {
+  }: let
+    cfg = config.mod.${moduleName};
+  in {
     flake.imported = [moduleName];
     programs.steam = {
       enable = true;
-      extest.enable = config.features.gaming.steam.enableExtest;
+      extest.enable = cfg.enableExtest;
       dedicatedServer.openFirewall = true; # Open ports for Source Dedicated Server hosting
       protontricks.enable = true; # Enable protontricks wrapper
       remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play

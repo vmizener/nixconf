@@ -17,7 +17,6 @@ in {
     ...
   }: {
     flake.imported = [moduleName];
-    features.terminal.emulators = ["foot"];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       nerd-fonts.fira-code
@@ -94,6 +93,6 @@ in {
         };
       };
     };
-    features.system.mime.add.terminal."foot.desktop" = 100;
+    mod."feat/system/mime".add.terminal."foot.desktop" = 100;
   };
 }
