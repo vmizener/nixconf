@@ -40,7 +40,7 @@ Exposes:
         core = {
           excludesfile = "~/.gitignore";
           pager = "delta -sn";
-          fsmonitor = true;
+          fsmonitor = false;
           untrackedCache = true;
         };
         credential.helper = "store";
