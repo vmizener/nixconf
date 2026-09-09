@@ -87,8 +87,8 @@ M.CONFIGS = {
               "let",
               '  flake = builtins.getFlake "' .. flake_path .. '";',
               "  target = (",
-              "    flake." .. type .. ".options",
-              "    or flake.inputs.nixconf." .. type .. ".options",
+              "    flake.nixdOptions." .. type,
+              "    or flake.inputs.nixconf.nixdOptions." .. type,
               "    or null",
               "  );",
               "in",
@@ -96,8 +96,8 @@ M.CONFIGS = {
             }, "\n")
           end
           return {
-            home_manager = { expr = expr("homeConfigurations") },
-            nixos = { expr = expr("nixosConfigurations") },
+            home_manager = { expr = expr("home") },
+            nixos = { expr = expr("nixos") },
           }
         end)(),
       },

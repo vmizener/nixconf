@@ -43,38 +43,40 @@
 
     ################
     # Dummy configs to expose options to nixd
-    flake.homeConfigurations.options = inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
-      modules = [
-        {
-          home.stateVersion = "25.11";
-          home.username = "options";
-          home.homeDirectory = "/home/options";
-        }
-        self.homeModules."common/options"
+    flake.nixdOptions = {
+      home = inputs.home-manager.lib.homeManagerConfiguration {
+        pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
+        modules = [
+          {
+            home.stateVersion = "25.11";
+            home.username = "options";
+            home.homeDirectory = "/home/options";
+          }
+          self.homeModules."common/options"
 
-        # Expose upstream flakes
-        inputs.plasma-manager.homeModules.plasma-manager
-        inputs.dms.homeModules.dank-material-shell
-        inputs.danksearch.homeModules.default
-        inputs.niri.homeModules.niri
-        inputs.soh-flake.homeManagerModules.default
-        inputs.sops-nix.homeManagerModules.sops
-        inputs.nix-index-database.homeModules.nix-index
-      ];
-    };
-    flake.nixosConfigurations.options = inputs.nixpkgs.lib.nixosSystem {
-      modules = [
-        {
-          system.stateVersion = "25.11";
-          nixpkgs.hostPlatform = "x86_64-linux";
-        }
-        self.nixosModules."common/options"
+          # Expose upstream flakes
+          inputs.plasma-manager.homeModules.plasma-manager
+          inputs.dms.homeModules.dank-material-shell
+          inputs.danksearch.homeModules.default
+          inputs.niri.homeModules.niri
+          inputs.soh-flake.homeManagerModules.default
+          inputs.sops-nix.homeManagerModules.sops
+          inputs.nix-index-database.homeModules.nix-index
+        ];
+      };
+      nixos = inputs.nixpkgs.lib.nixosSystem {
+        modules = [
+          {
+            system.stateVersion = "25.11";
+            nixpkgs.hostPlatform = "x86_64-linux";
+          }
+          self.nixosModules."common/options"
 
-        # Expose upstream flakes
-        inputs.home-manager.nixosModules.home-manager
-        inputs.niri.nixosModules.niri
-      ];
+          # Expose upstream flakes
+          inputs.home-manager.nixosModules.home-manager
+          inputs.niri.nixosModules.niri
+        ];
+      };
     };
   };
 }
