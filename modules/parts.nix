@@ -4,6 +4,9 @@
   ];
 
   config = {
+    # Enable debug options
+    debug = true;
+
     # Declare supported systems
     systems = [
       "x86_64-linux"

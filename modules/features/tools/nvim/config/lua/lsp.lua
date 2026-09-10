@@ -98,6 +98,14 @@ M.CONFIGS = {
           return {
             home_manager = { expr = expr("home") },
             nixos = { expr = expr("nixos") },
+            flake_parts = {
+              expr = table.concat({
+                "let",
+                '  flake = builtins.getFlake "' .. flake_path .. '";',
+                "in",
+                "  flake.debug.options",
+              }, "\n"),
+            },
           }
         end)(),
       },
