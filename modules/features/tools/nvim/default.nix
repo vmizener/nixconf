@@ -22,7 +22,7 @@ in {
       paths = pkgs.vimPlugins.nvim-treesitter.withAllGrammars.dependencies;
     };
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.neovim = {
       enable = true;
       sideloadInitLua = true;
@@ -48,7 +48,7 @@ in {
       withPython3 = true;
       withRuby = true;
     };
-    xdg.configFile."nvim".source = config.mutableLink ./config;
+    xdg.configFile."nvim".source = config.mod.nixconf.link ./config;
 
     # Mark neovim as preferred editor
     mod."feat/system/mime".add.editor."nvim.desktop" = 100;

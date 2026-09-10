@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/gaming/sunshine";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     services = {
       sunshine = {
         enable = true;

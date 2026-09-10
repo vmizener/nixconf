@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/tools/spotify";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = [pkgs.spotify];
     services.spotifyd.enable = true;
   };

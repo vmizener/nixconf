@@ -31,7 +31,7 @@ in {
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.zsh = {
       enable = true;
       dotDir = "${config.xdg.configHome}/zsh";
@@ -56,7 +56,7 @@ in {
     };
   };
   flake.nixosModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.zsh.enable = true;
   };
 }

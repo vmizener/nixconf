@@ -19,7 +19,7 @@ in {
     inputactions-ctl = inputs.inputactions-ctl.packages.${system}.default;
     inputactions-standalone = inputs.inputactions-standalone.packages.${system}.default;
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     environment.systemPackages = [
       inputactions-ctl
       inputactions-standalone
@@ -41,7 +41,7 @@ in {
     system = pkgs.stdenv.hostPlatform.system;
     inputactions-standalone = inputs.inputactions-standalone.packages.${system}.default;
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     systemd.user.services = {
       inputactions-client = {
         Install = {

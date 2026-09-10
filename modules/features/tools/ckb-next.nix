@@ -25,7 +25,7 @@ in {
     };
     pkg = pkgs.ckb-next.overrideAttrs (_: {inherit src;});
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     environment.systemPackages = [pkg];
     hardware.ckb-next = {
       enable = true;

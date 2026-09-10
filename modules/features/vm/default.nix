@@ -31,7 +31,7 @@ in {
   };
   flake.nixosModules.${moduleName} = {...}: {
     config = {
-      flake.imported = [moduleName];
+      mod.imported = [moduleName];
       virtualisation.vmVariant = {
         mod."feat/vm".isVm = true;
         services.qemuGuest.enable = true;

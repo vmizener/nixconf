@@ -14,7 +14,7 @@ let
   moduleName = "feat/tools/git";
 in {
   flake.homeModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.git = {
       enable = true;
       settings = {

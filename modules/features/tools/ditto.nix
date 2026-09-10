@@ -20,11 +20,11 @@ Exposes:
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = [(localPkg pkgs)];
   };
   flake.nixosModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     environment.systemPackages = [(localPkg pkgs)];
   };
   perSystem = {pkgs, ...}: {

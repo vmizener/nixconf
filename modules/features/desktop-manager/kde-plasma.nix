@@ -13,7 +13,7 @@ Exposes:
   moduleName = "feat/desktop-manager/kde-plasma";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     imports = [
       inputs.plasma-manager.homeModules.plasma-manager
     ];
@@ -48,7 +48,7 @@ in {
   };
 
   flake.nixosModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     services = {
       desktopManager.plasma6.enable = true;
       xserver = {

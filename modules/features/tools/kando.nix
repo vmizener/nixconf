@@ -15,7 +15,7 @@ in {
     pkgs,
     ...
   }: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = with pkgs; [kando];
     systemd.user.services.kando = {
       Install = {

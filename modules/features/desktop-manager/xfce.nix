@@ -13,7 +13,7 @@ Exposes:
   moduleName = "feat/desktop-manager/xfce";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = with pkgs; [
       kando
     ];
@@ -25,7 +25,7 @@ in {
     };
   };
   flake.nixosModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     services.xserver = {
       enable = true;
       desktopManager = {

@@ -15,7 +15,7 @@ in {
     pkgs,
     ...
   }: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.tmux = {
       enable = true;
 

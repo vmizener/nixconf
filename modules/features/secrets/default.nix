@@ -14,7 +14,7 @@ Exposes:
 in {
   flake.nixosModules.${moduleName} = {...}: {
     config = {
-      flake.imported = [moduleName];
+      mod.imported = [moduleName];
       services.gnome.gnome-keyring.enable = true;
       security.pam.services = {
         login.enableGnomeKeyring = true;

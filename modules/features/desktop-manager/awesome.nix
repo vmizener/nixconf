@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/desktop-manager/awesome";
 in {
   flake.nixosModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     services.displayManager = {
       defaultSession = "none+awesome";
     };

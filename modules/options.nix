@@ -22,35 +22,37 @@
       osConfig ? null,
       ...
     }: {
-      options.flake.imported = lib.mkOption {
+      options.mod.imported = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "List of imported modules";
       };
 
-      options.flakePath = lib.mkOption {
-        type = lib.types.str;
-        default =
-          if osConfig != null
-          then "/etc/nixos"
-          else "${config.xdg.configHome}/home-manager";
-        description = "Absolute path to this Nix flake (outside Nix store).  Used for out-of-store symlinks.";
-      };
+      options.mod.nixconf = {
+        path = lib.mkOption {
+          type = lib.types.str;
+          default =
+            if osConfig != null
+            then "/etc/nixos"
+            else "${config.xdg.configHome}/home-manager";
+          description = "Absolute path to this Nix flake (outside Nix store).  Used for out-of-store symlinks.";
+        };
 
-      options.mutableLink = lib.mkOption {
-        default = filepath: let
-          relpath = lib.removePrefix "./" (lib.path.removePrefix ./.. filepath);
-        in
-          config.lib.file.mkOutOfStoreSymlink "${config.flakePath}/${relpath}";
-        description = "Make a mutable symlink path to the given config source";
-        readOnly = true;
+        link = lib.mkOption {
+          default = filepath: let
+            relpath = lib.removePrefix "./" (lib.path.removePrefix ./.. filepath);
+          in
+            config.lib.file.mkOutOfStoreSymlink "${config.mod.nixconf.path}/${relpath}";
+          description = "Make a mutable symlink path to the given config source";
+          readOnly = true;
+        };
       };
     };
 
     ################
     # NixOS common options
     flake.nixosModules."common/options" = {...}: {
-      options.flake.imported = lib.mkOption {
+      options.mod.imported = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "List of imported modules";

@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/system/locale";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     time.timeZone = "America/Los_Angeles";
     i18n = {
       defaultLocale = "en_US.UTF-8";

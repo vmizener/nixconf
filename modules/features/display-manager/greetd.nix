@@ -53,7 +53,7 @@ in {
   }: let
     cfg = config.mod.${moduleName};
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     services.greetd = {
       enable = true;
       settings = {

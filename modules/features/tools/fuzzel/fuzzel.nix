@@ -15,7 +15,7 @@ in {
     pkgs,
     ...
   }: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = with pkgs; [fuzzel];
     xdg.configFile = {
       "fuzzel/fuzzel.ini".source = config.lib.file.mkOutOfStoreSymLink ./fuzzel.ini;

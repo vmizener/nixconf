@@ -11,6 +11,6 @@ Exposes:
   moduleName = "feat/terminal/shell/bash";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
   };
 }

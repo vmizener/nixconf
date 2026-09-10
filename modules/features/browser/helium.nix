@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/browser/helium";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = [
       inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];

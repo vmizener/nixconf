@@ -76,7 +76,7 @@ in {
     pkgs,
     ...
   }: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     mod.${moduleName}.enable = true;
     home.packages = with pkgs; [
       handlr-regex # https://github.com/Anomalocaridid/handlr-regex

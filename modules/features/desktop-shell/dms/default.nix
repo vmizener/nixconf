@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/desktop-shell/dms";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     imports = [
       inputs.dms.homeModules.dank-material-shell
       inputs.danksearch.homeModules.default

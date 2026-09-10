@@ -13,7 +13,7 @@ in {
   flake.nixosModules."common/options" = {...}: {
   };
   flake.homeModules.${moduleName} = {config, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.retroarch = {
       enable = true;
       cores = {

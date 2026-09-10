@@ -26,7 +26,7 @@ in {
   }: let
     cfg = config.mod.${moduleName};
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.steam = {
       enable = true;
       extest.enable = cfg.enableExtest;

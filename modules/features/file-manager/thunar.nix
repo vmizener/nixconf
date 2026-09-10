@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/file-manager/thunar";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = with pkgs; [thunar];
     mod."feat/system/mime".add.fileManager."thunar.desktop" = 150;
   };

@@ -32,7 +32,7 @@ in {
     cfg = config.mod.${moduleName};
     pkg = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     home.packages = [pkg];
     systemd.user.services.awww = {
       Install = {

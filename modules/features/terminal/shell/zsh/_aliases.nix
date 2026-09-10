@@ -10,7 +10,7 @@
   addIf = want: ifCond: (addIfElse want ifCond []);
 in (
   [
-    "alias cdf='cd -P ${config.flakePath}'"
+    "alias cdf='cd -P ${config.mod.nixconf.path}'"
   ]
   ++ addIf pkgs.bat [
     "alias cat='bat'"

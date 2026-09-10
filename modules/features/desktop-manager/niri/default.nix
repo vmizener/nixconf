@@ -46,9 +46,9 @@ in {
         };
       })
       {
-        flake.imported = [moduleName];
+        mod.imported = [moduleName];
         xdg.configFile = {
-          "niri/config.kdl".source = config.mutableLink ./config.kdl;
+          "niri/config.kdl".source = config.mod.nixconf.link ./config.kdl;
           "niri/local.kdl".source = pkgs.writeText "local.kdl" cfg.extraConfig;
           "niri/generated.kdl".text = let
             toKdl = inputs.wrapper-modules.lib.toKdl;
@@ -77,7 +77,7 @@ in {
   in {
     imports = [inputs.niri.nixosModules.niri];
     config = {
-      flake.imported = [moduleName];
+      mod.imported = [moduleName];
       nixpkgs.overlays = [inputs.niri.overlays.niri];
       programs.niri = {
         enable = true;

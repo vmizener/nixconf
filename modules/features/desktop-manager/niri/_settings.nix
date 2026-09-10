@@ -12,7 +12,7 @@
   # Logic
   checkCfgs = checker: (isHm && checker hmConfig) || (isNixOs && checker osConfig);
   cmdByFeat = default: featList: (pkgs.lib.findFirst (f: checkCfgs f.checker) {cmd = default;} featList).cmd;
-  hasMod = name: cfg: (lib.hasAttrByPath ["flake" "imported"] cfg) && (builtins.elem name (lib.attrByPath ["flake" "imported"] null cfg));
+  hasMod = name: cfg: (lib.hasAttrByPath ["mod" "imported"] cfg) && (builtins.elem name (lib.attrByPath ["mod" "imported"] null cfg));
 
   # Commands
   cmdTerminal = cmdByFeat "st" [

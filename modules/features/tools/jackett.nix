@@ -11,7 +11,7 @@ let
   moduleName = "feat/tools/jackett";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     services = {
       jackett.enable = true;
       flaresolverr.enable = true;

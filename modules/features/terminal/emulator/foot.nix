@@ -16,7 +16,7 @@ in {
     pkgs,
     ...
   }: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       nerd-fonts.fira-code
@@ -50,7 +50,7 @@ in {
           cat >"$f"
 
           editor=${
-            if lib.elem "feat/tools/nvim" config.flake.imported
+            if lib.elem "feat/tools/nvim" config.mod.imported
             then "nvim"
             else "vim"
           }

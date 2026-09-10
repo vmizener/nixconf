@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/browser/firefox";
 in {
   flake.homeModules.${moduleName} = {config, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     programs.firefox = {
       enable = true;
       configPath = "${config.xdg.configHome}/mozilla/firefox";

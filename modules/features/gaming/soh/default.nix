@@ -22,7 +22,7 @@ in {
   flake.homeModules.${moduleName} = {config, ...}: let
     cfg = config.mod.${moduleName};
   in {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     imports = [inputs.soh-flake.homeManagerModules.default];
     programs.shipofharkinian = {
       enable = true;

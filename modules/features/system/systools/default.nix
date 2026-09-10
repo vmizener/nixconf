@@ -19,7 +19,7 @@ Exposes:
   systoolsPackages = import ./_packages.nix;
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     imports = [
       inputs.nix-index-database.homeModules.nix-index
     ];
@@ -39,7 +39,7 @@ in {
   };
 
   flake.nixosModules.${moduleName} = {pkgs, ...}: {
-    flake.imported = [moduleName];
+    mod.imported = [moduleName];
     environment.systemPackages = systoolsPackages pkgs;
     services = {
       udisks2.enable = true;
