@@ -154,6 +154,8 @@ function M.init()
       end
     end,
   })
+  -- Add autocmd to close preview window after completion
+  vim.api.nvim_create_autocmd("CompleteDone", { command = "pclose" })
 end
 
 return M
