@@ -81,7 +81,7 @@ in {
 
           ({config, ...}: {
             mod."feat/tools/awww".img =
-              ../../../assets/media/wallpapers/girl_leaving_apartment.png;
+              ../../../assets/wallpapers/girl_leaving_apartment.png;
             mod."feat/gaming/soh".gamepaths = [
               "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
             ];

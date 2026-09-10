@@ -30,7 +30,7 @@ in {
         };
         iconTheme = "Papirus-Dark";
         # wallpaper = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Patak/contents/images/1080x1920.png";
-        wallpaper = ../../../assets/media/wallpapers/girl_leaving_apartment.png;
+        wallpaper = ../../../assets/wallpapers/girl_leaving_apartment.png;
         wallpaperFillMode = "stretch";
       };
       hotkeys.commands."launch-konsole" = {

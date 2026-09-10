@@ -35,11 +35,11 @@ COMMON_ASPECT_RATIOS = [
 
 
 def find_repo_root() -> Path:
-  """Find the repository root containing assets/media/manifest.toml."""
+  """Find the repository root containing assets/manifest.toml."""
   # 1. Check current working directory and its parents
   cwd = Path.cwd().resolve()
   for parent in [cwd, *cwd.parents]:
-    if (parent / "assets/media/manifest.toml").exists():
+    if (parent / "assets/manifest.toml").exists():
       return parent
 
   # 2. Try git rev-parse
@@ -51,19 +51,18 @@ def find_repo_root() -> Path:
         check=True,
     )
     git_root = Path(res.stdout.strip())
-    if (git_root / "assets/media/manifest.toml").exists():
+    if (git_root / "assets/manifest.toml").exists():
       return git_root
   except Exception:
     pass
 
   # 3. Fallback to location relative to this script
   script_parent = Path(__file__).resolve().parent.parent
-  if (script_parent / "assets/media/manifest.toml").exists():
+  if (script_parent / "assets/manifest.toml").exists():
     return script_parent
 
   raise FileNotFoundError(
-      "Could not find repository root containing assets/media/manifest.toml. "
-      "Please specify --manifest explicitly."
+      "Could not find repository root containing assets/manifest.toml."
   )
 
 
@@ -127,9 +126,9 @@ def extract_asset_metadata(file_path: Path) -> dict:
 
 
 def update_manifest(
-    manifest_path: Path, media_dir: Path, dry_run: bool = False
+    manifest_path: Path, assets_dir: Path, dry_run: bool = False
 ) -> None:
-  """Update manifest.toml with metadata for all assets in media_dir."""
+  """Update manifest.toml with metadata for all assets in assets_dir."""
   if not manifest_path.exists():
     doc = tomlkit.document()
   else:
@@ -142,11 +141,11 @@ def update_manifest(
     if hasattr(table, "get") and "file" in table:
       existing_files[table["file"]] = key
 
-  # Collect all image assets in media_dir
+  # Collect all image assets in assets dir
   found_assets: list[tuple[str, Path]] = []
-  for path in sorted(media_dir.rglob("*")):
+  for path in sorted(assets_dir.rglob("*")):
     if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS:
-      rel_path = path.relative_to(media_dir).as_posix()
+      rel_path = path.relative_to(assets_dir).as_posix()
       found_assets.append((rel_path, path))
 
   added_count = 0
@@ -197,7 +196,7 @@ def update_manifest(
   # Warn about entries whose files do not exist
   for key, table in doc.items():
     if hasattr(table, "get") and "file" in table:
-      asset_file = media_dir / table["file"]
+      asset_file = assets_dir / table["file"]
       if not asset_file.exists():
         print(
             f"Warning: [{key}] points to missing file: {table['file']}",
@@ -221,20 +220,7 @@ def update_manifest(
 
 def main() -> None:
   parser = argparse.ArgumentParser(
-      description="Update assets/media/manifest.toml with image metadata."
-  )
-  parser.add_argument(
-      "--manifest",
-      type=Path,
-      help=(
-          "Path to manifest.toml (defaults to assets/media/manifest.toml in"
-          " repo)"
-      ),
-  )
-  parser.add_argument(
-      "--media-dir",
-      type=Path,
-      help="Path to media directory (defaults to assets/media in repo)",
+      description="Update assets/manifest.toml with image metadata."
   )
   parser.add_argument(
       "--dry-run",
@@ -244,22 +230,20 @@ def main() -> None:
 
   args = parser.parse_args()
 
-  repo_root = (
-      find_repo_root() if not (args.manifest and args.media_dir) else None
-  )
-
-  manifest_path = (
-      args.manifest
-      if args.manifest
-      else (repo_root / "assets/media/manifest.toml")
-  )
-  media_dir = args.media_dir if args.media_dir else (repo_root / "assets/media")
-
-  if not media_dir.is_dir():
-    print(f"Error: media directory not found: {media_dir}", file=sys.stderr)
+  try:
+    repo_root = find_repo_root()
+  except FileNotFoundError as e:
+    print(f"Error: {e}", file=sys.stderr)
     sys.exit(1)
 
-  update_manifest(manifest_path, media_dir, dry_run=args.dry_run)
+  manifest_path = repo_root / "assets/manifest.toml"
+  assets_dir = repo_root / "assets"
+
+  if not assets_dir.is_dir():
+    print(f"Error: assets directory not found: {assets_dir}", file=sys.stderr)
+    sys.exit(1)
+
+  update_manifest(manifest_path, assets_dir, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

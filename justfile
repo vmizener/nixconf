@@ -22,9 +22,9 @@ show:
 update-packages:
     ./scripts/update-packages.sh
 
-# Update media assets manifest
+# Update assets manifest
 update-manifest *args="":
-    ./scripts/update-media-manifest.py {{args}}
+    ./scripts/update-assets-manifest.py {{args}}
 
 # Add sops entry for current host/user
 [group('sops')]

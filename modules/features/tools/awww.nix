@@ -15,7 +15,7 @@ in {
       img = lib.mkOption {
         type = lib.types.path;
         description = "Path to image used for wallpaper";
-        default = ../../../assets/media/wallpapers/fog_forest.webp;
+        default = ../../../assets/wallpapers/fog_forest.webp;
       };
       flags = lib.mkOption {
         type = lib.types.str;
