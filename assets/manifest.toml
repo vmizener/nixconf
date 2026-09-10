@@ -1,9 +1,9 @@
-[fog_forest]
+[wallpapers]
+
+[wallpapers.fog_forest]
 file = "wallpapers/fog_forest.webp"
 description = "Foggy forest landscape"
-source = "imgur"
-source_id = "kGhIyoh"
-url = "https://imgur.com/kGhIyoh"
+source = "https://imgur.com/kGhIyoh"
 width = 1920
 height = 1080
 aspect_ratio = "16:9"
@@ -11,12 +11,10 @@ color_scheme = "dark"
 dominant_color = "#7b736f"
 palette = ["#beada3", "#8a7f78", "#6b6662", "#5a5856", "#414344"]
 
-[girl_adjusting_glasses]
+[wallpapers.girl_adjusting_glasses]
 file = "wallpapers/girl_adjusting_glasses.png"
 description = "Girl adjusting glasses"
-source = "pixiv"
-source_id = "96yottea"
-url = "https://www.pixiv.net/en/users/96yottea"
+source = "https://www.pixiv.net/en/users/96yottea"
 width = 5120
 height = 2880
 aspect_ratio = "16:9"
@@ -24,12 +22,10 @@ color_scheme = "dark"
 dominant_color = "#5e272e"
 palette = ["#89648d", "#5f3b4c", "#98211d", "#491514", "#070b0b"]
 
-[girl_leaving_apartment]
+[wallpapers.girl_leaving_apartment]
 file = "wallpapers/girl_leaving_apartment.png"
 description = "Girl leaving apartment"
-source = "wallhaven"
-source_id = "zy1xjw"
-url = "https://wallhaven.cc/w/zy1xjw"
+source = "https://wallhaven.cc/w/zy1xjw"
 width = 1920
 height = 1080
 aspect_ratio = "16:9"
@@ -37,12 +33,10 @@ color_scheme = "dark"
 dominant_color = "#436379"
 palette = ["#809fb6", "#5081a5", "#497392", "#3a5b72", "#19272f"]
 
-[girls_outside_door]
+[wallpapers.girls_outside_door]
 file = "wallpapers/girls_outside_door.jpg"
 description = "Girls outside door"
-source = "x"
-source_id = "nemuiZZZxN"
-url = "https://x.com/nemuiZZZxN"
+source = "https://x.com/nemuiZZZxN"
 width = 3664
 height = 2059
 aspect_ratio = "16:9"
@@ -50,12 +44,10 @@ color_scheme = "dark"
 dominant_color = "#41473e"
 palette = ["#82a68f", "#59695c", "#4e4b41", "#332d28", "#121413"]
 
-[pixel_city_art]
+[wallpapers.pixel_city_art]
 file = "wallpapers/pixel_city_art.gif"
 description = "Pixel city art"
-source = "pixiv"
-source_id = "waneella"
-url = "https://www.pixiv.net/en/users/waneella"
+source = "https://www.pixiv.net/en/users/waneella"
 width = 1500
 height = 900
 aspect_ratio = "5:3"
@@ -63,14 +55,15 @@ color_scheme = "dark"
 dominant_color = "#152127"
 palette = ["#505d7b", "#3b3847", "#0b222a", "#03120d", "#000301"]
 
-[baozi]
-file = "icons/baozi.png"
+[icons]
+
+[icons.baozi]
+theme = "hicolor"
+context = "apps"
+file = "icons/hicolor/{dimension}/apps/baozi.png"
+dimensions = ["16x16", "22x22", "24x24", "32x32", "48x48", "64x64", "128x128", "256x256", "512x512"]
 description = "Baozi mascot / avatar"
-source = "local"
-source_id = "baozi"
-width = 744
-height = 490
-aspect_ratio = "372:245"
+source = "local/baozi"
 color_scheme = "light"
-dominant_color = "#a58d6c"
-palette = ["#fbf0d9", "#e5d2b3", "#bba57f", "#937047", "#4f351f"]
+dominant_color = "#a88f6f"
+palette = ["#f6f0dd", "#ebd6b6", "#bfa985", "#9a7447", "#523720"]
