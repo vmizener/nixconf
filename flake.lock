@@ -693,11 +693,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787697371,
-        "narHash": "sha256-6WAQ2MnMBtFcziMuP+WtZFx5dgtjOaOSQqBpaQJlXmU=",
+        "lastModified": 1788471440,
+        "narHash": "sha256-Ke2jIsEfWkBl9n+1FhG3xrghOlTfo6aF/AwRUscp8GE=",
         "owner": "vmizener",
         "repo": "soh-flake",
-        "rev": "7d469233355a82298db197ad919dc8484dd99785",
+        "rev": "a4fdc50d11bacd6ca39ad503ee50e58f67638934",
         "type": "github"
       },
       "original": {
