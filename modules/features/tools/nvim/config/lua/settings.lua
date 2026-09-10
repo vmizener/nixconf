@@ -90,6 +90,37 @@ function M.set_autocommands()
     command = "2match ColorColumn /\\%>120v/",
     group = "ColorCol",
   })
+
+  -- Automatically switch cwd to project root when opening a file
+  augroup("ProjectRoot", { clear = true })
+  autocmd({ "VimEnter", "BufEnter" }, {
+    callback = function(args)
+      local bufname = vim.api.nvim_buf_get_name(args.buf)
+      local path = (bufname ~= "" and bufname) or vim.uv.cwd()
+      if not path or path == "" then
+        return
+      end
+      local root_markers = {
+        { ".citc", ".envrc", ".git", ".hg" }, -- Higher priority markers
+        {
+          ".luarc.json",
+          "Cargo.toml",
+          "flake.nix",
+          "go.mod",
+          "justfile",
+          "Makefile",
+          "package.json",
+          "pyproject.toml",
+          "stylua.toml",
+        },
+      }
+      local root = vim.fs.root(path, root_markers)
+      if root and root ~= vim.fn.getcwd() then
+        vim.api.nvim_set_current_dir(root)
+      end
+    end,
+    group = "ProjectRoot",
+  })
 end
 
 function M.init()
