@@ -14,8 +14,6 @@ Exposes:
 
   pkgName = "ani-cli-rs";
   version = "0.10.4";
-  pkgHash = "sha256-+kgitNUkxmCkIzgV2apuCeNqyK6hKQOfuombX0QPuh8=";
-  cargoHash = "sha256-OmAjX2sO8dl721t/Zo/lIx7Nc0x2cVd2V+vHnZZskDk=";
 
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
@@ -35,9 +33,9 @@ in {
         owner = "vorlie";
         repo = pkgName;
         tag = version;
-        hash = pkgHash;
+        hash = "sha256-+kgitNUkxmCkIzgV2apuCeNqyK6hKQOfuombX0QPuh8=";
       };
-      cargoHash = cargoHash;
+      cargoHash = "sha256-OmAjX2sO8dl721t/Zo/lIx7Nc0x2cVd2V+vHnZZskDk=";
       doCheck = false; # package fails its own checks for some reason?
     };
   };

@@ -14,8 +14,6 @@ Exposes:
 
   pkgName = "float";
   version = "1.2.1";
-  pkgHash = "sha256-ngklCMJ54ZFPaWB3c79mzcRKGSiB9sw4KcAKWcVPgao=";
-  cargoHash = "sha256-/xlH29DM/psGOME0w2a1v5kG7uxlKsMlP4r+5NENA6M=";
 
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
@@ -35,9 +33,9 @@ in {
         owner = "henktorius";
         repo = pkgName;
         tag = "v${version}";
-        hash = pkgHash;
+        hash = "sha256-ngklCMJ54ZFPaWB3c79mzcRKGSiB9sw4KcAKWcVPgao=";
       };
-      cargoHash = cargoHash;
+      cargoHash = "sha256-/xlH29DM/psGOME0w2a1v5kG7uxlKsMlP4r+5NENA6M=";
       meta.mainProgram = "float-mux";
     };
   };
