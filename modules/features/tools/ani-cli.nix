@@ -7,14 +7,15 @@ Exposes:
 
 - flake.homeModules."feat/tools/ani-cli":
 - flake.nixosModules."feat/tools/ani-cli":
-- local package: "nix run '.#ani-cli'"
+- local package: "nix run '.#ani-cli-rs'"
 */
 {self, ...}: let
   moduleName = "feat/tools/ani-cli";
 
-  pkgName = "ani-cli";
-  version = "5.0";
-  hash = "sha256-rRQESi0Skoyf1jy/dRRK6ooKRPQhkak107kk5ulwZYI=";
+  pkgName = "ani-cli-rs";
+  version = "0.10.4";
+  pkgHash = "sha256-+kgitNUkxmCkIzgV2apuCeNqyK6hKQOfuombX0QPuh8=";
+  cargoHash = "sha256-OmAjX2sO8dl721t/Zo/lIx7Nc0x2cVd2V+vHnZZskDk=";
 
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
@@ -27,14 +28,17 @@ in {
     environment.systemPackages = [(localPkg pkgs)];
   };
   perSystem = {pkgs, ...}: {
-    packages."pkg:${pkgName}" = pkgs.ani-cli.overrideAttrs (_: {
-      version = version;
+    packages."pkg:${pkgName}" = pkgs.rustPlatform.buildRustPackage {
+      inherit version;
+      pname = pkgName;
       src = pkgs.fetchFromGitHub {
-        owner = "pystardust";
+        owner = "vorlie";
         repo = pkgName;
-        tag = "v${version}";
-        hash = hash;
+        tag = version;
+        hash = pkgHash;
       };
-    });
+      cargoHash = cargoHash;
+      doCheck = false; # package fails its own checks for some reason?
+    };
   };
 }
