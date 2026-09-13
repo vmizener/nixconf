@@ -13,7 +13,7 @@ Exposes:
   moduleName = "feat/tools/ani-cli";
 
   pkgName = "ani-cli-rs";
-  version = "0.10.4";
+  version = "0.10.5";
 
   localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
 in {
@@ -33,9 +33,9 @@ in {
         owner = "vorlie";
         repo = pkgName;
         tag = version;
-        hash = "sha256-+kgitNUkxmCkIzgV2apuCeNqyK6hKQOfuombX0QPuh8=";
+        hash = "sha256-0+UFUrgNcvR214balTGLd/Gn6yjREx/Oj9I1jQ0SsrI=";
       };
-      cargoHash = "sha256-OmAjX2sO8dl721t/Zo/lIx7Nc0x2cVd2V+vHnZZskDk=";
+      cargoHash = "sha256-KgRpnpv8TGSQg/J/+DoPtI210Rl23/p/0N92eJKZNv4=";
       doCheck = false; # package fails its own checks for some reason?
     };
   };
