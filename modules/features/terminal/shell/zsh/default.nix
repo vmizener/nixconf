@@ -62,6 +62,10 @@ in {
         fzf
       ];
     };
+    xdg.configFile."direnv/direnv.toml".text = ''
+      [global]
+      log_filter="^loading"
+    '';
   };
   flake.nixosModules.${moduleName} = {...}: {
     mod.imported = [moduleName];
