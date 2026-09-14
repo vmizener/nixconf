@@ -32,22 +32,30 @@ in {
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
   in {
     mod.imported = [moduleName];
-    programs.zsh = {
-      enable = true;
-      dotDir = "${config.xdg.configHome}/zsh";
-      initContent = lib.strings.concatStringsSep "\n" (
-        [
-          ''[[ -f "${hmSessionVars}" ]] && source "${hmSessionVars}"''
-          ''[[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"''
-          "${builtins.readFile ./zshrc}"
-          "source ${./p10k.zsh}"
-        ]
-        ++ (import ./_aliases.nix {
-          inherit config pkgs;
-          installed = config.home.packages;
-        })
-        ++ cfg.extraConfig
-      );
+    programs = {
+      direnv = {
+        enable = true;
+        enableZshIntegration = true;
+        nix-direnv.enable = true;
+      };
+      zsh = {
+        enable = true;
+        dotDir = "${config.xdg.configHome}/zsh";
+        initContent = lib.strings.concatStringsSep "\n" (
+          [
+            ''[[ -f "${hmSessionVars}" ]] && source "${hmSessionVars}"''
+            ''[[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"''
+            "${builtins.readFile ./zshrc}"
+            "source ${./p10k.zsh}"
+            ''eval "$(direnv hook zsh)"''
+          ]
+          ++ (import ./_aliases.nix {
+            inherit config pkgs;
+            installed = config.home.packages;
+          })
+          ++ cfg.extraConfig
+        );
+      };
     };
     home = {
       packages = with pkgs; [
