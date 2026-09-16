@@ -6,16 +6,33 @@
   username = "bao";
 in {
   # @Igros (Nixos)
-  flake.nixosModules."users/${username}@igros" = {...}: {
+  flake.nixosModules."users/${username}@igros" = {pkgs, ...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
+      self.nixosModules."feat/terminal/shell/zsh"
     ];
     users.users.${username} = {
       isNormalUser = true;
       description = "${username}";
       extraGroups = ["networkmanager" "wheel"];
       initialPassword = "gobears";
+      shell = pkgs.zsh;
     };
+    home-manager = {
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      backupFileExtension = "backup";
+      users.${username} = {...}: {
+        imports = [
+          self.homeModules."common"
+          self.homeModules."feat/browser/firefox"
+          self.homeModules."feat/tools/git"
+          self.homeModules."feat/tools/nvim"
+          self.homeModules."feat/terminal/shell/zsh"
+        ];
+      };
+    };
+    nixpkgs.config.allowUnfree = true;
   };
   # @Baohaus (Nixos)
   flake.nixosModules."users/${username}@baohaus" = {
@@ -51,7 +68,7 @@ in {
       useGlobalPkgs = true;
       useUserPackages = true;
       backupFileExtension = "backup";
-      users.${username} = {pkgs, ...}: {
+      users.${username} = {...}: {
         imports = [
           self.homeModules."common"
           self.homeModules."feat/browser/helium"
@@ -87,11 +104,6 @@ in {
             ];
           })
         ];
-        home = {
-          packages = with pkgs; [
-            # animdl
-          ];
-        };
       };
     };
     nixpkgs.config.allowUnfree = true;
