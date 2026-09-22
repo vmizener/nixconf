@@ -34,10 +34,15 @@ in {
   in {
     mod.imported = [moduleName];
     imports = [inputs.hm64-flake.homeManagerModules.default];
-    programs.harbourmasters = lib.mkMerge (map (project:
-      lib.mkIf cfg.${project}.enable {
-        enable = true;
-        gamepaths = cfg.${project}.gamepaths;
-      }));
+    programs.harbourmasters = lib.mkMerge (map (
+        project:
+          lib.mkIf cfg.${project}.enable {
+            ${project} = {
+              enable = true;
+              gamepaths = cfg.${project}.gamepaths;
+            };
+          }
+      )
+      projects);
   };
 }

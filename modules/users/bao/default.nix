@@ -100,7 +100,7 @@ in {
             mod."feat/tools/awww".img =
               ../../../assets/wallpapers/girl_leaving_apartment.png;
             mod."feat/gaming/harbourmasters" = {
-              soh = {
+              shipofharkinian = {
                 enable = true;
                 gamepaths = [
                   "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
