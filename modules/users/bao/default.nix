@@ -76,8 +76,8 @@ in {
           self.homeModules."feat/desktop-shell/dms"
           self.homeModules."feat/file-manager/thunar"
           self.homeModules."feat/gaming/discord"
+          self.homeModules."feat/gaming/harbourmasters"
           self.homeModules."feat/gaming/retroarch"
-          self.homeModules."feat/gaming/soh"
           self.homeModules."feat/gaming/streamlink"
           self.homeModules."feat/system/mime"
           self.homeModules."feat/system/systools"
@@ -99,7 +99,7 @@ in {
           ({config, ...}: {
             mod."feat/tools/awww".img =
               ../../../assets/wallpapers/girl_leaving_apartment.png;
-            mod."feat/gaming/soh".gamepaths = [
+            mod."feat/gaming/harbourmasters".soh.gamepaths = [
               "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
             ];
           })

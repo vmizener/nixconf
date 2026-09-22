@@ -1,18 +1,18 @@
 /*
-  feat/gaming/soh
+  feat/gaming/harbourmasters
 
-Ship of Harkinian.
+HarbourMasters64 projects
 
 Exposes:
 
-- flake.homeModules."feat/gaming/soh":
+- flake.homeModules."feat/gaming/harbourmasters":
 */
 {inputs, ...}: let
-  moduleName = "feat/gaming/soh";
+  moduleName = "feat/gaming/harbourmasters";
 in {
   flake.homeModules."common/options" = {lib, ...}: {
     options.mod.${moduleName} = {
-      gamepaths = lib.mkOption {
+      soh.gamepaths = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "Images for Ship";
@@ -23,10 +23,10 @@ in {
     cfg = config.mod.${moduleName};
   in {
     mod.imported = [moduleName];
-    imports = [inputs.soh-flake.homeManagerModules.default];
-    programs.shipofharkinian = {
+    imports = [inputs.hm64-flake.homeManagerModules.default];
+    programs.harbourmasters.shipofharkinian = {
       enable = true;
-      gamepaths = cfg.gamepaths;
+      gamepaths = cfg.soh.gamepaths;
     };
   };
 }

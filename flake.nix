@@ -43,16 +43,16 @@
       url = "github:schembriaiden/helium-browser-nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    hm64-flake = {
+      url = "github:vmizener/hm64-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     inputactions-ctl = {
       url = "git+https://github.com/InputActions/ctl?submodules=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     inputactions-standalone = {
       url = "git+https://github.com/InputActions/standalone?submodules=1";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    soh-flake = {
-      url = "github:vmizener/soh-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     niri.url = "github:epireyn/niri-flake";

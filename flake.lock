@@ -222,7 +222,7 @@
       "inputs": {
         "flake-compat": "flake-compat_4",
         "nixpkgs": [
-          "soh-flake",
+          "hm64-flake",
           "nixpkgs"
         ]
       },
@@ -262,18 +262,41 @@
         "type": "github"
       }
     },
-    "home-manager": {
+    "hm64-flake": {
       "inputs": {
+        "git-hooks-nix": "git-hooks-nix_2",
+        "home-manager": "home-manager",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1787540599,
-        "narHash": "sha256-MHwk52ty3NsLhq9a1IbIfBJZlCUJIdiUYFo52JLK9hY=",
+        "lastModified": 1790050148,
+        "narHash": "sha256-W43tcOLAaLmnrYmRP2wPtSY6kOWPfjZbyiIUxIbCqA8=",
+        "owner": "vmizener",
+        "repo": "hm64-flake",
+        "rev": "75dd0d05729222898ab6b30227a6cf4930852f3c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vmizener",
+        "repo": "hm64-flake",
+        "type": "github"
+      }
+    },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "hm64-flake",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787176219,
+        "narHash": "sha256-djoRr6jBpe35q/0JwAvXpFXg1Ktf+X54NU2RLR7wnHw=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "03f4cd46bc1dd4f3a96da778d2ce9f7ce39dd450",
+        "rev": "c53d643b3737e2fcd04e6cb3b3580ef50b2087a0",
         "type": "github"
       },
       "original": {
@@ -285,16 +308,15 @@
     "home-manager_2": {
       "inputs": {
         "nixpkgs": [
-          "soh-flake",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1787176219,
-        "narHash": "sha256-djoRr6jBpe35q/0JwAvXpFXg1Ktf+X54NU2RLR7wnHw=",
+        "lastModified": 1787540599,
+        "narHash": "sha256-MHwk52ty3NsLhq9a1IbIfBJZlCUJIdiUYFo52JLK9hY=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "c53d643b3737e2fcd04e6cb3b3580ef50b2087a0",
+        "rev": "03f4cd46bc1dd4f3a96da778d2ce9f7ce39dd450",
         "type": "github"
       },
       "original": {
@@ -648,7 +670,8 @@
         "flake-schemas": "flake-schemas",
         "git-hooks-nix": "git-hooks-nix",
         "helium": "helium",
-        "home-manager": "home-manager",
+        "hm64-flake": "hm64-flake",
+        "home-manager": "home-manager_2",
         "import-tree": "import-tree",
         "inputactions-ctl": "inputactions-ctl",
         "inputactions-standalone": "inputactions-standalone",
@@ -657,7 +680,6 @@
         "nixgl": "nixgl",
         "nixpkgs": "nixpkgs_4",
         "plasma-manager": "plasma-manager",
-        "soh-flake": "soh-flake",
         "sops-nix": "sops-nix",
         "torrra": "torrra",
         "wrapper-modules": "wrapper-modules"
@@ -681,28 +703,6 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
-    "soh-flake": {
-      "inputs": {
-        "git-hooks-nix": "git-hooks-nix_2",
-        "home-manager": "home-manager_2",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1788471440,
-        "narHash": "sha256-Ke2jIsEfWkBl9n+1FhG3xrghOlTfo6aF/AwRUscp8GE=",
-        "owner": "vmizener",
-        "repo": "soh-flake",
-        "rev": "a4fdc50d11bacd6ca39ad503ee50e58f67638934",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vmizener",
-        "repo": "soh-flake",
         "type": "github"
       }
     },
