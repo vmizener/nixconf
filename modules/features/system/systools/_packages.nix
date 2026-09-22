@@ -4,6 +4,8 @@ with pkgs; [
   bat
   # Simple calculator
   bc
+  # Drag-and-drop files from terminal
+  blobdrop
   # TUI-based system monitor
   btop
   # Modern `diff` command
