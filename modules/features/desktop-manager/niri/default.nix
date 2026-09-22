@@ -64,7 +64,7 @@ in {
         };
         home.packages = with pkgs; [
           brightnessctl
-          xwayland-satellite
+          xwayland-satellite-unstable
         ];
         home.sessionVariables.NIXOS_OZONE_WL = lib.mkIf isNixOs "1";
         targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
@@ -93,7 +93,7 @@ in {
       };
       environment = {
         sessionVariables.NIXOS_OZONE_WL = "1";
-        systemPackages = with pkgs; [xwayland-satellite];
+        systemPackages = with pkgs; [xwayland-satellite-unstable];
       };
       systemd.services.display-manager.environment = {
         XDG_CURRENT_DESKTOP = "X-NIXOS-SYSTEMD-AWARE";

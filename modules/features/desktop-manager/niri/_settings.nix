@@ -149,7 +149,7 @@ in [
   {screenshot-path = "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png";}
   {
     xwayland-satellite = {
-      path = "${lib.getExe pkgs.xwayland-satellite}";
+      path = "${lib.getExe pkgs.xwayland-satellite-unstable}";
     };
   }
   {
