@@ -87,6 +87,11 @@ window-rule {
     open-fullscreen true
 }
 window-rule {
+    match app-id="factorio" title=r#"Factorio.*"#
+    open-maximized true
+    open-fullscreen true
+}
+window-rule {
     match app-id="steam_app_686060"  // Mewgenics
     open-fullscreen true
     open-floating false
