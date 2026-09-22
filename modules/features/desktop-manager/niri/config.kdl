@@ -105,6 +105,12 @@ window-rule {
     open-maximized true
     open-fullscreen true
 }
+window-rule {
+    // HM64 Ghostship (Super Mario 64)
+    match app-id="Ghostship"
+    open-maximized true
+    open-fullscreen true
+}
 
 // Other Apps
 window-rule {
