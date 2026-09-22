@@ -99,9 +99,20 @@ in {
           ({config, ...}: {
             mod."feat/tools/awww".img =
               ../../../assets/wallpapers/girl_leaving_apartment.png;
-            mod."feat/gaming/harbourmasters".soh.gamepaths = [
-              "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
-            ];
+            mod."feat/gaming/harbourmasters" = {
+              soh = {
+                enable = true;
+                gamepaths = [
+                  "${config.home.homeDirectory}/Downloads/Emulation/Games/oot.v64"
+                ];
+              };
+              ghostship = {
+                enable = true;
+                gamepaths = [
+                  "${config.home.homeDirectory}/Downloads/Emulation/Games/sm64.z64"
+                ];
+              };
+            };
           })
         ];
       };
