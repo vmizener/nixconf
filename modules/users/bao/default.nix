@@ -35,11 +35,7 @@ in {
     nixpkgs.config.allowUnfree = true;
   };
   # @Baohaus (Nixos)
-  flake.nixosModules."users/${username}@baohaus" = {
-    config,
-    pkgs,
-    ...
-  }: {
+  flake.nixosModules."users/${username}@baohaus" = {pkgs, ...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
       self.nixosModules."feat/terminal/shell/zsh"
@@ -58,11 +54,6 @@ in {
       ];
       initialPassword = "gobears";
       shell = pkgs.zsh;
-    };
-    sops.secrets.example_key = {
-      mode = "0444";
-      owner = config.users.users.${username}.name;
-      group = config.users.users.${username}.group;
     };
     home-manager = {
       useGlobalPkgs = true;
