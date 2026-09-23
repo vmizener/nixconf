@@ -28,21 +28,30 @@ in {
   flake.homeModules.${moduleName} = {
     config,
     lib,
+    osConfig ? null,
     ...
   }: let
     cfg = config.mod.${moduleName};
+    steamEnabled = (osConfig != null) && (builtins.elem "feat/gaming/steam" osConfig.mod.imported);
   in {
     mod.imported = [moduleName];
     imports = [inputs.hm64-flake.homeManagerModules.default];
-    programs.harbourmasters = lib.mkMerge (map (
-        project:
-          lib.mkIf cfg.${project}.enable {
-            ${project} = {
-              enable = true;
-              gamepaths = cfg.${project}.gamepaths;
-            };
-          }
-      )
-      projects);
+    programs.harbourmasters = lib.mkMerge (
+      (map (
+          project:
+            lib.mkIf cfg.${project}.enable {
+              ${project} = {
+                enable = true;
+                gamepaths = cfg.${project}.gamepaths;
+              };
+            }
+        )
+        projects)
+      ++ [
+        (lib.mkIf steamEnabled {
+          steam.enable = true;
+        })
+      ]
+    );
   };
 }
