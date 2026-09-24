@@ -17,6 +17,7 @@ in {
 
       self.nixosModules."users/bao@baohaus"
 
+      self.nixosModules."feat/ai/ollama"
       self.nixosModules."feat/desktop-manager/niri"
       self.nixosModules."feat/display-manager/ly"
       self.nixosModules."feat/gaming/steam"
@@ -33,7 +34,13 @@ in {
       self.nixosModules."feat/tools/jackett"
       self.nixosModules."feat/vm"
     ];
-    mod."feat/gaming/steam".enableExtest = true;
+    mod = {
+      "feat/ai/ollama" = {
+        package = pkgs.ollama-rocm;
+        loadModels = ["qwen2.5-coder:7b"];
+      };
+      "feat/gaming/steam".enableExtest = true;
+    };
 
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";

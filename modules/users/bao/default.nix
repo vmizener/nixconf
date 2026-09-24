@@ -38,15 +38,8 @@ in {
   flake.nixosModules."users/${username}@baohaus" = {pkgs, ...}: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
-      self.nixosModules."feat/ai/ollama"
       self.nixosModules."feat/terminal/shell/zsh"
       self.nixosModules."feat/tools/input-actions"
-      ({...}: {
-        mod."feat/ai/ollama" = {
-          package = pkgs.ollama-rocm;
-          loadModels = ["qwen2.5-coder:7b"];
-        };
-      })
     ];
     users.users.${username} = {
       isNormalUser = true;

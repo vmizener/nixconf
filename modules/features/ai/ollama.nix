@@ -34,7 +34,7 @@ in {
       };
       openFirewall = lib.mkOption {
         type = lib.types.bool;
-        default = true;
+        default = false;
       };
     };
   };
@@ -44,15 +44,31 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    clientHost =
+      if builtins.elem cfg.host ["0.0.0.0" "[::]" ""]
+      then "127.0.0.1"
+      else cfg.host;
   in {
-    mod.imported = [moduleName];
+    mod = {
+      imported = [moduleName];
+      ai.providers."ollama-local" = lib.mkIf (cfg.loadModels != []) {
+        api = "openai-completions";
+        apiKey = "ollama";
+        baseUrl = "http://${clientHost}:${toString cfg.port}/v1";
+        models = cfg.loadModels;
+        compat = {
+          supportsDeveloperRole = false;
+          supportsReasoningEffort = false;
+        };
+      };
+    };
     services.ollama = {
       enable = true;
       package = cfg.package;
       host = cfg.host;
       port = cfg.port;
       loadModels = cfg.loadModels;
+      openFirewall = cfg.openFirewall;
     };
-    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [cfg.port];
   };
 }

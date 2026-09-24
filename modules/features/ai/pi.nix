@@ -11,52 +11,85 @@ Exposes:
   moduleName = "feat/ai/pi";
 in {
   flake.homeModules."common/options" = {
+    config,
     lib,
+    osConfig ? null,
     pkgs,
     ...
-  }: {
+  }: let
+    osProviders =
+      if osConfig != null
+      then osConfig.mod.ai.providers
+      else {};
+    providers = osProviders // config.mod.ai.providers;
+    activeProviders = lib.filterAttrs (_: p: p.models != []) providers;
+    providerNames = builtins.attrNames activeProviders;
+    hasProviders = providerNames != [];
+    firstProvider = builtins.head providerNames;
+  in {
     options.mod.${moduleName} = {
       package = lib.mkOption {
         type = lib.types.package;
         default = pkgs.pi-coding-agent;
       };
+      defaultProvider = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default =
+          if hasProviders
+          then firstProvider
+          else null;
+      };
+      defaultModel = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default =
+          if hasProviders
+          then builtins.head activeProviders.${firstProvider}.models
+          else null;
+      };
     };
   };
-  flake.homeModules.${moduleName} = {config, ...}: let
+  flake.homeModules.${moduleName} = {
+    config,
+    lib,
+    osConfig ? null,
+    ...
+  }: let
     cfg = config.mod.${moduleName};
+    osProviders =
+      if osConfig != null
+      then osConfig.mod.ai.providers
+      else {};
+    providers = osProviders // config.mod.ai.providers;
+    activeProviders = lib.filterAttrs (_: p: p.models != []) providers;
+    hasProviders = activeProviders != {};
   in {
     mod.imported = [moduleName];
     programs.pi-coding-agent = {
       enable = true;
       package = cfg.package;
-      settings = {
-        # TODO: make settings configurable
-        defaultProvider = "ollama-local";
-        defaultModel = {
-          id = "qwen2.5-coder:7b";
-          name = "Qwen 2.5 Coder 7B";
-          input = ["text"];
-          reasoning = false;
+      settings =
+        {
+          defaultThinkingLevel = "medium";
+        }
+        // lib.optionalAttrs (cfg.defaultProvider != null) {
+          defaultProvider = cfg.defaultProvider;
+        }
+        // lib.optionalAttrs (cfg.defaultModel != null) {
+          defaultModel = cfg.defaultModel;
         };
-        defaultThinkingLevel = "medium";
-      };
-      models = {
-        providers = {
-          # TODO: read this stuff from ollama module
-          "ollama-local" = {
-            api = "openai-completions";
-            apiKey = "ollama";
-            models = [
-              {
-                id = "qwen2.5-coder:7b";
-                name = "Qwen 2.5 Coder 7B";
-                input = ["text"];
-                reasoning = false;
-              }
-            ];
-            baseUrl = "http://127.0.0.1:11434/v1";
-          };
-        };
+      models = lib.mkIf hasProviders {
+        providers = lib.mapAttrs (_: p:
+          {
+            inherit (p) api baseUrl;
+            models = map (id: {inherit id;}) p.models;
+          }
+          // lib.optionalAttrs (p.apiKey != null) {
+            inherit (p) apiKey;
+          }
+          // lib.optionalAttrs (p.compat != {}) {
+            inherit (p) compat;
+          })
+        activeProviders;
       };
       context = ''
         Stay brief.
