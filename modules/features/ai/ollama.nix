@@ -35,6 +35,10 @@ Exposes:
         type = lib.types.listOf lib.types.str;
         default = [];
       };
+      syncModels = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+      };
     };
   };
 
@@ -92,7 +96,7 @@ in {
   in {
     imports = [ollamaCommon];
     services.ollama = {
-      inherit (cfg) loadModels openFirewall;
+      inherit (cfg) loadModels syncModels openFirewall;
     };
   };
 
@@ -105,9 +109,20 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    ollama = lib.getExe cfg.package;
+    awk = lib.getExe pkgs.gawk;
+    sed = lib.getExe pkgs.gnused;
+    nproc = lib.getExe' pkgs.coreutils "nproc";
+    xargs = lib.getExe' pkgs.findutils "xargs";
+    declaredModelsRegex = lib.pipe cfg.loadModels [
+      (map lib.escapeRegex)
+      (lib.concatStringsSep "|")
+      (lib.escape ["/"])
+      lib.escapeShellArg
+    ];
   in {
     imports = [ollamaCommon];
-    systemd.user.services.ollama-model-loader = lib.mkIf (cfg.loadModels != []) {
+    systemd.user.services.ollama-model-loader = lib.mkIf (cfg.loadModels != [] || cfg.syncModels) {
       Unit = {
         Description = "Download ollama models in the background";
         Wants = ["network-online.target"];
@@ -125,7 +140,26 @@ in {
         RestartMaxDelaySec = "2h";
         RestartSteps = 10;
         ExecStart = pkgs.writeShellScript "ollama-model-loader" ''
-          printf "%s\0" ${lib.escapeShellArgs cfg.loadModels} | ${lib.getExe' pkgs.findutils "xargs"} -0 -r -n 1 -P "$(${lib.getExe' pkgs.coreutils "nproc"})" ${lib.getExe cfg.package} pull
+          ${lib.optionalString cfg.syncModels ''
+            installed=$('${ollama}' list | '${awk}' 'NR > 1 {print $1}')
+            ${
+              if (cfg.loadModels != [])
+              then ''
+                echo declared models regex: ${declaredModelsRegex}
+                undeclared=$(echo "$installed" | '${sed}' -E /${declaredModelsRegex}/d)
+              ''
+              else ''
+                undeclared="$installed"
+              ''
+            }
+            if [ -n "$undeclared" ]; then
+              echo removing: $undeclared
+              '${ollama}' rm $undeclared
+            fi
+          ''}
+          ${lib.optionalString (cfg.loadModels != []) ''
+            printf "%s\0" ${lib.escapeShellArgs cfg.loadModels} | '${xargs}' -0 -r -n 1 -P "$('${nproc}')" '${ollama}' pull
+          ''}
         '';
       };
       Install = {
