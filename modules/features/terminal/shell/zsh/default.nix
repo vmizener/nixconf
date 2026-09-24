@@ -45,9 +45,9 @@ in {
           [
             ''[[ -f "${hmSessionVars}" ]] && source "${hmSessionVars}"''
             ''[[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"''
+            ''emulate zsh -c "$(direnv export zsh)"''
             "${builtins.readFile ./zshrc}"
             "source ${./p10k.zsh}"
-            ''eval "$(direnv hook zsh)"''
           ]
           ++ (import ./_aliases.nix {
             inherit config pkgs;
