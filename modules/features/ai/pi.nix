@@ -9,6 +9,24 @@ Exposes:
 */
 {...}: let
   moduleName = "feat/ai/pi";
+
+  getActiveProviders = {
+    config,
+    lib,
+    osConfig,
+  }: let
+    filterActive = lib.filterAttrs (_: p: p.models != []);
+    osProviders =
+      if osConfig != null
+      then filterActive osConfig.mod.ai.providers
+      else {};
+    hmProviders = filterActive config.mod.ai.providers;
+  in {
+    # Right-biased merge: OS providers override HM providers on key collisions
+    activeProviders = hmProviders // osProviders;
+    # Prefer OS providers before HM providers when picking defaults
+    providerNames = (builtins.attrNames osProviders) ++ (builtins.attrNames hmProviders);
+  };
 in {
   flake.homeModules."common/options" = {
     config,
@@ -17,13 +35,7 @@ in {
     pkgs,
     ...
   }: let
-    osProviders =
-      if osConfig != null
-      then osConfig.mod.ai.providers
-      else {};
-    providers = osProviders // config.mod.ai.providers;
-    activeProviders = lib.filterAttrs (_: p: p.models != []) providers;
-    providerNames = builtins.attrNames activeProviders;
+    inherit (getActiveProviders {inherit config lib osConfig;}) activeProviders providerNames;
     hasProviders = providerNames != [];
     firstProvider = builtins.head providerNames;
   in {
@@ -55,12 +67,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    osProviders =
-      if osConfig != null
-      then osConfig.mod.ai.providers
-      else {};
-    providers = osProviders // config.mod.ai.providers;
-    activeProviders = lib.filterAttrs (_: p: p.models != []) providers;
+    inherit (getActiveProviders {inherit config lib osConfig;}) activeProviders;
     hasProviders = activeProviders != {};
   in {
     mod.imported = [moduleName];

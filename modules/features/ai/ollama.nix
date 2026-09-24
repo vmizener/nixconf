@@ -6,11 +6,14 @@ Enables Ollama OSS LLM local server for AI models.
 Exposes:
 
 - flake.nixosModules."feat/ai/ollama":
+- flake.homeModules."feat/ai/ollama":
 */
 {...}: let
   moduleName = "feat/ai/ollama";
-in {
-  flake.nixosModules."common/options" = {
+
+  ################
+  # Common options for both Home-Manager and NixOS modules
+  ollamaOptions = {
     lib,
     pkgs,
     ...
@@ -32,13 +35,12 @@ in {
         type = lib.types.listOf lib.types.str;
         default = [];
       };
-      openFirewall = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-      };
     };
   };
-  flake.nixosModules.${moduleName} = {
+
+  ################
+  # Common configs for both Home-Manager and NixOS modules
+  ollamaCommon = {
     config,
     lib,
     ...
@@ -64,11 +66,74 @@ in {
     };
     services.ollama = {
       enable = true;
-      package = cfg.package;
-      host = cfg.host;
-      port = cfg.port;
-      loadModels = cfg.loadModels;
-      openFirewall = cfg.openFirewall;
+      inherit (cfg) package host port;
+    };
+  };
+in {
+  ################
+  # NixOS module options
+  flake.nixosModules."common/options" = {lib, ...}: {
+    imports = [ollamaOptions];
+    options.mod.${moduleName}.openFirewall = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+    };
+  };
+  ################
+  # Home-Manager module options
+  flake.homeModules."common/options" = {...}: {
+    imports = [ollamaOptions];
+  };
+
+  ################
+  # NixOS config module
+  flake.nixosModules.${moduleName} = {config, ...}: let
+    cfg = config.mod.${moduleName};
+  in {
+    imports = [ollamaCommon];
+    services.ollama = {
+      inherit (cfg) loadModels openFirewall;
+    };
+  };
+
+  ################
+  # Home-Manager config module
+  flake.homeModules.${moduleName} = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: let
+    cfg = config.mod.${moduleName};
+  in {
+    imports = [ollamaCommon];
+    systemd.user.services.ollama-model-loader = lib.mkIf (cfg.loadModels != []) {
+      Unit = {
+        Description = "Download ollama models in the background";
+        Wants = ["network-online.target"];
+        After = [
+          "ollama.service"
+          "network-online.target"
+        ];
+        BindsTo = ["ollama.service"];
+      };
+      Service = {
+        Type = "exec";
+        Environment = config.systemd.user.services.ollama.Service.Environment;
+        Restart = "on-failure";
+        RestartSec = "1s";
+        RestartMaxDelaySec = "2h";
+        RestartSteps = 10;
+        ExecStart = pkgs.writeShellScript "ollama-model-loader" ''
+          printf "%s\0" ${lib.escapeShellArgs cfg.loadModels} | ${lib.getExe' pkgs.findutils "xargs"} -0 -r -n 1 -P "$(${lib.getExe' pkgs.coreutils "nproc"})" ${lib.getExe cfg.package} pull
+        '';
+      };
+      Install = {
+        WantedBy = [
+          "default.target"
+          "ollama.service"
+        ];
+      };
     };
   };
 }
