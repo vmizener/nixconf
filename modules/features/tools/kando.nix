@@ -24,7 +24,6 @@ in {
       Unit = {
         Description = "Kando daemon";
         After = ["graphical-session.target"];
-        WantedBy = ["graphical-session.target"];
       };
       Service = {
         Type = "simple";
