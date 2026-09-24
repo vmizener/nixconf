@@ -14,22 +14,38 @@
     description = "Home-manager modules";
   };
 
-  config = {
+  config = let
     ################
-    # Home-Manager common options
+    # Common options for both Home-Manager and NixOS modules
+    commonOptions = {config, ...}: {
+      options = {
+        # Mutable options
+        mod.imported = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [];
+          description = "List of imported modules";
+        };
+
+        # Readonly options
+        mod.has = lib.mkOption {
+          default = name: builtins.elem name config.mod.imported;
+          description = "Check whether a module has been imported";
+          readOnly = true;
+        };
+      };
+    };
+  in {
+    ################
+    # Home-Manager module options
     flake.homeModules."common/options" = {
       config,
       osConfig ? null,
       ...
     }: {
-      options.mod.imported = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [];
-        description = "List of imported modules";
-      };
-
-      options.mod.nixconf = {
-        path = lib.mkOption {
+      imports = [commonOptions];
+      options = {
+        # Mutable options
+        mod.nixconf.path = lib.mkOption {
           type = lib.types.str;
           default =
             if osConfig != null
@@ -38,7 +54,8 @@
           description = "Absolute path to this Nix flake (outside Nix store).  Used for out-of-store symlinks.";
         };
 
-        link = lib.mkOption {
+        # Readonly options
+        mod.nixconf.link = lib.mkOption {
           default = filepath: let
             relpath = lib.removePrefix "./" (lib.path.removePrefix ./.. filepath);
           in
@@ -50,13 +67,9 @@
     };
 
     ################
-    # NixOS common options
+    # NixOS module options
     flake.nixosModules."common/options" = {...}: {
-      options.mod.imported = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [];
-        description = "List of imported modules";
-      };
+      imports = [commonOptions];
     };
 
     ################

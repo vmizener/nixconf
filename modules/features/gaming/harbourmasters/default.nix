@@ -32,7 +32,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    steamEnabled = (osConfig != null) && (builtins.elem "feat/gaming/steam" osConfig.mod.imported);
+    steamEnabled = (osConfig != null) && (osConfig.mod.has "feat/gaming/steam");
   in {
     mod.imported = [moduleName];
     imports = [inputs.hm64-flake.homeManagerModules.default];

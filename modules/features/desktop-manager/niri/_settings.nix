@@ -10,39 +10,38 @@
   isVm = isNixOs && osConfig.mod."feat/vm".isVm;
 
   # Logic
-  checkCfgs = checker: (isHm && checker hmConfig) || (isNixOs && checker osConfig);
-  cmdByFeat = default: featList: (pkgs.lib.findFirst (f: checkCfgs f.checker) {cmd = default;} featList).cmd;
-  hasMod = name: cfg: (lib.hasAttrByPath ["mod" "imported"] cfg) && (builtins.elem name (lib.attrByPath ["mod" "imported"] null cfg));
+  hasMod = name: (isHm && hmConfig.mod.has name) || (isNixOs && osConfig.mod.has name);
+  cmdByFeat = default: featList: (pkgs.lib.findFirst (f: hasMod f.feat) {cmd = default;} featList).cmd;
 
   # Commands
   cmdTerminal = cmdByFeat "st" [
     {
       cmd = "foot";
-      checker = cfg: hasMod "feat/terminal/emulator/foot" cfg;
+      feat = "feat/terminal/emulator/foot";
     }
     {
       cmd = "ghostty";
-      checker = cfg: hasMod "feat/terminal/emulator/ghostty" cfg;
+      feat = "feat/terminal/emulator/ghostty";
     }
     {
       cmd = "kitty";
-      checker = cfg: hasMod "feat/terminal/emulator/kitty" cfg;
+      feat = "feat/terminal/emulator/kitty";
     }
   ];
   cmdLauncher = cmdByFeat null [
     {
       cmd = "dms ipc spotlight open";
-      checker = cfg: hasMod "feat/desktop-shell/dms" cfg;
+      feat = "feat/desktop-shell/dms";
     }
     {
       cmd = "fuzzel";
-      checker = cfg: hasMod "feat/tools/fuzzel" cfg;
+      feat = "feat/tools/fuzzel";
     }
   ];
   cmdKandoMenu = cmdByFeat null [
     {
       cmd = ''kando --menu "Main Menu"'';
-      checker = cfg: hasMod "feat/tools/kando" cfg;
+      feat = "feat/tools/kando";
     }
   ];
   cmdAudioRaiseVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+";

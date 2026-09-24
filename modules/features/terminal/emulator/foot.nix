@@ -12,7 +12,6 @@ Exposes:
 in {
   flake.homeModules.${moduleName} = {
     config,
-    lib,
     pkgs,
     ...
   }: {
@@ -50,7 +49,7 @@ in {
           cat >"$f"
 
           editor=${
-            if lib.elem "feat/tools/nvim" config.mod.imported
+            if config.mod.has "feat/tools/nvim"
             then "nvim"
             else "vim"
           }
