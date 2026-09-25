@@ -37,7 +37,7 @@ in {
     mod = {
       "feat/ai/ollama" = {
         package = pkgs.ollama-rocm;
-        loadModels = ["qwen2.5-coder:7b"];
+        loadModels = ["qwen3.5:9b"];
       };
       "feat/gaming/steam".enableExtest = true;
     };
