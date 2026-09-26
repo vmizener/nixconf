@@ -10,12 +10,26 @@ Exposes:
 let
   moduleName = "feat/tools/maestral";
 in {
+  flake.homeModules."common/options" = {
+    config,
+    lib,
+    ...
+  }: {
+    options.mod.${moduleName} = {
+      maestral_path = lib.mkOption {
+        type = lib.types.str;
+        default = "${config.home.homeDirectory}/Dropbox";
+        description = "Directory to sync files to.";
+      };
+    };
+  };
   flake.homeModules.${moduleName} = {
     config,
     lib,
     pkgs,
     ...
   }: let
+    cfg = config.mod.${moduleName};
     configPath = "${config.xdg.configHome}/maestral/maestral.ini";
     templatePath = config.sops.templates."maestral.ini".path;
   in {
@@ -28,7 +42,7 @@ in {
     sops = {
       secrets."maestral/account_id" = {};
       templates."maestral.ini".file = pkgs.replaceVars ./maestral.ini {
-        HOME = config.home.homeDirectory;
+        MAESTRAL_PATH = cfg.maestral_path;
         MAESTRAL_ACCOUNT_ID = config.sops.placeholder."maestral/account_id";
       };
     };
