@@ -111,4 +111,30 @@ in {
     };
     nixpkgs.config.allowUnfree = true;
   };
+  # @Zeltennia (Nixos)
+  flake.nixosModules."users/${username}@zeltennia" = {pkgs, ...}: {
+    imports = [
+      inputs.home-manager.nixosModules.home-manager
+      self.nixosModules."feat/terminal/shell/zsh"
+    ];
+    users.users.${username} = {
+      isNormalUser = true;
+      description = "${username}";
+      extraGroups = ["networkmanager" "wheel"];
+      initialPassword = "gobears";
+      shell = pkgs.zsh;
+    };
+    home-manager = {
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      backupFileExtension = "backup";
+      users.${username} = {...}: {
+        imports = [
+          self.homeModules."common"
+          self.homeModules."feat/terminal/shell/zsh"
+        ];
+      };
+    };
+    nixpkgs.config.allowUnfree = true;
+  };
 }

@@ -56,6 +56,11 @@
         "pipe-operators"
       ];
     };
+    environment.pathsToLink = [
+      # Needed by xdg.portal in the case no desktop is imported
+      "/share/applications"
+      "/share/xdg-desktop-portal"
+    ];
     services.openssh.enable = true;
   };
 }
