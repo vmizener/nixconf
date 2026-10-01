@@ -17,9 +17,11 @@ in {
 
       self.nixosModules."users/bao@${hostname}"
 
+      self.nixosModules."feat/net/blocky"
       self.nixosModules."feat/system/locale"
       self.nixosModules."feat/system/systools"
     ];
+    mod."feat/system/systools".categories = ["core" "sysadmin"];
 
     system.stateVersion = "25.11";
     networking.hostName = "${hostname}";
