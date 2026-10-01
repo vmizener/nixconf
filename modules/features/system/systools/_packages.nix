@@ -1,85 +1,54 @@
-pkgs:
-with pkgs; [
-  # Modern `cat` command
-  bat
-  # Simple calculator
-  bc
-  # Drag-and-drop files from terminal
-  blobdrop
-  # TUI-based system monitor
-  btop
-  # Modern `diff` command
-  delta
-  # Generates and executes DesktopEntry files for MIME applications
-  dex
-  # Modern `ls` command
-  eza
-  # System information tool
-  fastfetch
-  # Modern `find` command
-  fd
-  # Basic GNU directory search utilities
-  findutils
-  # Fuzzy finder and menu selection tool
-  fzf
-  # Popular VCS
-  git
-  # Binary compiler
-  gnumake
-  # Graphical disk partitioning tool
-  gparted
-  # System info and benchmarking tool
-  hardinfo2
-  # Image editing library
-  imagemagick
-  # JSON parser
-  jq
-  # Modern Makefile alternative
-  just
-  # Kill process and all its children at once
-  killall
-  # Library for desktop notifications
-  libnotify
-  # SIXEL library for console graphics
-  libsixel
-  # Thumbnail support in terminal via SIXEL graphics
-  lsix
-  # Fast CLI documentation searcher for Nix
-  manix
-  # Utility to index and quickly search for files
-  mlocate
-  # Nix CLI wrapper
-  nh
-  # PulseAudio volume control
-  pavucontrol
-  # Show processes as a tree
-  pstree
-  # Modern `grep` command
-  ripgrep
-  # Tools for monitoring disk health
-  smartmontools
-  # Simple Terminal for X
-  st
-  # TUI-based PDF viewer
-  tdf
-  # Display images in terminal
-  timg
-  # Terminal multiplexer
-  tmux
-  # Simple tree-based directory visualizer
-  tree
-  # Extraction utility for .zip files
-  unzip
-  # Tools for working with USB devices (e.g. `lsusb`)
-  usbutils
-  # Vi Improved
-  vim
-  # Wayland event viewer
-  wev
-  # Simple HTTP/HTTPS/FTP retrieval tool
-  wget
-  # Terminal file manager
-  yazi
-  # Archiver utility for .zip files
-  zip
-]
+pkgs: {
+  # Everyday CLI/TUI utilities useful in any shell environment
+  core = with pkgs; [
+    bat # Modern `cat` command
+    bc # Simple calculator
+    delta # Modern `diff` command
+    eza # Modern `ls` command
+    fd # Modern `find` command
+    findutils # Basic GNU directory search utilities
+    fzf # Fuzzy finder and menu selection tool
+    git # Popular VCS
+    gnumake # Binary compiler
+    jq # JSON parser
+    just # Modern Makefile alternative
+    manix # Fast CLI documentation searcher for Nix
+    mlocate # Utility to index and quickly search for files
+    nh # Nix CLI wrapper
+    ripgrep # Modern `grep` command
+    tmux # Terminal multiplexer
+    tree # Simple tree-based directory visualizer
+    unzip # Extraction utility for .zip files
+    vim # Vi Improved
+    wget # Simple HTTP/HTTPS/FTP retrieval tool
+    yazi # Terminal file manager
+    zip # Archiver utility for .zip files
+  ];
+
+  # System monitoring, process management, and hardware inspection
+  sysadmin = with pkgs; [
+    btop # TUI-based system monitor
+    fastfetch # System information tool
+    killall # Kill process and all its children at once
+    pstree # Show processes as a tree
+    smartmontools # Tools for monitoring disk health
+    usbutils # Tools for working with USB devices (e.g. `lsusb`)
+  ];
+
+  # GUI apps, X11/Wayland utilities, and graphical/media viewers
+  desktop = with pkgs; [
+    blobdrop # Drag-and-drop files from terminal
+    dex # Generates and executes DesktopEntry files for MIME applications
+    gparted # Graphical disk partitioning tool
+    hardinfo2 # System info and benchmarking tool
+    imagemagick # Image editing library
+    libnotify # Library for desktop notifications
+    libsixel # SIXEL library for console graphics
+    lsix # Thumbnail support in terminal via SIXEL graphics
+    pavucontrol # PulseAudio volume control
+    st # Simple Terminal for X
+    tdf # TUI-based PDF viewer
+    timg # Display images in terminal
+    wev # Wayland event viewer
+  ];
+}
