@@ -16,6 +16,9 @@ in {
       self.nixosModules."hardware/${hostname}"
 
       self.nixosModules."users/bao@${hostname}"
+
+      self.nixosModules."feat/system/locale"
+      self.nixosModules."feat/system/systools"
     ];
 
     system.stateVersion = "25.11";

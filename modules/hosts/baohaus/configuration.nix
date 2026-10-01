@@ -46,6 +46,7 @@ in {
     networking.hostName = "${hostname}";
 
     boot = {
+      binfmt.emulatedSystems = ["aarch64-linux"]; # Allow building aarch64-linux
       loader.grub = {
         enable = true;
         device = "/dev/sda";

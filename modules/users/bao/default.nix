@@ -132,6 +132,7 @@ in {
         imports = [
           self.homeModules."common"
           self.homeModules."feat/terminal/shell/zsh"
+          self.homeModules."feat/tools/git"
         ];
       };
     };
