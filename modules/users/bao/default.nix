@@ -136,6 +136,7 @@ in {
         ];
       };
     };
+    nix.settings.trusted-users = [username];
     nixpkgs.config.allowUnfree = true;
   };
 }
