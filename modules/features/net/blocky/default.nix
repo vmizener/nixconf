@@ -38,7 +38,7 @@ in {
       };
       openFirewall = lib.mkOption {
         type = lib.types.bool;
-        default = false;
+        default = true;
         description = "Whether to open the DNS and HTTP ports in the firewall";
       };
     };
@@ -58,6 +58,7 @@ in {
   in {
     mod.imported = [moduleName];
 
+    environment.systemPackages = with pkgs; [blocky];
     services.blocky = {
       enable = true;
       inherit (cfg) package;

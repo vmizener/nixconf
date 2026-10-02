@@ -9,8 +9,8 @@ upstreams:
       - https://dns.quad9.net/dns-query
 
 bootstrapDns:
-  - tcp+udp:1.1.1.1
-  - tcp+udp:9.9.9.9
+  - 1.1.1.1
+  - 9.9.9.9
 
 blocking:
   denylists:
