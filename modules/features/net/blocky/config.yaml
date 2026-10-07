@@ -7,6 +7,7 @@ upstreams:
     default:
       - https://one.one.one.one/dns-query
       - https://dns.quad9.net/dns-query
+      - 8.8.8.8
 
 bootstrapDns:
   - 1.1.1.1
