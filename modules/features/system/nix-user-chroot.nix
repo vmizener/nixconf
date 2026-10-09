@@ -67,10 +67,13 @@ in {
       du -hs ${cfg.nixDir}
       echo "home:" $HOME
       if [ $# -eq 0 ]; then
-        exec ${cfg.nixDir}/nix-user-chroot ${cfg.nixDir}/root-nix ${cfg.shell}
-      else
-        exec ${cfg.nixDir}/nix-user-chroot ${cfg.nixDir}/root-nix "$@"
+        set -- ${cfg.shell}
       fi
+      exec ${cfg.nixDir}/nix-user-chroot ${cfg.nixDir}/root-nix /bin/sh -c '
+        rm -rf /homeless-shelter 2>/dev/null || true
+        mount -o remount,bind,ro / 2>/dev/null || true
+        exec "$@"
+      ' -- "$@"
     '';
   in {
     mod.imported = [moduleName];

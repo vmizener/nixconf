@@ -87,6 +87,11 @@ rm -f "${CHROOT_HOME}/home.nix" "${CHROOT_HOME}/README"
 # 3. Install/upgrade Nix if needed, then build and activate Home-Manager inside the chroot
 ACTIVATE_SCRIPT=$(cat <<EOF
 set -euo pipefail
+
+# Prevent non-sandboxed Nix builds from creating /homeless-shelter in the chroot rootfs
+rm -rf /homeless-shelter 2>/dev/null || true
+mount -o remount,bind,ro / 2>/dev/null || true
+
 if [ -f "\$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
   . "\$HOME/.nix-profile/etc/profile.d/nix.sh"
 fi
