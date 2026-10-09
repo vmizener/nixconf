@@ -14,7 +14,7 @@ oops() {
 USER_NAME="${USER:-$(id -un)}"
 HOSTNAME="$(uname -n | cut -d. -f1)"
 TARGET_CONFIG="${1:-}"
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
 
 # Detect architecture for nix-user-chroot static binary
 ARCH="$(uname -m)"
@@ -111,7 +111,7 @@ fi
 
 CONFIG_NAME="${TARGET_CONFIG}"
 if [ -z "\${CONFIG_NAME}" ]; then
-  if nix "\${NIX_FLAGS[@]}" eval "${HM_CONFIG_DIR}#homeConfigurations.\"${USER_NAME}@${HOSTNAME}\".activationPackage.drvPath" >/dev/null 2>&1; then
+  if nix "\${NIX_FLAGS[@]}" eval "${REPO_DIR}#homeConfigurations.\"${USER_NAME}@${HOSTNAME}\".activationPackage.drvPath" >/dev/null 2>&1; then
     CONFIG_NAME="${USER_NAME}@${HOSTNAME}"
   else
     CONFIG_NAME="${USER_NAME}"
@@ -119,7 +119,7 @@ if [ -z "\${CONFIG_NAME}" ]; then
 fi
 
 echo "Building homeConfigurations.\"\${CONFIG_NAME}\"..."
-OUT_PATH="\$(nix "\${NIX_FLAGS[@]}" build --no-link --print-out-paths "${HM_CONFIG_DIR}#homeConfigurations.\"\${CONFIG_NAME}\".activationPackage")"
+OUT_PATH="\$(nix "\${NIX_FLAGS[@]}" build --no-link --print-out-paths "${REPO_DIR}#homeConfigurations.\"\${CONFIG_NAME}\".activationPackage")"
 
 echo "Activating Home-Manager generation: \${OUT_PATH}"
 "\${OUT_PATH}/activate"
