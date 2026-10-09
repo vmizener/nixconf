@@ -87,11 +87,8 @@ in {
         # Maintain symlink from chroot $HOME/$USER -> host $HOME
         run ln -sfn "${cfg.hostHomeDirectory}" "${config.home.homeDirectory}/${config.home.username}"
 
-        # Keep static nix-user-chroot binary and enter script updated outside the store
+        # Keep enter script updated outside the store
         if [ -d "${cfg.nixDir}" ]; then
-          run install -m 755 "${pkgs.pkgsStatic.nix-user-chroot}/bin/nix-user-chroot" "${cfg.nixDir}/nix-user-chroot.tmp"
-          run mv -f "${cfg.nixDir}/nix-user-chroot.tmp" "${cfg.nixDir}/nix-user-chroot"
-
           $DRY_RUN_CMD cat <<'EOF' > "${cfg.nixDir}/enter.tmp"
         ${enterScript}EOF
           run chmod u+x "${cfg.nixDir}/enter.tmp"
