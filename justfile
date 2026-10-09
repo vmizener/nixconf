@@ -49,3 +49,7 @@ vm-reset hostname:
 # Reset then launch VM of given host
 [group('vm')]
 vm-fresh hostname *args="": (vm-reset hostname) (vm-run hostname args)
+
+# Bootstrap or migrate nix-user-chroot Home-Manager environment
+chroot-init *args="":
+    ./scripts/chroot-init.sh {{args}}

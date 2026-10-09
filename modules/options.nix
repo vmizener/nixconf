@@ -14,6 +14,13 @@
     description = "Home-manager modules";
   };
 
+  # Automatically merge homeConfigurations, similar to nixosConfigurations
+  options.flake.homeConfigurations = lib.mkOption {
+    type = lib.types.lazyAttrsOf lib.types.raw;
+    default = {};
+    description = "Home-manager configurations";
+  };
+
   config = let
     ################
     # Common options for both Home-Manager and NixOS modules

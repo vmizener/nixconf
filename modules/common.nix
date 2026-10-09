@@ -5,6 +5,8 @@
 }: {
   flake.homeModules."common" = {
     config,
+    lib,
+    osConfig ? null,
     pkgs,
     ...
   }: {
@@ -16,14 +18,27 @@
       stateVersion = "25.11";
       sessionPath = ["${config.home.profileDirectory}/bin"];
     };
-    nix = {
-      gc = {
-        automatic = true;
-        dates = "weekly";
-        options = "--delete-older-than 10d";
+    nix =
+      {
+        gc = {
+          automatic = true;
+          dates = "weekly";
+          options = "--delete-older-than 10d";
+        };
+        nixPath = ["nixpkgs=${inputs.nixpkgs}"];
+      }
+      // lib.optionalAttrs (osConfig == null) {
+        package = lib.mkDefault pkgs.nix;
+        settings = {
+          auto-optimise-store = lib.mkDefault true;
+          experimental-features = [
+            "flakes"
+            "nix-command"
+            "pipe-operators"
+          ];
+          max-jobs = lib.mkDefault "auto";
+        };
       };
-      nixPath = ["nixpkgs=${inputs.nixpkgs}"];
-    };
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
     systemd.user.startServices = "sd-switch"; # Reload system units on config change
     xdg.enable = true; # Enable XDG directory management

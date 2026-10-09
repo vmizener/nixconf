@@ -6,6 +6,7 @@ nix eval --impure --json --expr '
     unique = list: builtins.attrNames (builtins.groupBy (x: x) list);
   in {
     homeModules = builtins.attrNames (flake.homeModules or {});
+    homeConfigurations = builtins.attrNames (flake.homeConfigurations or {});
     nixosModules = builtins.attrNames (flake.nixosModules or {});
     nixosConfigurations = builtins.attrNames (flake.nixosConfigurations or {});
     packages = unique (
