@@ -55,13 +55,12 @@ echo "Target nix directory: ${N}"
 echo "Chroot HOME:          ${CHROOT_HOME}"
 echo "Flake repository:     ${REPO_DIR}"
 
-# 1. Bootstrap nix-user-chroot & single-user Nix if not yet installed
-if [ ! -d "${N}/root-nix/store" ]; then
+# 1. Ensure nix-user-chroot directory structure and binary exist
+if [ ! -d "${N}/root-nix" ] || [ ! -x "${N}/nix-user-chroot" ]; then
   if [ "${IN_CHROOT}" -eq 1 ]; then
-    oops "Cannot bootstrap nix-user-chroot from inside chroot when ${N}/root-nix/store is missing"
+    oops "Cannot bootstrap nix-user-chroot from inside chroot when ${N}/nix-user-chroot is missing"
   fi
 
-  echo "Bootstrapping fresh nix-user-chroot environment in ${N}..."
   mkdir -p "${N}" "${N}/root-nix" "${CHROOT_HOME}"
 
   if [ ! -x "${N}/nix-user-chroot" ]; then
@@ -71,16 +70,6 @@ if [ ! -d "${N}/root-nix/store" ]; then
       || oops "Failed to download nix-user-chroot"
     chmod u+x "${N}/nix-user-chroot"
   fi
-
-  if [ ! -f "${N}/nix.install" ]; then
-    echo "Downloading nixos.org/nix/install..."
-    wget -O "${N}/nix.install" https://nixos.org/nix/install \
-      || oops "Failed to download nixos.org/nix/install"
-  fi
-
-  echo "Running Nix installer inside nix-user-chroot..."
-  HOME="${CHROOT_HOME}" "${N}/nix-user-chroot" "${N}/root-nix" /bin/bash "${N}/nix.install" \
-    || oops "nixos.org/nix/install failed"
 fi
 
 # 2. Point ~/.config/home-manager inside chroot to this repository (overwriting any existing config)
@@ -95,7 +84,7 @@ if [ ! -L "${CHROOT_HOME}/.config/nix/nix.conf" ]; then
 fi
 rm -f "${CHROOT_HOME}/home.nix" "${CHROOT_HOME}/README"
 
-# 3. Build and activate the Home-Manager configuration inside the chroot
+# 3. Install/upgrade Nix if needed, then build and activate Home-Manager inside the chroot
 ACTIVATE_SCRIPT=$(cat <<EOF
 set -euo pipefail
 if [ -f "\$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
@@ -103,6 +92,18 @@ if [ -f "\$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
 fi
 
 NIX_FLAGS=(--extra-experimental-features "nix-command flakes pipe-operators")
+
+# Install or upgrade Nix if missing or too old to support readFileType / pipe-operators
+if ! command -v nix >/dev/null 2>&1 || ! nix "\${NIX_FLAGS[@]}" eval --expr 'builtins.seq builtins.readFileType (1 |> (x: x))' >/dev/null 2>&1; then
+  echo "Installing/updating bootstrap Nix via nixos.org/nix/install..."
+  if command -v nix-env >/dev/null 2>&1; then
+    nix-env --set-flag priority 10 home-manager-path 2>/dev/null || true
+  fi
+  wget -O "${N}/nix.install" https://nixos.org/nix/install
+  /bin/bash "${N}/nix.install" --no-modify-profile
+  . "\$HOME/.nix-profile/etc/profile.d/nix.sh"
+  hash -r
+fi
 
 # Lower priority of nix-env's nix if present so Home-Manager's nix can take over
 if nix-env -q 2>/dev/null | grep -q '^nix-'; then
