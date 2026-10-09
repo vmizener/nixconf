@@ -31,6 +31,11 @@ in {
         default = 4000;
         description = "HTTP listen port or address:port for API/DoH/metrics";
       };
+      customDNS = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = {};
+        description = "Additional custom DNS hostname-to-IP mappings";
+      };
       enableConfigCheck = lib.mkOption {
         type = lib.types.bool;
         default = true;
@@ -51,9 +56,21 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    allCustomDNS = config.mod.net.allDnsRecords // cfg.customDNS;
+
+    customDnsBlock =
+      if allCustomDNS == {}
+      then "# No customDNS mappings configured"
+      else
+        "customDNS:\n  mapping:\n"
+        + lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: ip: "    ${name}: ${ip}") allCustomDNS
+        );
+
     templateFile = pkgs.replaceVars ./config.yaml {
       DNS_PORT = toString cfg.dnsPort;
       HTTP_PORT = toString cfg.httpPort;
+      CUSTOM_DNS_BLOCK = customDnsBlock;
     };
   in {
     mod.imported = [moduleName];
@@ -66,6 +83,7 @@ in {
       enableConfigCheck = false;
     };
 
+    # Overwrite default ExecStart from services.blocky to use templateFile
     systemd.services.blocky.serviceConfig.ExecStart =
       lib.mkForce "${lib.getExe cfg.package} --config ${templateFile}";
 

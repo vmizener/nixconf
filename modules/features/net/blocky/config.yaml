@@ -13,6 +13,8 @@ bootstrapDns:
   - 1.1.1.1
   - 9.9.9.9
 
+@CUSTOM_DNS_BLOCK@
+
 blocking:
   denylists:
     ads:
