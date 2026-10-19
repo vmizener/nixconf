@@ -88,8 +88,8 @@ window-rule {
 }
 window-rule {
     match app-id="steam_app_1422450"  // Deadlock
+    open-maximized true
     open-fullscreen true
-    open-floating false
 }
 window-rule {
     match app-id="factorio" title=r#"Factorio.*"#
