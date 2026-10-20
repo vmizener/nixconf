@@ -28,6 +28,7 @@ pkgs: {
   # System monitoring, process management, and hardware inspection
   sysadmin = with pkgs; [
     btop # TUI-based system monitor
+    dig # DNS query
     fastfetch # System information tool
     killall # Kill process and all its children at once
     pstree # Show processes as a tree
