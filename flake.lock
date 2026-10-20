@@ -271,11 +271,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790122730,
-        "narHash": "sha256-J4wrNLgrBHOihsfIRMDtxdjc8A738e0pEsPvBcGTzmA=",
+        "lastModified": 1792453075,
+        "narHash": "sha256-3mM7JwBta0FJG+N/ECUdwhFF8R5g9OLuQhV8VZFiq7Q=",
         "owner": "vmizener",
         "repo": "hm64-flake",
-        "rev": "a08839559a3e84c785ae2724030f3a191f95187f",
+        "rev": "dd833309ad400c592dc65f465b578d0712c5fd0c",
         "type": "github"
       },
       "original": {
