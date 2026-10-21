@@ -33,7 +33,7 @@ in {
     config = {
       mod.imported = [moduleName];
       virtualisation.vmVariant = {
-        mod."feat/vm".isVm = true;
+        mod.${moduleName}.isVm = true;
         services.qemuGuest.enable = true;
         virtualisation = {
           memorySize = 4096; # use 4GiB memory
@@ -54,9 +54,14 @@ in {
     ...
   }: {
     packages =
-      # Generate both VM runner and reset packages per nixosConfiguration
+      # Generate both VM runner and reset packages per nixosConfiguration importing feat/vm
       self.nixosConfigurations
-      |> lib.filterAttrs (hostname: hostconf: hostconf.config.nixpkgs.hostPlatform.system == system)
+      |> lib.filterAttrs (
+        _: hostconf:
+          hostconf.config.nixpkgs.hostPlatform.system
+          == system
+          && (hostconf.config.mod.has or (_: false)) moduleName
+      )
       |> (
         configs: let
           vmRunners =
@@ -65,10 +70,10 @@ in {
               lib.nameValuePair "vm-run-${hostname}" (pkgs.writeShellApplication {
                 name = "vm-run-${hostname}";
                 text = ''
-                  STORAGE_DIR="${hostconf.config.mod."feat/vm".storageDir}"
+                  STORAGE_DIR="${hostconf.config.mod.${moduleName}.storageDir}"
                   mkdir -p "$STORAGE_DIR"
                   export NIX_DISK_IMAGE="''${NIX_DISK_IMAGE:-$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2}"
-                  ${hostconf.config.system.build.vm}/bin/run-${hostconf.config.networking.hostName}-vm "$@"
+                  exec ${hostconf.config.system.build.vm}/bin/run-${hostconf.config.networking.hostName}-vm "$@"
                 '';
               }));
           vmResetters =
@@ -77,8 +82,8 @@ in {
               lib.nameValuePair "vm-reset-${hostname}" (pkgs.writeShellApplication {
                 name = "vm-reset-${hostname}";
                 text = ''
-                  STORAGE_DIR="${hostconf.config.mod."feat/vm".storageDir}"
-                  NIX_DISK_IMAGE="$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2"
+                  STORAGE_DIR="${hostconf.config.mod.${moduleName}.storageDir}"
+                  NIX_DISK_IMAGE="''${NIX_DISK_IMAGE:-$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2}"
                   if [ -f "$NIX_DISK_IMAGE" ]; then
                       echo "Removing $NIX_DISK_IMAGE"
                       rm "$NIX_DISK_IMAGE"
