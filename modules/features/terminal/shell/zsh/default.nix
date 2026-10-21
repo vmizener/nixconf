@@ -23,6 +23,7 @@ in {
   flake.homeModules.${moduleName} = {
     config,
     lib,
+    osConfig ? null,
     pkgs,
     ...
   }: let
@@ -30,6 +31,9 @@ in {
 
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
+    installedPackages =
+      config.home.packages
+      ++ lib.optionals (osConfig != null) osConfig.environment.systemPackages;
   in {
     mod.imported = [moduleName];
     programs = {
@@ -50,8 +54,8 @@ in {
             "source ${./p10k.zsh}"
           ]
           ++ (import ./_aliases.nix {
-            inherit config pkgs;
-            installed = config.home.packages;
+            inherit config lib;
+            installed = installedPackages;
           })
           ++ cfg.extraConfig
         );

@@ -1,25 +1,26 @@
 {
   config,
   installed,
-  pkgs,
+  lib,
 }: let
+  installedNames = lib.genAttrs (map lib.getName installed) (_: true);
   addIfElse = want: ifCond: elseCond:
-    if builtins.elem want installed
+    if installedNames ? ${want}
     then ifCond
     else elseCond;
-  addIf = want: ifCond: (addIfElse want ifCond []);
+  addIf = want: ifCond: addIfElse want ifCond [];
 in (
   [
     "alias cdf='cd -P ${config.mod.nixconf.path}'"
   ]
-  ++ addIf pkgs.bat [
+  ++ addIf "bat" [
     "alias cat='bat --wrap=never'"
   ]
-  ++ addIf pkgs.comma [
+  ++ addIf "comma" [
     "alias nl='nix-locate'"
     "alias ,,=', -as'"
   ]
-  ++ addIfElse pkgs.eza [
+  ++ addIfElse "eza" [
     "alias ls='eza --sort=type --icons=always'"
     "alias la='eza --sort=type --icons=always -a'"
     "alias ll='eza --sort=type --icons=always -al --git --header'"
@@ -33,19 +34,19 @@ in (
     "alias lt='tree'"
     "alias lT=\"tree -CpDh | sed -e 's/\\\\(.*\\\\)\\\\[\\\\([^]]*\\\\)\\\\]/\\\\2 \\\\1/'\""
   ]
-  ++ addIf pkgs.git [
+  ++ addIf "git" [
     "alias cdr='cd $(git rev-parse --show-toplevel)'"
   ]
-  ++ addIf pkgs.neovim [
+  ++ addIf "neovim" [
     "alias vi='nvim'"
   ]
-  ++ addIf pkgs.nh [
+  ++ addIf "nh" [
     "alias nf='nh search'"
   ]
-  ++ addIf pkgs.ov [
+  ++ addIf "ov" [
     "export PAGER=ov"
   ]
-  ++ addIf pkgs.tmux [
+  ++ addIf "tmux" [
     "alias tl='tmux list-sessions'"
     "alias td='tmux detach'"
     "alias ts='tmux new -s'"
