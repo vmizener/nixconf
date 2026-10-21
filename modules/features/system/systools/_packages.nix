@@ -29,7 +29,11 @@ pkgs: {
   # System monitoring, process management, and hardware inspection
   sysadmin = with pkgs; [
     btop # TUI-based system monitor
+    curlie # Frontend wrapper to `curl`
     dig # DNS query
+    doggo # `dig` alternative in go
+    duf # `df` alternative in go
+    dust # `du` alternative in rust
     fastfetch # System information tool
     killall # Kill process and all its children at once
     pstree # Show processes as a tree
