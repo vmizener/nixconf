@@ -6,7 +6,10 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
     # Core Utils
-    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
     flake-schemas.url = "github:DeterminateSystems/flake-schemas";
     git-hooks-nix = {
       url = "github:cachix/git-hooks.nix";
@@ -21,12 +24,25 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixgl.url = "github:nix-community/nixGL";
-    sops-nix.url = "github:Mic92/sops-nix";
-    wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
+    nixgl = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    wrapper-modules = {
+      url = "github:BirdeeHub/nix-wrapper-modules";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Feature Flakes
-    awww.url = "git+https://codeberg.org/LGFae/awww";
+    awww = {
+      url = "git+https://codeberg.org/LGFae/awww";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-compat.follows = "git-hooks-nix/flake-compat";
+    };
     danksearch = {
       url = "github:AvengeMedia/danksearch";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -38,14 +54,19 @@
     dms = {
       url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-compat.follows = "git-hooks-nix/flake-compat";
     };
     helium = {
       url = "github:schembriaiden/helium-browser-nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-darwin.follows = "nixpkgs";
+      inputs.utils.follows = "nixgl/flake-utils";
     };
     hm64-flake = {
       url = "github:vmizener/hm64-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+      inputs.git-hooks-nix.follows = "git-hooks-nix";
     };
     inputactions-ctl = {
       url = "git+https://github.com/InputActions/ctl?submodules=1";
@@ -55,12 +76,19 @@
       url = "git+https://github.com/InputActions/standalone?submodules=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    niri.url = "github:epireyn/niri-flake";
+    niri = {
+      url = "github:epireyn/niri-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs-stable.follows = "nixpkgs";
+    };
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
-    torrra.url = "github:stabldev/torrra";
+    torrra = {
+      url = "github:stabldev/torrra";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 }
