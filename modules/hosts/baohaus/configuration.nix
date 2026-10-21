@@ -17,7 +17,7 @@ in {
 
       self.nixosModules."users/bao@baohaus"
 
-      self.nixosModules."feat/ai/ollama"
+      # self.nixosModules."feat/ai/ollama"
       self.nixosModules."feat/desktop-manager/niri"
       self.nixosModules."feat/display-manager/ly"
       self.nixosModules."feat/gaming/steam"
@@ -35,10 +35,10 @@ in {
       self.nixosModules."feat/vm"
     ];
     mod = {
-      "feat/ai/ollama" = {
-        package = pkgs.ollama-rocm;
-        loadModels = ["qwen3.5:9b"];
-      };
+      # "feat/ai/ollama" = {
+      #   package = pkgs.ollama-rocm;
+      #   loadModels = ["qwen3.5:9b"];
+      # };
       "feat/gaming/steam".enableExtest = true;
     };
 
