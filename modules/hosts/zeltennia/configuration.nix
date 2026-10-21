@@ -18,10 +18,20 @@ in {
       self.nixosModules."users/bao@${hostname}"
 
       self.nixosModules."feat/net/blocky"
+      self.nixosModules."feat/net/caddy"
+      self.nixosModules."feat/net/mdns"
       self.nixosModules."feat/system/locale"
       self.nixosModules."feat/system/systools"
     ];
-    mod."feat/system/systools".categories = ["core" "sysadmin"];
+    mod = {
+      net = {
+        interface = "enu1u1";
+        ipv4 = "192.168.86.25";
+        gateway = "192.168.86.1";
+        nameservers = ["192.168.86.1"];
+      };
+      "feat/system/systools".categories = ["core" "sysadmin"];
+    };
 
     system.stateVersion = "25.11";
     networking.hostName = "${hostname}";

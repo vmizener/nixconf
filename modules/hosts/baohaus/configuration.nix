@@ -35,6 +35,13 @@ in {
       self.nixosModules."feat/vm"
     ];
     mod = {
+      net = {
+        interface = "enp3s0";
+        ipv4 = "192.168.86.138";
+        gateway = "192.168.86.1";
+        nameservers = ["192.168.86.1"];
+      };
+
       # "feat/ai/ollama" = {
       #   package = pkgs.ollama-rocm;
       #   loadModels = ["qwen3.5:9b"];
