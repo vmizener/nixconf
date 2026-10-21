@@ -63,6 +63,7 @@ in {
           comma
         ];
         programs.nix-index.enable = true;
+        xdg.configFile."ov/config.yaml".source = config.mod.nixconf.link ./ov.yaml;
       })
       # Desktop-Only Config
       (lib.mkIf (hasCategory "desktop") {

@@ -13,7 +13,7 @@ in (
     "alias cdf='cd -P ${config.mod.nixconf.path}'"
   ]
   ++ addIf pkgs.bat [
-    "alias cat='bat'"
+    "alias cat='bat --wrap=never'"
   ]
   ++ addIf pkgs.comma [
     "alias nl='nix-locate'"
@@ -41,6 +41,9 @@ in (
   ]
   ++ addIf pkgs.nh [
     "alias nf='nh search'"
+  ]
+  ++ addIf pkgs.ov [
+    "export PAGER=ov"
   ]
   ++ addIf pkgs.tmux [
     "alias tl='tmux list-sessions'"

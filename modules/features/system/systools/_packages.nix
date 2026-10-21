@@ -15,6 +15,7 @@ pkgs: {
     manix # Fast CLI documentation searcher for Nix
     mlocate # Utility to index and quickly search for files
     nh # Nix CLI wrapper
+    ov # Modern terminal pager
     ripgrep # Modern `grep` command
     tmux # Terminal multiplexer
     tree # Simple tree-based directory visualizer
