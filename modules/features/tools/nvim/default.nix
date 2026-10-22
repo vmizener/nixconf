@@ -8,7 +8,7 @@ Exposes:
 - flake.homeModules."feat/tools/nvim":
   - Enables Neovim
 */
-let
+{withSystem, ...}: let
   moduleName = "feat/tools/nvim";
 in {
   flake.homeModules.${moduleName} = {
@@ -17,6 +17,17 @@ in {
     pkgs,
     ...
   }: let
+    treefmtCfg = withSystem pkgs.stdenv.hostPlatform.system (
+      {config, ...}: config.treefmt
+    );
+    defaultTreefmt = pkgs.writeShellScriptBin "treefmt" ''
+      set -euo pipefail
+      unset PRJ_ROOT
+      exec ${treefmtCfg.package}/bin/treefmt \
+        --config-file=${treefmtCfg.build.configFile} \
+        --tree-root="''${TREEFMT_TREE_ROOT:-$PWD}" \
+        "$@"
+    '';
     tsParsers = pkgs.symlinkJoin {
       name = "treesitter-parsers";
       paths = pkgs.vimPlugins.nvim-treesitter.withAllGrammars.dependencies;
@@ -26,19 +37,19 @@ in {
     programs.neovim = {
       enable = true;
       sideloadInitLua = true;
-      extraPackages = with pkgs; [
-        tree-sitter
+      extraPackages =
+        (with pkgs; [
+          tree-sitter
 
-        black
-        fd
-        go
-        lua-language-server
-        nixd
-        nixfmt
-        pyright
-        ripgrep
-        stylua
-      ];
+          fd
+          go
+          lua-language-server
+          nixd
+          pyright
+          ripgrep
+        ])
+        ++ [defaultTreefmt]
+        ++ builtins.attrValues treefmtCfg.build.programs;
       extraWrapperArgs = [
         # uses autocmd rather than direct addition to avoid Lazy removing it on init
         "--add-flags"

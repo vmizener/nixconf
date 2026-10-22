@@ -6,6 +6,6 @@ function sops() {
 }
 
 for file in secrets/*.yaml; do
-    sops updatekeys -y "$file"
+  sops updatekeys -y "$file"
 done
 echo "Done"

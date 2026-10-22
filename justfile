@@ -6,9 +6,9 @@ default:
 dev shell="zsh":
     nix develop -c env SHELL="$(which {{shell}})" {{shell}}
 
-# Run nix formatter
+# Format repo files
 format:
-    nix fmt -- $(fd '^[^.]*\.nix$' .)
+    nix fmt
 
 # Format & run nix checks
 check: format

@@ -1,6 +1,7 @@
 {inputs, ...}: {
   imports = [
     inputs.git-hooks-nix.flakeModule
+    inputs.treefmt-nix.flakeModule
   ];
 
   config = {
@@ -18,14 +19,28 @@
     flake.schemas = inputs.flake-schemas.schemas;
 
     # Define standard formatter & pre-commit hooks
-    perSystem = {pkgs, ...}: {
-      formatter = pkgs.alejandra;
+    perSystem = {...}: {
+      treefmt = {
+        projectRootFile = "flake.nix";
+        programs = {
+          alejandra.enable = true;
+          black.enable = true;
+          shfmt.enable = true;
+          stylua = {
+            enable = true;
+            settings = {
+              indent_type = "Spaces";
+              indent_width = 2;
+            };
+          };
+        };
+      };
 
       pre-commit = {
         check.enable = true;
         settings.hooks = {
           # Format check
-          alejandra.enable = true;
+          treefmt.enable = true;
         };
       };
     };

@@ -5,16 +5,12 @@ vim.bo["shiftwidth"] = 2
 vim.bo["softtabstop"] = 2
 vim.bo["tabstop"] = 2
 
+-- Autoformat on write
 vim.api.nvim_create_augroup("LuaConfig", {})
-vim.api.nvim_create_autocmd("BufWritePost", {
+vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*.lua",
   callback = function()
-    -- Use stylua if present
-    if vim.fn.executable("stylua") == 1 then
-      utils.reformat(":!stylua --indent-type Spaces --indent-width 2 %")
-    else
-      vim.api.nvim_echo({ { "Missing lua formatter!", "WarningMsg" } }, true, {})
-    end
+    utils.reformat()
   end,
   group = "LuaConfig",
 })

@@ -1,10 +1,22 @@
+local utils = require("utils")
+
 -- Indent with 2 spaces
 vim.bo["shiftwidth"] = 2
 vim.bo["softtabstop"] = 2
 vim.bo["tabstop"] = 2
 
--- Autocompletion of options may need to be quoted
 vim.api.nvim_create_augroup("NixConfig", {})
+
+-- Autoformat on write
+vim.api.nvim_create_autocmd("BufWritePre", {
+  pattern = "*.nix",
+  callback = function()
+    utils.reformat()
+  end,
+  group = "NixConfig",
+})
+
+-- Autocompletion of options may need to be quoted
 vim.api.nvim_create_autocmd("CompleteDone", {
   callback = function()
     local function needs_nix_quotes(name)

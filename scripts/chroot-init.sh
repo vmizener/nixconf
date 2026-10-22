@@ -19,25 +19,25 @@ REPO_DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
 # Detect architecture for nix-user-chroot static binary
 ARCH="$(uname -m)"
 case "${ARCH}" in
-  x86_64)
-    CHROOT_BIN_TARGET="x86_64-unknown-linux-musl"
-    ;;
-  aarch64 | arm64)
-    CHROOT_BIN_TARGET="aarch64-unknown-linux-musl"
-    ;;
-  armv7l)
-    CHROOT_BIN_TARGET="armv7-unknown-linux-musleabihf"
-    ;;
-  i686)
-    CHROOT_BIN_TARGET="i686-unknown-linux-musl"
-    ;;
-  *)
-    oops "Unsupported architecture: ${ARCH}"
-    ;;
+x86_64)
+  CHROOT_BIN_TARGET="x86_64-unknown-linux-musl"
+  ;;
+aarch64 | arm64)
+  CHROOT_BIN_TARGET="aarch64-unknown-linux-musl"
+  ;;
+armv7l)
+  CHROOT_BIN_TARGET="armv7-unknown-linux-musleabihf"
+  ;;
+i686)
+  CHROOT_BIN_TARGET="i686-unknown-linux-musl"
+  ;;
+*)
+  oops "Unsupported architecture: ${ARCH}"
+  ;;
 esac
 
 # Detect whether we are already inside nix-user-chroot or on the host OS
-if [[ "${HOME}" == */nix/home ]]; then
+if [[ ${HOME} == */nix/home ]]; then
   CHROOT_HOME="${HOME}"
   N="$(dirname "${HOME}")"
   HOST_HOME="/home/${USER_NAME}"
@@ -66,8 +66,8 @@ if [ ! -d "${N}/root-nix" ] || [ ! -x "${N}/nix-user-chroot" ]; then
   if [ ! -x "${N}/nix-user-chroot" ]; then
     echo "Downloading nix-user-chroot (${CHROOT_BIN_TARGET})..."
     wget -O "${N}/nix-user-chroot" \
-      "https://github.com/nix-community/nix-user-chroot/releases/download/1.2.2/nix-user-chroot-bin-1.2.2-${CHROOT_BIN_TARGET}" \
-      || oops "Failed to download nix-user-chroot"
+      "https://github.com/nix-community/nix-user-chroot/releases/download/1.2.2/nix-user-chroot-bin-1.2.2-${CHROOT_BIN_TARGET}" ||
+      oops "Failed to download nix-user-chroot"
     chmod u+x "${N}/nix-user-chroot"
   fi
 fi
@@ -85,7 +85,8 @@ fi
 rm -f "${CHROOT_HOME}/home.nix" "${CHROOT_HOME}/README"
 
 # 3. Install/upgrade Nix if needed, then build and activate Home-Manager inside the chroot
-ACTIVATE_SCRIPT=$(cat <<EOF
+ACTIVATE_SCRIPT=$(
+  cat <<EOF
 set -euo pipefail
 
 # Prevent non-sandboxed Nix builds from creating /homeless-shelter in the chroot rootfs

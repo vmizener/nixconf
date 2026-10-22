@@ -92,14 +92,23 @@ function M.sudo_write(tmpfile, filepath)
   vim.fn.delete(tmpfile)
 end
 
---- Reformat the current buffer using the given external command.
---- @param exec_str string Command to execute
+--- Reformat the current buffer.
+--- @param exec_str? string Formatting command to execute (defaults to treefmt)
 function M.reformat(exec_str)
+  if exec_str == nil then
+    if vim.fn.executable("treefmt") ~= 1 then
+      M.warn("Missing treefmt!")
+      return
+    end
+    exec_str = ":%!treefmt --quiet --stdin %:p:S"
+  end
   local view = vim.fn.winsaveview()
   vim.cmd('silent execute "' .. exec_str .. '"')
   if vim.v["shell_error"] > 0 then
     -- If there are errors, put them in the quicklist and undo the formatting
-    vim.cmd("cexpr getline(1, '$')->map({ idx, val -> val->substitute('<standard input>', expand('%'), '') })")
+    vim.cmd(
+      "cexpr getline(1, '$')->map({ idx, val -> val->substitute('<standard input>\\|/tmp/treefmt-stdin-[^: ]*', expand('%'), '') })"
+    )
     vim.cmd("silent undo")
     vim.cmd("cwindow")
   end

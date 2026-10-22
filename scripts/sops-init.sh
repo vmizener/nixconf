@@ -47,7 +47,7 @@ PUB_KEYS["$USER_ANCHOR"]="$USER_PUB_KEY"
 SSH_HOST_PUB="/etc/ssh/ssh_host_ed25519_key.pub"
 if [ -f "${SSH_HOST_PUB}" ]; then
   read -r -p "Found host SSH public key ('${SSH_HOST_PUB}'). Add host key ('host_${HOSTNAME}')? [y/N] " add_host_key
-  if [[ "${add_host_key}" =~ ^[yY]([eE][sS])?$ ]]; then
+  if [[ ${add_host_key} =~ ^[yY]([eE][sS])?$ ]]; then
     HOST_ANCHOR="host_${HOSTNAME}"
     HOST_PUB_KEY="$(ssh_to_age -i "${SSH_HOST_PUB}")"
     ANCHORS+=("$HOST_ANCHOR")
@@ -76,7 +76,7 @@ for anchor in "${ANCHORS[@]}"; do
   for rule in "${CREATION_RULES[@]}"; do
     [ -z "${rule}" ] && continue
     read -r -p "Add '${anchor}' to creation rule for '${rule}'? [y/N] " response
-    if [[ "${response}" =~ ^[yY]([eE][sS])?$ ]]; then
+    if [[ ${response} =~ ^[yY]([eE][sS])?$ ]]; then
       export PATH_REGEX="${rule}"
       export ANCHOR="${anchor}"
       yq -i '

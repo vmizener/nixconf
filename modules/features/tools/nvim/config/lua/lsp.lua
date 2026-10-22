@@ -62,9 +62,6 @@ M.CONFIGS = {
         nixpkgs = {
           expr = "import <nixpkgs> { }",
         },
-        formatting = {
-          command = { "nixfmt" },
-        },
         options = (function()
           local flake_path = nil
           local config_nixos = "/etc/nixos"
