@@ -56,9 +56,9 @@
           type = lib.types.str;
           default =
             if osConfig != null
-            then "/etc/nixos"
+            then osConfig.mod.nixconf.path or "/etc/nixos"
             else "${config.xdg.configHome}/home-manager";
-          description = "Absolute path to this Nix flake (outside Nix store).  Used for out-of-store symlinks.";
+          description = "Absolute path to this Nix flake (outside Nix store).  Used for NH_FLAKE and out-of-store symlinks.";
         };
 
         # Readonly options
@@ -77,6 +77,13 @@
     # NixOS module options
     flake.nixosModules."common/options" = {...}: {
       imports = [commonOptions];
+      options = {
+        mod.nixconf.path = lib.mkOption {
+          type = lib.types.str;
+          default = "/etc/nixos";
+          description = "Absolute path to this Nix flake (outside Nix store).  Used for NH_FLAKE.";
+        };
+      };
     };
 
     ################

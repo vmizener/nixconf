@@ -39,6 +39,10 @@
         };
       };
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
+    programs.nh = {
+      enable = lib.mkDefault true;
+      flake = lib.mkDefault config.mod.nixconf.path;
+    };
     systemd.user.startServices = "sd-switch"; # Reload system units on config change
     xdg.enable = true; # Enable XDG directory management
     xdg.portal = {
@@ -52,7 +56,11 @@
       xdgOpenUsePortal = true;
     };
   };
-  flake.nixosModules."common" = {...}: {
+  flake.nixosModules."common" = {
+    config,
+    lib,
+    ...
+  }: {
     imports = [
       self.nixosModules."common/options"
       self.nixosModules."common/sops"
@@ -75,6 +83,10 @@
       "/share/applications"
       "/share/xdg-desktop-portal"
     ];
+    programs.nh = {
+      enable = lib.mkDefault true;
+      flake = lib.mkDefault config.mod.nixconf.path;
+    };
     services.openssh.enable = true;
   };
 }

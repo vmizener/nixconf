@@ -57,42 +57,56 @@ M.CONFIGS = {
     cmd = { "nixd" },
     filetypes = { "nix" },
     root_markers = { "flake.nix", ".git" },
-    settings = {
-      nixd = {
-        nixpkgs = {
-          expr = "import <nixpkgs> { }",
-        },
-        options = (function()
-          local flake_path = nil
-          local config_nixos = "/etc/nixos"
-          local config_home_manager = vim.fn.expand("~/.config/home-manager")
+    before_init = function(_, config)
+      local xdg_config = vim.env.XDG_CONFIG_HOME or vim.fn.expand("~/.config")
+      local candidates = {}
+      local function add_candidate(dir)
+        if dir and dir ~= "" then
+          table.insert(candidates, vim.fn.expand(dir))
+        end
+      end
 
-          if vim.uv.fs_stat(config_nixos .. "/flake.nix") then
-            flake_path = vim.uv.fs_realpath(config_nixos)
-          elseif vim.uv.fs_stat(config_home_manager .. "/flake.nix") then
-            flake_path = vim.uv.fs_realpath(config_home_manager)
-          else
-            vim.notify("Neither /etc/nixos/flake.nix nor ~/.config/home-manager/flake.nix found.", vim.log.levels.WARN)
-          end
+      add_candidate(vim.env.NH_FLAKE)
+      add_candidate(vim.env.NH_OS_FLAKE)
+      add_candidate(vim.env.NH_HOME_FLAKE)
+      add_candidate("/etc/nixos")
+      add_candidate(xdg_config .. "/home-manager")
 
-          if not flake_path then
-            return {}
+      local flake_path = nil
+      for _, dir in ipairs(candidates) do
+        if vim.uv.fs_stat(dir .. "/flake.nix") then
+          flake_path = vim.uv.fs_realpath(dir)
+          if flake_path then
+            break
           end
+        end
+      end
 
-          local function expr(type)
-            return table.concat({
-              "let",
-              '  flake = builtins.getFlake "' .. flake_path .. '";',
-              "  target = (",
-              "    flake.nixdOptions." .. type,
-              "    or flake.inputs.nixconf.nixdOptions." .. type,
-              "    or null",
-              "  );",
-              "in",
-              "  if target != null then target.options else {}",
-            }, "\n")
-          end
-          return {
+      if not flake_path then
+        vim.notify(
+          "No flake.nix found via NH_FLAKE, /etc/nixos, or " .. xdg_config .. "/home-manager.",
+          vim.log.levels.WARN
+        )
+        return
+      end
+
+      local function expr(type)
+        return table.concat({
+          "let",
+          '  flake = builtins.getFlake "' .. flake_path .. '";',
+          "  target = (",
+          "    flake.nixdOptions." .. type,
+          "    or flake.inputs.nixconf.nixdOptions." .. type,
+          "    or null",
+          "  );",
+          "in",
+          "  if target != null then target.options else {}",
+        }, "\n")
+      end
+
+      config.settings = vim.tbl_deep_extend("force", config.settings or {}, {
+        nixd = {
+          options = {
             home_manager = { expr = expr("home") },
             nixos = { expr = expr("nixos") },
             flake_parts = {
@@ -103,8 +117,15 @@ M.CONFIGS = {
                 "  flake.debug.options",
               }, "\n"),
             },
-          }
-        end)(),
+          },
+        },
+      })
+    end,
+    settings = {
+      nixd = {
+        nixpkgs = {
+          expr = "import <nixpkgs> { }",
+        },
       },
     },
   },
