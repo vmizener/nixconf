@@ -99,7 +99,11 @@ in {
 
     # Inside nix-user-chroot, /nix is only mounted in the user namespace and is
     # invisible to the host's systemd --user daemon.
-    nix.gc.automatic = lib.mkForce false;
+    nix = {
+      gc.automatic = lib.mkForce false;
+      # Single-user store owned by the user; deduplicate on write since daemon/timers aren't used.
+      settings.auto-optimise-store = lib.mkDefault true;
+    };
     systemd.user.startServices = lib.mkForce "suggest";
     xdg.portal.enable = lib.mkForce false;
 

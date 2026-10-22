@@ -30,7 +30,6 @@
       // lib.optionalAttrs (osConfig == null) {
         package = lib.mkDefault pkgs.nix;
         settings = {
-          auto-optimise-store = lib.mkDefault true;
           experimental-features = [
             "flakes"
             "nix-command"
