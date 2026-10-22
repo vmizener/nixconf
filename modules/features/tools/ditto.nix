@@ -9,27 +9,20 @@ Exposes:
 - flake.nixosModules."feat/tools/ditto":
 - local package: "nix run '.#float'"
 */
-{self, ...}: let
+let
   moduleName = "feat/tools/ditto";
 
   pkgName = "ditto";
   version = "1.3.3";
 
-  localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
-in {
-  flake.homeModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
-    home.packages = [(localPkg pkgs)];
-  };
-  flake.nixosModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
-    environment.systemPackages = [(localPkg pkgs)];
-  };
-  perSystem = {pkgs, ...}: {
-    packages."pkg:${pkgName}" = pkgs.buildGoModule {
+  mkPkg = {
+    buildGoModule,
+    fetchFromGitHub,
+  }:
+    buildGoModule {
       pname = pkgName;
       version = version;
-      src = pkgs.fetchFromGitHub {
+      src = fetchFromGitHub {
         owner = "arvingarciabtw";
         repo = pkgName;
         tag = "v${version}";
@@ -37,5 +30,16 @@ in {
       };
       vendorHash = "sha256-+DDBmGSsllHJ7D4/koKWq1MEVuUJJRebn3J8mxEQ8p8=";
     };
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    mod.imported = [moduleName];
+    home.packages = [(pkgs.callPackage mkPkg {})];
+  };
+  flake.nixosModules.${moduleName} = {pkgs, ...}: {
+    mod.imported = [moduleName];
+    environment.systemPackages = [(pkgs.callPackage mkPkg {})];
+  };
+  perSystem = {pkgs, ...}: {
+    packages."pkg:${pkgName}" = pkgs.callPackage mkPkg {};
   };
 }

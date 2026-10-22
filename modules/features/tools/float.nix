@@ -9,27 +9,20 @@ Exposes:
 - flake.nixosModules."feat/tools/float":
 - local package: "nix run '.#float'"
 */
-{self, ...}: let
+let
   moduleName = "feat/tools/float";
 
   pkgName = "float";
   version = "1.2.1";
 
-  localPkg = pkgs: self.packages.${pkgs.stdenv.hostPlatform.system}."pkg:${pkgName}";
-in {
-  flake.homeModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
-    home.packages = [(localPkg pkgs)];
-  };
-  flake.nixosModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
-    environment.systemPackages = [(localPkg pkgs)];
-  };
-  perSystem = {pkgs, ...}: {
-    packages."pkg:${pkgName}" = pkgs.rustPlatform.buildRustPackage {
+  mkPkg = {
+    fetchFromGitHub,
+    rustPlatform,
+  }:
+    rustPlatform.buildRustPackage {
       pname = pkgName;
       version = version;
-      src = pkgs.fetchFromGitHub {
+      src = fetchFromGitHub {
         owner = "henktorius";
         repo = pkgName;
         tag = "v${version}";
@@ -38,5 +31,16 @@ in {
       cargoHash = "sha256-/xlH29DM/psGOME0w2a1v5kG7uxlKsMlP4r+5NENA6M=";
       meta.mainProgram = "float-mux";
     };
+in {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    mod.imported = [moduleName];
+    home.packages = [(pkgs.callPackage mkPkg {})];
+  };
+  flake.nixosModules.${moduleName} = {pkgs, ...}: {
+    mod.imported = [moduleName];
+    environment.systemPackages = [(pkgs.callPackage mkPkg {})];
+  };
+  perSystem = {pkgs, ...}: {
+    packages."pkg:${pkgName}" = pkgs.callPackage mkPkg {};
   };
 }
