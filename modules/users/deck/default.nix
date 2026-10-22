@@ -1,8 +1,10 @@
 {
-  self,
+  config,
   inputs,
+  self,
   ...
 }: let
+  inherit (config.mod) mkHomeUser;
   username = "deck";
   pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
 in {
@@ -14,17 +16,16 @@ in {
       self.homeModules."users/${username}@steamdeck"
     ];
   };
-  flake.homeModules."users/${username}@steamdeck" = {...}: {
-    imports = [
-      self.homeModules."common"
+  flake.homeModules."users/${username}@steamdeck" = mkHomeUser {
+    inherit username;
+    hmImports = [
       self.homeModules."feat/system/nix-user-chroot"
       self.homeModules."feat/system/systools"
-      self.homeModules."feat/terminal/shell/zsh"
       self.homeModules."feat/tools/git"
       self.homeModules."feat/tools/nvim"
     ];
-    mod."feat/system/systools".categories = ["core" "sysadmin"];
-    home.username = username;
-    nixpkgs.config.allowUnfree = true;
+    hmConfig = {
+      mod."feat/system/systools".categories = ["core" "sysadmin"];
+    };
   };
 }

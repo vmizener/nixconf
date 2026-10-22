@@ -38,6 +38,9 @@
           max-jobs = lib.mkDefault "auto";
         };
       };
+    nixpkgs = lib.optionalAttrs (osConfig == null) {
+      config.allowUnfree = true;
+    };
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
     programs.nh = {
       enable = lib.mkDefault true;
@@ -62,9 +65,15 @@
     ...
   }: {
     imports = [
+      inputs.home-manager.nixosModules.home-manager
       self.nixosModules."common/options"
       self.nixosModules."common/sops"
     ];
+    home-manager = {
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      backupFileExtension = "backup";
+    };
     nix = {
       gc = {
         automatic = true;
@@ -78,6 +87,7 @@
         "pipe-operators"
       ];
     };
+    nixpkgs.config.allowUnfree = true;
     environment.pathsToLink = [
       # Needed by xdg.portal in the case no desktop is imported
       "/share/applications"
