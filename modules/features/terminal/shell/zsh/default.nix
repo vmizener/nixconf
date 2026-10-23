@@ -35,7 +35,10 @@ in {
       config.home.packages
       ++ lib.optionals (osConfig != null) osConfig.environment.systemPackages;
   in {
-    mod.imported = [moduleName];
+    mod = {
+      imported = [moduleName];
+      asserts = ["pairedNixosFeat"];
+    };
     programs = {
       direnv = {
         enable = true;

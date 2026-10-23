@@ -53,7 +53,10 @@ in {
     config = lib.mkMerge [
       # Base Config
       {
-        mod.imported = [moduleName];
+        mod = {
+          imported = [moduleName];
+          asserts = lib.mkIf (hasCategory "desktop") ["nixosOnly" "pairedNixosFeat"];
+        };
         home.packages = selectPackages lib pkgs cfg.categories;
         systemd.user.startServices = "sd-switch";
       }

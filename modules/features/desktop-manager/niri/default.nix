@@ -33,8 +33,8 @@ in {
     cfg = config.mod.${moduleName};
 
     isNixOs = osConfig != null;
-    osNiriEnabled = isNixOs && osConfig.programs.niri.enable;
-    useFlakeNiri = !isNixOs || (isNixOs && !osNiriEnabled);
+    osHasNiri = isNixOs && osConfig.mod.has moduleName;
+    useFlakeNiri = !isNixOs;
   in {
     imports = lib.optional useFlakeNiri inputs.niri.homeModules.niri;
     config = lib.mkMerge [
@@ -46,7 +46,12 @@ in {
         };
       })
       {
-        mod.imported = [moduleName];
+        mod = {
+          imported = [moduleName];
+          asserts = ["pairedNixosFeat"];
+        };
+      }
+      (lib.mkIf (!isNixOs || osHasNiri) {
         xdg.configFile = {
           "niri/config.kdl".source = config.mod.nixconf.link ./config.kdl;
           "niri/local.kdl".source = pkgs.writeText "local.kdl" cfg.extraConfig;
@@ -68,7 +73,7 @@ in {
         ];
         home.sessionVariables.NIXOS_OZONE_WL = lib.mkIf isNixOs "1";
         targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
-      }
+      })
     ];
   };
 

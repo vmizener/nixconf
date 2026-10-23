@@ -41,7 +41,10 @@ in {
     system = pkgs.stdenv.hostPlatform.system;
     inputactions-standalone = inputs.inputactions-standalone.packages.${system}.default;
   in {
-    mod.imported = [moduleName];
+    mod = {
+      imported = [moduleName];
+      asserts = ["nixosOnly" "pairedNixosFeat"];
+    };
     systemd.user.services = {
       inputactions-client = {
         Install = {

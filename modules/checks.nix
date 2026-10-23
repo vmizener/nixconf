@@ -146,17 +146,129 @@
       featureDefs
     );
 
-    errors =
+    checkModAsserts = defs:
+      defs
+      |> builtins.filter (d: d.value != [] && lib.hasPrefix featuresPrefix (stripVia d.file))
+      |> lib.concatMap (d: let
+        relPath = lib.removePrefix featuresPrefix (stripVia d.file);
+        expectedFeat = featNameFor relPath;
+        vals = lib.unique d.value;
+        featAsserts = builtins.filter (v: builtins.elem v ["pairedNixosFeat" "conflictsNixosFeat"]) vals;
+        missingNixosErrors =
+          featAsserts
+          |> builtins.filter (_: !(self.nixosModules ? ${expectedFeat}))
+          |> map (v: "${relPath}: sets mod.asserts '${v}' without flake.nixosModules.\"${expectedFeat}\"");
+        contradictionErrors =
+          lib.optional (builtins.elem "nixosOnly" vals && builtins.elem "standaloneOnly" vals)
+          "${relPath}: sets contradictory mod.asserts ('nixosOnly' and 'standaloneOnly')"
+          ++ lib.optional (builtins.elem "pairedNixosFeat" vals && builtins.elem "conflictsNixosFeat" vals)
+          "${relPath}: sets contradictory mod.asserts ('pairedNixosFeat' and 'conflictsNixosFeat')"
+          ++ (
+            if builtins.elem "standaloneOnly" vals
+            then map (v: "${relPath}: sets contradictory mod.asserts ('standaloneOnly' with '${v}')") featAsserts
+            else []
+          );
+      in
+        missingNixosErrors ++ contradictionErrors);
+
+    errors = builtins.seq allHmEval.config.mod.asserts (
       fileExportErrors
       ++ checkOptNamespaces "NixOS" self.nixdOptions.nixos.options.mod
       ++ checkOptNamespaces "Home-Manager" self.nixdOptions.home.options.mod
       ++ checkModImported "nixosModules" featNixos allNixosEval.options.mod.imported.definitionsWithLocations
-      ++ checkModImported "homeModules" featHm allHmEval.options.mod.imported.definitionsWithLocations;
+      ++ checkModImported "homeModules" featHm allHmEval.options.mod.imported.definitionsWithLocations
+      ++ checkModAsserts allHmEval.options.mod.asserts.definitionsWithLocations
+    );
   in
     if errors == []
     then true
     else throw "Feature module drift detected:\n- ${lib.concatStringsSep "\n- " errors}";
+  importedAssertions = validModules: config:
+    map (name: {
+      assertion = validModules ? ${name};
+      message = "mod.imported contains '${name}', which is not an exported module.";
+    })
+    config.mod.imported;
 in {
+  ################
+  # Module-level assertions (evaluated on NixOS & Home-Manager builds)
+  flake.nixosModules."common/options" = {config, ...}: {
+    config.assertions = importedAssertions self.nixosModules config;
+  };
+
+  flake.homeModules."common/options" = {
+    config,
+    options,
+    osConfig ? null,
+    ...
+  }: let
+    hmLocMap =
+      lib.mapAttrs' (
+        name: _:
+          lib.nameValuePair (lib.showOption ["flake" "homeModules" name]) name
+      )
+      self.homeModules;
+    hostSuffix =
+      if osConfig != null
+      then " on NixOS host '${osConfig.networking.hostName}'"
+      else "";
+    mkModuleAssert = {
+      file,
+      name,
+      kind,
+    }:
+      if name == null
+      then {
+        assertion = false;
+        message = "mod.asserts ('${kind}') must be set inside an exported flake.homeModules.<name> module (found in '${file}').";
+      }
+      else if kind == "nixosOnly"
+      then {
+        assertion = osConfig != null;
+        message = "flake.homeModules.\"${name}\" is only supported on NixOS hosts (unsupported in standalone Home-Manager).";
+      }
+      else if kind == "standaloneOnly"
+      then {
+        assertion = osConfig == null;
+        message = "flake.homeModules.\"${name}\" is only supported in standalone Home-Manager configurations${hostSuffix}.";
+      }
+      else if !(self.nixosModules ? ${name})
+      then {
+        assertion = false;
+        message = "flake.homeModules.\"${name}\" sets mod.asserts '${kind}', but flake.nixosModules.\"${name}\" does not exist.";
+      }
+      else if kind == "pairedNixosFeat"
+      then {
+        assertion = osConfig == null || osConfig.mod.has name;
+        message = "flake.homeModules.\"${name}\" expects paired flake.nixosModules.\"${name}\" to be imported${hostSuffix}.";
+      }
+      else if kind == "conflictsNixosFeat"
+      then {
+        assertion = osConfig == null || !(osConfig.mod.has name);
+        message = "flake.homeModules.\"${name}\" conflicts with flake.nixosModules.\"${name}\" and cannot both be imported${hostSuffix}.";
+      }
+      else throw "Unhandled mod.asserts kind '${kind}'";
+    moduleAssertDefs =
+      options.mod.asserts.definitionsWithLocations
+      |> lib.concatMap (d: let
+        parts = lib.splitString ", via option " d.file;
+        viaOpt = lib.last parts;
+        name =
+          if builtins.length parts > 1 && hmLocMap ? ${viaOpt}
+          then hmLocMap.${viaOpt}
+          else null;
+      in
+        map (kind:
+          mkModuleAssert {
+            inherit (d) file;
+            inherit name kind;
+          }) (lib.unique d.value));
+  in {
+    config.assertions =
+      importedAssertions self.homeModules config
+      ++ builtins.seq config.mod.asserts moduleAssertDefs;
+  };
+
   ################
   # Expose feature drift & standalone homeConfiguration checks to `nix flake check`
   perSystem = {

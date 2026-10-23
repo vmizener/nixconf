@@ -9,7 +9,6 @@
   pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
 in {
   # @SteamDeck (Home-Manager)
-  flake.homeConfigurations.${username} = self.homeConfigurations."${username}@steamdeck";
   flake.homeConfigurations."${username}@steamdeck" = inputs.home-manager.lib.homeManagerConfiguration {
     inherit pkgs;
     modules = [

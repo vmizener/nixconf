@@ -76,7 +76,10 @@ in {
       ' -- "$@"
     '';
   in {
-    mod.imported = [moduleName];
+    mod = {
+      imported = [moduleName];
+      asserts = ["standaloneOnly"];
+    };
 
     home = {
       homeDirectory = lib.mkDefault "${cfg.nixDir}/home";

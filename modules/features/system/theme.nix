@@ -17,7 +17,10 @@ in {
     cursorTheme = "mochaLight";
     cursorSize = 16;
   in {
-    mod.imported = [moduleName];
+    mod = {
+      imported = [moduleName];
+      asserts = ["pairedNixosFeat"];
+    };
     gtk = {
       enable = true;
       theme.name = theme;

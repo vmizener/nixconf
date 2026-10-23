@@ -13,7 +13,10 @@ Exposes:
   moduleName = "feat/desktop-manager/xfce";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
+    mod = {
+      imported = [moduleName];
+      asserts = ["pairedNixosFeat"];
+    };
     home.packages = with pkgs; [
       kando
     ];

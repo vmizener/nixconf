@@ -13,7 +13,10 @@ Exposes:
   moduleName = "feat/desktop-manager/kde-plasma";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
+    mod = {
+      imported = [moduleName];
+      asserts = ["pairedNixosFeat"];
+    };
     imports = [
       inputs.plasma-manager.homeModules.plasma-manager
     ];

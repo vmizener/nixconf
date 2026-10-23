@@ -23,7 +23,7 @@
   config = let
     ################
     # Common options for both Home-Manager and NixOS modules
-    commonOptions = validModules: {config, ...}: {
+    commonOptions = {config, ...}: {
       options = {
         # Mutable options
         mod.imported = lib.mkOption {
@@ -43,13 +43,6 @@
           readOnly = true;
         };
       };
-
-      config.assertions =
-        map (name: {
-          assertion = validModules ? ${name};
-          message = "mod.imported contains '${name}', which is not an exported module.";
-        })
-        config.mod.imported;
     };
   in {
     ################
@@ -59,9 +52,21 @@
       osConfig ? null,
       ...
     }: {
-      imports = [(commonOptions self.homeModules)];
+      imports = [commonOptions];
       options = {
         # Mutable options
+        mod.asserts = lib.mkOption {
+          type = lib.types.listOf (lib.types.enum [
+            "nixosOnly" # Module is for nixos configs only
+            "standaloneOnly" # Module is for standalone home-manager configs only
+            "pairedNixosFeat" # Module must be paired with nixos feat import if on nixos
+            "conflictsNixosFeat" # Module conflicts with nixos feature; must import only one
+          ]);
+          default = [];
+          apply = lib.unique;
+          description = "Common assertions enforced for each Home-Manager module setting them.";
+        };
+
         mod.nixconf.path = lib.mkOption {
           type = lib.types.str;
           default =
@@ -86,7 +91,7 @@
     ################
     # NixOS module options
     flake.nixosModules."common/options" = {...}: {
-      imports = [(commonOptions self.nixosModules)];
+      imports = [commonOptions];
       options = {
         mod.nixconf.path = lib.mkOption {
           type = lib.types.str;

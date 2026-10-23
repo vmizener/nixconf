@@ -122,6 +122,7 @@ in {
     ];
   in {
     imports = [ollamaCommon];
+    mod.asserts = ["conflictsNixosFeat"];
     systemd.user.services.ollama-model-loader = lib.mkIf (cfg.loadModels != [] || cfg.syncModels) {
       Unit = {
         Description = "Download ollama models in the background";
