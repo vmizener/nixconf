@@ -13,8 +13,13 @@ Exposes:
 let
   moduleName = "feat/tools/git";
 in {
-  flake.homeModules.${moduleName} = {...}: {
+  flake.homeModules.${moduleName} = {
+    config,
+    pkgs,
+    ...
+  }: {
     mod.imported = [moduleName];
+    home.packages = with pkgs; [delta];
     programs.git = {
       enable = true;
       settings = {
@@ -40,7 +45,7 @@ in {
           ui = "always";
         };
         core = {
-          excludesfile = "~/.gitignore";
+          excludesfile = "${config.xdg.configHome}/git/gitignore";
           pager = "delta -sn";
           fsmonitor = false;
           untrackedCache = true;
@@ -52,5 +57,15 @@ in {
         stash.showPatch = true;
       };
     };
+    xdg.configFile."git/gitignore".text = ''
+      # Git ignore file
+      # Lines that start with '#' are comments
+      # Assign project local ignore patterns in .git/info/exlude
+      .direnv
+      .pre-commit-config.yaml
+      *.pyc
+      *.swp
+      result*
+    '';
   };
 }
