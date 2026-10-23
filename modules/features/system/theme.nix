@@ -1,5 +1,5 @@
 /*
-  feat/system/themes
+  feat/system/theme
 
 Adds system themes.
 

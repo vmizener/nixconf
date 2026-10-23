@@ -10,8 +10,6 @@ Exposes:
 {...}: let
   moduleName = "feat/gaming/retroarch";
 in {
-  flake.nixosModules."common/options" = {...}: {
-  };
   flake.homeModules.${moduleName} = {config, ...}: {
     mod.imported = [moduleName];
     programs.retroarch = {

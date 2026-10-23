@@ -23,10 +23,10 @@
       cmd = "ghostty";
       feat = "feat/terminal/emulator/ghostty";
     }
-    {
-      cmd = "kitty";
-      feat = "feat/terminal/emulator/kitty";
-    }
+    # {
+    #   cmd = "kitty";
+    #   feat = "feat/terminal/emulator/kitty";
+    # }
   ];
   cmdLauncher = cmdByFeat null [
     {
