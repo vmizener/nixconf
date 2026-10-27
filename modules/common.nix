@@ -15,7 +15,8 @@
       self.homeModules."common/sops"
     ];
     home = {
-      stateVersion = "25.11";
+      stateVersion = lib.mkDefault "25.11";
+      homeDirectory = lib.mkOptionDefault "/home/${config.home.username}";
       sessionPath = ["${config.home.profileDirectory}/bin"];
     };
     nix =
@@ -70,9 +71,12 @@
       self.nixosModules."common/sops"
     ];
     home-manager = {
-      useGlobalPkgs = true;
-      useUserPackages = true;
-      backupFileExtension = "backup";
+      useGlobalPkgs = lib.mkDefault true;
+      useUserPackages = lib.mkDefault true;
+      backupFileExtension = lib.mkDefault "backup";
+      sharedModules = [
+        self.homeModules."common"
+      ];
     };
     nix = {
       gc = {

@@ -1,62 +1,77 @@
-{
-  config,
-  self,
-  ...
-}: let
-  inherit (config.mod) mkNixosUser;
+{self, ...}: let
   username = "bao";
-  userConfig = {
-    initialPassword = "gobears";
-  };
 in {
   # @Igros (Nixos)
-  flake.nixosModules."users/${username}@igros" = mkNixosUser {
-    inherit username userConfig;
-    hmImports = [
+  flake.nixosModules."users/${username}@igros" = {pkgs, ...}: {
+    imports = [
+      self.nixosModules."feat/terminal/shell/zsh"
+    ];
+    users.users.${username} = {
+      isNormalUser = true;
+      description = username;
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+      ];
+      initialPassword = "gobears";
+      shell = pkgs.zsh;
+    };
+    home-manager.users.${username}.imports = [
       self.homeModules."feat/browser/firefox"
       self.homeModules."feat/tools/git"
       self.homeModules."feat/tools/nvim"
+      self.homeModules."feat/terminal/shell/zsh"
     ];
   };
+
   # @Baohaus (Nixos)
-  flake.nixosModules."users/${username}@baohaus" = mkNixosUser {
-    inherit username userConfig;
-    extraGroups = [
-      "audio"
-      "bluetooth"
-      "input"
-      "video"
-    ];
-    nixosImports = [
+  flake.nixosModules."users/${username}@baohaus" = {pkgs, ...}: {
+    imports = [
+      self.nixosModules."feat/terminal/shell/zsh"
       self.nixosModules."feat/tools/input-actions"
     ];
-    hmImports = [
-      self.homeModules."feat/ai/pi"
-      self.homeModules."feat/browser/helium"
-      self.homeModules."feat/desktop-manager/niri"
-      self.homeModules."feat/desktop-shell/dms"
-      self.homeModules."feat/file-manager/thunar"
-      self.homeModules."feat/gaming/discord"
-      self.homeModules."feat/gaming/harbourmasters"
-      self.homeModules."feat/gaming/retroarch"
-      self.homeModules."feat/gaming/streamlink"
-      self.homeModules."feat/system/mime"
-      self.homeModules."feat/system/systools"
-      self.homeModules."feat/system/theme"
-      self.homeModules."feat/tools/ani-cli"
-      self.homeModules."feat/tools/awww"
-      self.homeModules."feat/tools/evince"
-      self.homeModules."feat/tools/git"
-      self.homeModules."feat/tools/input-actions"
-      self.homeModules."feat/tools/kanshi"
-      self.homeModules."feat/tools/maestral"
-      self.homeModules."feat/tools/nvim"
-      self.homeModules."feat/tools/spotify"
-      self.homeModules."feat/tools/torrra"
-      self.homeModules."feat/terminal/emulator/foot"
-      self.homeModules."feat/terminal/emulator/ghostty"
-    ];
-    hmConfig = {config, ...}: {
+    users.users.${username} = {
+      isNormalUser = true;
+      description = username;
+      extraGroups = [
+        "audio"
+        "bluetooth"
+        "input"
+        "networkmanager"
+        "video"
+        "wheel"
+      ];
+      initialPassword = "gobears";
+      shell = pkgs.zsh;
+    };
+    home-manager.users.${username} = {config, ...}: {
+      imports = [
+        self.homeModules."feat/ai/pi"
+        self.homeModules."feat/browser/helium"
+        self.homeModules."feat/desktop-manager/niri"
+        self.homeModules."feat/desktop-shell/dms"
+        self.homeModules."feat/file-manager/thunar"
+        self.homeModules."feat/gaming/discord"
+        self.homeModules."feat/gaming/harbourmasters"
+        self.homeModules."feat/gaming/retroarch"
+        self.homeModules."feat/gaming/streamlink"
+        self.homeModules."feat/system/mime"
+        self.homeModules."feat/system/systools"
+        self.homeModules."feat/system/theme"
+        self.homeModules."feat/tools/ani-cli"
+        self.homeModules."feat/tools/awww"
+        self.homeModules."feat/tools/evince"
+        self.homeModules."feat/tools/git"
+        self.homeModules."feat/tools/input-actions"
+        self.homeModules."feat/tools/kanshi"
+        self.homeModules."feat/tools/maestral"
+        self.homeModules."feat/tools/nvim"
+        self.homeModules."feat/tools/spotify"
+        self.homeModules."feat/tools/torrra"
+        self.homeModules."feat/terminal/emulator/foot"
+        self.homeModules."feat/terminal/emulator/ghostty"
+        self.homeModules."feat/terminal/shell/zsh"
+      ];
       mod."feat/tools/awww".img =
         ../../../assets/wallpapers/girl_leaving_apartment.png;
       mod."feat/gaming/harbourmasters" =
@@ -69,12 +84,26 @@ in {
         };
     };
   };
+
   # @Zeltennia (Nixos)
-  flake.nixosModules."users/${username}@zeltennia" = mkNixosUser {
-    inherit username userConfig;
-    nixosConfig.nix.settings.trusted-users = [username];
-    hmImports = [
+  flake.nixosModules."users/${username}@zeltennia" = {pkgs, ...}: {
+    imports = [
+      self.nixosModules."feat/terminal/shell/zsh"
+    ];
+    users.users.${username} = {
+      isNormalUser = true;
+      description = username;
+      extraGroups = [
+        "networkmanager"
+        "wheel"
+      ];
+      initialPassword = "gobears";
+      shell = pkgs.zsh;
+    };
+    nix.settings.trusted-users = [username];
+    home-manager.users.${username}.imports = [
       self.homeModules."feat/tools/git"
+      self.homeModules."feat/terminal/shell/zsh"
     ];
   };
 }

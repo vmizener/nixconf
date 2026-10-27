@@ -1,24 +1,26 @@
-{
-  config,
-  self,
-  ...
-}: let
-  inherit (config.mod) mkNixosUser;
+{self, ...}: let
   username = "ramza";
-  userConfig = {
-    initialPassword = "gobears";
-  };
 in {
   # @Igros (Nixos)
-  flake.nixosModules."users/${username}@igros" = mkNixosUser {
-    inherit username userConfig;
-    extraGroups = [
-      "audio"
-      "bluetooth"
-      "input"
-      "video"
+  flake.nixosModules."users/${username}@igros" = {pkgs, ...}: {
+    imports = [
+      self.nixosModules."feat/terminal/shell/zsh"
     ];
-    hmImports = [
+    users.users.${username} = {
+      isNormalUser = true;
+      description = username;
+      extraGroups = [
+        "audio"
+        "bluetooth"
+        "input"
+        "networkmanager"
+        "video"
+        "wheel"
+      ];
+      initialPassword = "gobears";
+      shell = pkgs.zsh;
+    };
+    home-manager.users.${username}.imports = [
       self.homeModules."feat/browser/firefox"
       self.homeModules."feat/browser/helium"
       self.homeModules."feat/desktop-manager/xfce"
@@ -30,6 +32,7 @@ in {
       self.homeModules."feat/tools/maestral"
       self.homeModules."feat/tools/nvim"
       self.homeModules."feat/terminal/emulator/foot"
+      self.homeModules."feat/terminal/shell/zsh"
     ];
   };
 }
