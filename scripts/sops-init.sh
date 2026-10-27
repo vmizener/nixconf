@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Prevent inherited devShell shellHook (e.g. pre-commit) from running in nix-shell
+unset shellHook
+
 function age_keygen() {
   nix-shell -p age --run "age-keygen ${*@Q}"
 }
 function ssh_to_age() {
   nix-shell -p ssh-to-age --run "ssh-to-age ${*@Q}"
-}
-function sops() {
-  nix-shell -p sops --run "sops ${*@Q}"
 }
 function yq() {
   nix-shell -p yq-go --run "yq ${*@Q}"
@@ -55,7 +55,7 @@ if [ -f "${SSH_HOST_PUB}" ]; then
   fi
 fi
 
-# Add keys to sops yaml if missing
+# Add or update keys in sops yaml (append if new, then overwrite in place if rotated)
 for anchor in "${ANCHORS[@]}"; do
   export ANCHOR="$anchor"
   export KEY="${PUB_KEYS[$anchor]}"
@@ -66,7 +66,8 @@ for anchor in "${ANCHORS[@]}"; do
       ).keys
     ) += [
       env(KEY) | . anchor = env(ANCHOR)
-    ]
+    ] |
+    (.keys[] | select(anchor == env(ANCHOR))) = (env(KEY) | . anchor = env(ANCHOR))
   ' "${SOPS_YAML}"
 done
 
@@ -75,10 +76,13 @@ readarray -t CREATION_RULES < <(yq eval '.creation_rules[].path_regex' "${SOPS_Y
 for anchor in "${ANCHORS[@]}"; do
   for rule in "${CREATION_RULES[@]}"; do
     [ -z "${rule}" ] && continue
+    export PATH_REGEX="${rule}"
+    export ANCHOR="${anchor}"
+    # Skip prompting if this key alias is already in the rule
+    already_present="$(yq eval '[.creation_rules[] | select(.path_regex == env(PATH_REGEX)) | .key_groups[].age[] | select(alias == env(ANCHOR))] | length' "${SOPS_YAML}")"
+    [ "${already_present}" != "0" ] && continue
     read -r -p "Add '${anchor}' to creation rule for '${rule}'? [y/N] " response
     if [[ ${response} =~ ^[yY]([eE][sS])?$ ]]; then
-      export PATH_REGEX="${rule}"
-      export ANCHOR="${anchor}"
       yq -i '
         (
           .creation_rules[] |
