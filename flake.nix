@@ -42,11 +42,6 @@
     };
 
     # Feature Flakes
-    awww = {
-      url = "git+https://codeberg.org/LGFae/awww";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-compat.follows = "git-hooks-nix/flake-compat";
-    };
     danksearch = {
       url = "github:AvengeMedia/danksearch";
       inputs.nixpkgs.follows = "nixpkgs";

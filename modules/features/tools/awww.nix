@@ -7,7 +7,7 @@ Exposes:
 
 - flake.homeModules."feat/tools/awww":
 */
-{inputs, ...}: let
+let
   moduleName = "feat/tools/awww";
 in {
   flake.homeModules."common/options" = {lib, ...}: {
@@ -30,7 +30,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    pkg = inputs.awww.packages.${pkgs.stdenv.hostPlatform.system}.awww;
+    pkg = pkgs.awww;
   in {
     mod.imported = [moduleName];
     home.packages = [pkg];
