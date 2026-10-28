@@ -22,6 +22,7 @@ in {
       self.nixosModules."feat/net/mdns"
       self.nixosModules."feat/system/locale"
       self.nixosModules."feat/system/systools"
+      self.nixosModules."feat/vm"
     ];
     mod = {
       net = {
@@ -31,6 +32,7 @@ in {
         nameservers = ["192.168.86.1"];
       };
       "feat/system/systools".categories = ["core" "sysadmin"];
+      "feat/vm".autologinUser = "bao";
     };
 
     system.stateVersion = "25.11";
