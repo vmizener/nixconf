@@ -51,9 +51,9 @@ in {
         ++ [defaultTreefmt]
         ++ builtins.attrValues treefmtCfg.build.programs;
       extraWrapperArgs = [
-        # uses autocmd rather than direct addition to avoid Lazy removing it on init
+        # pass path via global so Lazy preserves it across rtp reset (before FileType)
         "--add-flags"
-        "--cmd 'autocmd VimEnter * lua vim.opt.runtimepath:append(\"${tsParsers}\")'"
+        "--cmd 'lua vim.g.nix_ts_parsers = \"${tsParsers}\"'"
       ];
       withNodeJs = true;
       withPython3 = true;

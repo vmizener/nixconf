@@ -64,7 +64,7 @@ function M.set_options()
   -- Configure folding
   vim.opt.foldlevelstart = 99 -- Open files with open folds
   vim.opt.foldmethod = "expr"
-  vim.opt.foldexpr = "nvim_treesitter#foldexpr()" -- Use treesitter for folding rules
+  vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Use treesitter for folding rules
 end
 
 function M.set_autocommands()

@@ -27,8 +27,8 @@ M.plugin_binds = {
     {"v", "<C-/>", "<Plug>(comment_toggle_linewise_visual)", "[Comment] Toggle commenting of current lines"},
     {"n", "<C-_>", "<Plug>(comment_toggle_linewise_current)", "[Comment] Toggle commenting of current line"},
     {"v", "<C-_>", "<Plug>(comment_toggle_linewise_visual)", "[Comment] Toggle commenting of current lines"},
-    -- SymbolsOutline
-    {"n", "<Leader>ss", ":SymbolsOutline<CR>", "[SymbolsOutline] Toggle symbols outline pane"},
+    -- Outline
+    {"n", "<Leader>ss", ":Outline<CR>", "[Outline] Toggle symbols outline pane"},
     -- IndentLinesToggle
     {"n", "<Leader>i", ":IndentLinesToggle<CR>", "[IndentLines] Toggle indentation guide"},
     -- Fugitive

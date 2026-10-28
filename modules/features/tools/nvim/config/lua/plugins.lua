@@ -3,7 +3,13 @@ M.ALL = {
   "bootstrap",
 }
 
-M.opts = {}
+M.opts = {
+  performance = {
+    rtp = {
+      paths = vim.g.nix_ts_parsers and { vim.g.nix_ts_parsers } or {},
+    },
+  },
+}
 M.configs = {
   -- Mason: external tooling packge manager {{{
   -- {
@@ -154,7 +160,7 @@ M.configs = {
     dependencies = { "nvim-lua/plenary.nvim" },
     event = "VeryLazy",
     config = function()
-      require("gitsigns").setup({ yadm = { enable = true } })
+      require("gitsigns").setup()
     end,
   },
   -- }}}
@@ -263,12 +269,11 @@ M.configs = {
     config = function()
       local api = require("nvim-tree.api")
 
-      M = {}
-      function M.print_node_path()
+      local function print_node_path()
         local node = api.tree.get_node_under_cursor()
         print(node.absolute_path)
       end
-      function M.on_attach(bufnr)
+      local function on_attach(bufnr)
         api.config.mappings.default_on_attach(bufnr)
         -- Additional mappings
         local function opts(desc)
@@ -277,7 +282,7 @@ M.configs = {
         vim.keymap.set("n", "h", api.node.navigate.parent_close, opts("Close Directory"))
         vim.keymap.set("n", "l", api.node.open.edit, opts("Open"))
         vim.keymap.set("n", "?", api.tree.toggle_help, opts("Help"))
-        vim.keymap.set("n", "p", M.print_node_path, opts("Print"))
+        vim.keymap.set("n", "p", print_node_path, opts("Print"))
       end
 
       -- See project.nvim setup: https://github.com/ahmedkhalf/project.nvim#-features
@@ -289,7 +294,7 @@ M.configs = {
           update_root = true,
         },
         -- Add settings
-        on_attach = M.on_attach,
+        on_attach = on_attach,
       })
     end,
   },
