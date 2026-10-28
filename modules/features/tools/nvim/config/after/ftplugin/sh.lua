@@ -8,7 +8,13 @@ vim.bo["tabstop"] = 2
 -- Autoformat on write
 vim.api.nvim_create_augroup("ShConfig", {})
 vim.api.nvim_create_autocmd("BufWritePre", {
-  pattern = { "*.sh", "*.bash", ".envrc", "*.envrc.*" },
+  pattern = {
+    ".envrc",
+    "*.bash",
+    "*.envrc.*",
+    "*.sh",
+    "*.zsh",
+  },
   callback = function()
     utils.reformat()
   end,
