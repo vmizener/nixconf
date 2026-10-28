@@ -27,14 +27,27 @@ in {
         default = "$HOME/.local/share/nix-vm";
         description = "Directory to store VM disk images";
       };
+      autologinUser = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "bao";
+        description = "User to automatically log in on TTYs inside the VM";
+      };
     };
   };
-  flake.nixosModules.${moduleName} = {...}: {
+  flake.nixosModules.${moduleName} = {
+    config,
+    lib,
+    ...
+  }: let
+    cfg = config.mod.${moduleName};
+  in {
     config = {
       mod.imported = [moduleName];
       virtualisation.vmVariant = {
         mod.${moduleName}.isVm = true;
         services.qemuGuest.enable = true;
+        services.getty.autologinUser = lib.mkIf (cfg.autologinUser != null) cfg.autologinUser;
         virtualisation = {
           memorySize = 4096; # use 4GiB memory
           cores = 3; # use 3 cpu cores

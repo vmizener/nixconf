@@ -47,6 +47,7 @@ in {
       #   loadModels = ["qwen3.5:9b"];
       # };
       "feat/gaming/steam".enableExtest = true;
+      "feat/vm".autologinUser = "bao";
     };
 
     system.stateVersion = "24.05";
@@ -70,7 +71,6 @@ in {
       uinput.enable = true;
     };
     services = {
-      getty.autologinUser = "bao";
       printing.enable = true;
     };
     fonts.enableDefaultPackages = true;

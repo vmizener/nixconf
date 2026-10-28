@@ -30,6 +30,10 @@ in {
       self.nixosModules."feat/system/systools"
       self.nixosModules."feat/vm"
     ];
+    mod = {
+      "feat/vm".autologinUser = "ramza";
+    };
+
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";
 
@@ -59,7 +63,6 @@ in {
       uinput.enable = true;
     };
     services = {
-      getty.autologinUser = "ramza";
       printing.enable = true;
       xserver = {
         videoDrivers = ["nvidia"];
