@@ -26,7 +26,8 @@
           dates = "weekly";
           options = "--delete-older-than 10d";
         };
-        nixPath = ["nixpkgs=${inputs.nixpkgs}"];
+        nixPath = ["nixpkgs=${inputs.nixpkgs}"]; # Pin <nixpkgs> lookups (e.g. nixd) to flake input
+        registry.nixpkgs.flake = inputs.nixpkgs; # Pin nixpkgs# flake refs (nix run, comma) to flake input
       }
       // lib.optionalAttrs (osConfig == null) {
         package = lib.mkDefault pkgs.nix;
@@ -79,12 +80,15 @@
       ];
     };
     nix = {
+      channel.enable = false; # Disable imperative channels and ~/.nix-defexpr NIX_PATH hijacking
       gc = {
         automatic = true;
         dates = "weekly";
         options = "--delete-older-than 30d";
       };
+      nixPath = ["nixpkgs=${inputs.nixpkgs}"]; # Pin <nixpkgs> lookups (e.g. nixd) to flake input
       optimise.automatic = true;
+      registry.nixpkgs.flake = inputs.nixpkgs; # Pin nixpkgs# flake refs (nix run, comma) to flake input
       settings.experimental-features = [
         "flakes"
         "nix-command"
