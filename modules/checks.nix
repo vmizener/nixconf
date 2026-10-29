@@ -113,11 +113,10 @@
         file: defs: let
           relPath = lib.removePrefix featuresPrefix file;
           expectedFeat = featNameFor relPath;
-          isDefaultNix = lib.hasSuffix "/default.nix" relPath;
           nixosKeys = lib.unique (lib.concatMap (d: builtins.attrNames (d.value.nixosModules or {})) defs);
           hmKeys = lib.unique (lib.concatMap (d: builtins.attrNames (d.value.homeModules or {})) defs);
           allKeys = nixosKeys ++ hmKeys;
-          allowedKeys = [expectedFeat "common/options"] ++ lib.optional isDefaultNix "common";
+          allowedKeys = [expectedFeat "common/options"];
           exportsFeat = builtins.elem expectedFeat allKeys;
 
           badKeyErrors =

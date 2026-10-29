@@ -7,7 +7,7 @@ Exposes:
 
 - flake.nixosModules."feat/net/blocky":
 */
-{...}: let
+{...} @ flake: let
   moduleName = "feat/net/blocky";
 in {
   flake.nixosModules."common/options" = {
@@ -56,7 +56,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    allCustomDNS = config.mod.net.allDnsRecords // cfg.customDNS;
+    allCustomDNS = flake.config.mod.net.allDnsRecords // cfg.customDNS;
 
     customDnsBlock =
       if allCustomDNS == {}

@@ -20,6 +20,97 @@
     description = "Home-manager configurations";
   };
 
+  # Cross-host network topology, service discovery, and DNS registry
+  options.mod.net = {
+    domain = lib.mkOption {
+      type = lib.types.str;
+      default = "lan";
+      description = "Base domain for Blocky/Caddy virtual hosts (while .local is used by mDNS)";
+    };
+    proxyHost = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Hostname running the reverse proxy (Caddy) for mod.net.hosts.*.services";
+    };
+    hosts = lib.mkOption {
+      default = {};
+      description = "Per-host static IP, DNS record, and reverse-proxy service inventory";
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            interface = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Network interface name for static IPv4 assignment (e.g. 'eno1', 'end0', 'eth0')";
+            };
+            ipv4 = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Static LAN IPv4 address assigned to this host";
+            };
+            prefixLength = lib.mkOption {
+              type = lib.types.ints.between 1 32;
+              default = 24;
+              description = "Subnet prefix length for the static IPv4 address";
+            };
+            gateway = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Default IPv4 gateway address";
+            };
+            nameservers = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [];
+              description = "DNS nameservers to configure on this host";
+            };
+            dnsRecords = lib.mkOption {
+              type = lib.types.attrsOf lib.types.str;
+              default = {};
+              description = "Additional DNS hostname-to-IPv4 mappings published by this host";
+            };
+            services = lib.mkOption {
+              default = {};
+              description = "Network services exposed by this host for reverse proxying";
+              type = lib.types.attrsOf (
+                lib.types.submodule ({name, ...}: {
+                  options = {
+                    port = lib.mkOption {
+                      type = lib.types.port;
+                      description = "Port the service listens on";
+                    };
+                    subdomain = lib.mkOption {
+                      type = lib.types.str;
+                      default = name;
+                      description = "Subdomain or hostname to expose on the reverse proxy";
+                    };
+                    protocol = lib.mkOption {
+                      type = lib.types.enum ["http" "https"];
+                      default = "http";
+                      description = "Upstream protocol used by the service";
+                    };
+                  };
+                })
+              );
+            };
+          };
+        }
+      );
+    };
+
+    # Readonly options (values defined in modules/net.nix)
+    allDnsRecords = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      readOnly = true;
+      description = "Merged DNS records across mod.net.hosts and proxied services (defined in modules/net.nix)";
+    };
+    lib = lib.mkOption {
+      type = lib.types.attrsOf lib.types.raw;
+      readOnly = true;
+      internal = true;
+      description = "Helper functions for parsing and qualifying mod.net hostnames (defined in modules/net.nix)";
+    };
+  };
+
   config = let
     ################
     # Common options for both Home-Manager and NixOS modules

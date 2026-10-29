@@ -5,6 +5,16 @@
 }: let
   hostname = "zeltennia";
 in {
+  mod.net = {
+    proxyHost = hostname;
+    hosts.${hostname} = {
+      interface = "enu1u1";
+      ipv4 = "192.168.86.25";
+      gateway = "192.168.86.1";
+      nameservers = ["192.168.86.1"];
+    };
+  };
+
   flake.nixosConfigurations.${hostname} = inputs.nixpkgs.lib.nixosSystem {
     modules = [
       self.nixosModules."host/${hostname}"
@@ -25,12 +35,6 @@ in {
       self.nixosModules."feat/vm"
     ];
     mod = {
-      net = {
-        interface = "enu1u1";
-        ipv4 = "192.168.86.25";
-        gateway = "192.168.86.1";
-        nameservers = ["192.168.86.1"];
-      };
       "feat/system/systools".categories = ["core" "sysadmin"];
       "feat/vm".autologinUser = "bao";
     };

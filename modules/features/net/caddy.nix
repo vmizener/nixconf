@@ -7,11 +7,10 @@ Exposes:
 
 - flake.nixosModules."feat/net/caddy":
 */
-{self, ...}: let
+{...} @ flake: let
   moduleName = "feat/net/caddy";
 in {
   flake.nixosModules."common/options" = {
-    config,
     lib,
     pkgs,
     ...
@@ -43,7 +42,7 @@ in {
         );
         default = {};
         description = ''
-          Declarative virtual hosts. Keys without a dot automatically get `.${config.mod.net.domain}` appended.
+          Declarative virtual hosts. Keys without a dot automatically get `.${flake.config.mod.net.domain}` appended.
           Values can be either an upstream URL/address string (shorthand for `reverse_proxy <upstream>`)
           or a `services.caddy.virtualHosts` submodule attrset.
         '';
@@ -68,69 +67,72 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    domain = config.mod.net.domain;
+    currentHost = config.networking.hostName;
+    hostIpv4 = (flake.config.mod.net.hosts.${currentHost} or {}).ipv4 or null;
 
-    # Strip scheme and port from a Caddy virtualHost key to extract the DNS hostname
-    extractHostname = key: let
-      noHttp = lib.removePrefix "http://" (lib.removePrefix "https://" key);
-    in
-      builtins.head (lib.splitString ":" noHttp);
-
-    # Append .<domain> if the hostname has no dot
-    qualifyKey = key: let
-      hostPart = extractHostname key;
-    in
-      if lib.hasInfix "." hostPart
-      then key
-      else builtins.replaceStrings [hostPart] ["${hostPart}.${domain}"] key;
-
-    # Auto-discover mod.net.services across all nixosConfigurations
+    # Auto-discover services declared across mod.net.hosts
     discoveredVHosts =
       lib.foldlAttrs (
-        acc: _: hostconf: let
-          targetHostName = hostconf.config.networking.hostName;
+        acc: targetHostName: h: let
           upstreamHost =
-            if targetHostName == config.networking.hostName
+            if targetHostName == currentHost
             then "127.0.0.1"
-            else if hostconf.config.mod.net.ipv4 != null
-            then hostconf.config.mod.net.ipv4
+            else if h.ipv4 != null
+            then h.ipv4
             else "${targetHostName}.local";
           hostSvcs =
             lib.mapAttrs' (
               _: svc:
                 lib.nameValuePair
-                (qualifyKey svc.subdomain)
+                (flake.config.mod.net.lib.qualifyKey svc.subdomain)
                 {extraConfig = "reverse_proxy ${svc.protocol}://${upstreamHost}:${toString svc.port}";}
             )
-            hostconf.config.mod.net.services;
+            h.services;
         in
           acc // hostSvcs
       ) {}
-      self.nixosConfigurations;
+      flake.config.mod.net.hosts;
 
-    explicitVHosts =
-      lib.mapAttrs' (
-        key: vhost:
-          lib.nameValuePair
-          (qualifyKey key)
-          (
-            if builtins.isString vhost
-            then {extraConfig = "reverse_proxy ${vhost}";}
-            else vhost
-          )
-      )
+    explicitEntries =
+      lib.mapAttrsToList (rawKey: vhost: {
+        inherit rawKey;
+        key = flake.config.mod.net.lib.qualifyKey rawKey;
+        vhost =
+          if builtins.isString vhost
+          then {extraConfig = "reverse_proxy ${vhost}";}
+          else vhost;
+      })
       cfg.virtualHosts;
+
+    groupedExplicit = builtins.groupBy (e: e.key) explicitEntries;
+    explicitCollisions = lib.filterAttrs (_: entries: builtins.length entries > 1) groupedExplicit;
+    explicitVHosts = lib.mapAttrs (_: entries: (builtins.head entries).vhost) groupedExplicit;
 
     allVHosts = discoveredVHosts // explicitVHosts;
   in {
+    assertions =
+      [
+        {
+          assertion = flake.config.mod.net.proxyHost == currentHost;
+          message = "Host '${currentHost}' imports ${moduleName}; set mod.net.proxyHost = \"${currentHost}\" so service DNS records point to this proxy.";
+        }
+      ]
+      ++ lib.mapAttrsToList (key: entries: {
+        assertion = false;
+        message =
+          "mod.\"${moduleName}\".virtualHosts: multiple keys qualify to '${key}': "
+          + lib.concatMapStringsSep ", " (e: "'${e.rawKey}'") entries;
+      })
+      explicitCollisions;
+
     mod = {
       imported = [moduleName];
-      net.dnsRecords = lib.mkIf (config.mod.net.ipv4 != null) (
+      "feat/net/blocky".customDNS = lib.mkIf (hostIpv4 != null) (
         lib.mapAttrs' (
           key: _:
-            lib.nameValuePair (extractHostname key) config.mod.net.ipv4
+            lib.nameValuePair (flake.config.mod.net.lib.extractHostname key) (lib.mkDefault hostIpv4)
         )
-        allVHosts
+        explicitVHosts
       );
     };
 
