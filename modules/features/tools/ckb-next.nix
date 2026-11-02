@@ -36,7 +36,6 @@ in {
     pkg = pkgs.callPackage mkPkg {};
   in {
     mod.imported = [moduleName];
-    environment.systemPackages = [pkg];
     hardware.ckb-next = {
       enable = true;
       package = pkg;
@@ -44,13 +43,15 @@ in {
     systemd.user.services.ckb-next = {
       enable = true;
       description = "Corsair keyboard next service";
+      after = ["graphical-session.target"];
+      partOf = ["graphical-session.target"];
+      wantedBy = ["graphical-session.target"];
       serviceConfig = {
         Type = "simple";
         ExecStart = "${lib.getExe pkg} -b";
         Restart = "on-failure";
         RestartSec = "3";
       };
-      wantedBy = ["default.target"];
     };
   };
 
