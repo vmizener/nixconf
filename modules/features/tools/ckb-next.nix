@@ -12,20 +12,27 @@ let
   moduleName = "feat/tools/ckb-next";
 
   pkgName = "ckb-next";
-  # 06/02/2026 revision (supports Scimitar RGB Elite)
+  # Track master for Scimitar RGB Elite support (unreleased after v0.6.2)
+  version = "0.6.2-unstable-2026-06-02";
   rev = "5edd3c14810c1aa93be5adde471071b97ef108b4";
 
   mkPkg = {
     ckb-next,
     fetchFromGitHub,
   }:
-    ckb-next.overrideAttrs (_: {
+    ckb-next.overrideAttrs (old: {
+      inherit version;
       src = fetchFromGitHub {
         owner = "ckb-next";
         repo = pkgName;
         inherit rev;
         hash = "sha256-h5jZqiK4hYqlLFPY9jmJEniarSHE4ZcoIX4Qv3QdELc=";
       };
+      passthru =
+        (old.passthru or {})
+        // {
+          nixUpdateArgs = ["--version=branch"];
+        };
     });
 in {
   flake.nixosModules.${moduleName} = {
