@@ -23,9 +23,9 @@ in {
 
       self.nixosModules."feat/gaming/steam"
       self.nixosModules."feat/gaming/sunshine"
-      self.nixosModules."feat/secrets"
       self.nixosModules."feat/system/audio"
       self.nixosModules."feat/system/earlyoom"
+      self.nixosModules."feat/system/keyring"
       self.nixosModules."feat/system/locale"
       self.nixosModules."feat/system/systools"
       self.nixosModules."feat/vm"

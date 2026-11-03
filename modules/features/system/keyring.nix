@@ -1,16 +1,16 @@
 /*
-  feat/secrets
+  feat/system/keyring
 
-Provides secret management and keyring services.
+Provides system keyring services via GNOME Keyring.
 
 Exposes:
 
-- flake.nixosModules."feat/secrets":
+- flake.nixosModules."feat/system/keyring":
   - Enables GNOME Keyring service
   - Configures PAM integration for login and greetd.
 */
-{self, ...}: let
-  moduleName = "feat/secrets";
+{...}: let
+  moduleName = "feat/system/keyring";
 in {
   flake.nixosModules.${moduleName} = {...}: {
     config = {
