@@ -1,111 +1,95 @@
-{
-  lib,
-  self,
-  ...
-}: let
-  sshKeysCfg = fromTOML (builtins.readFile ../secrets/keys.toml);
-  sshKeyMap = sshKeysCfg.keys or {};
-  sshGlobalUsers = sshKeysCfg.users or {};
-  sshHostUsers = sshKeysCfg.hosts or {};
-
-  resolveSshKeys = aliases:
-    aliases
-    |> lib.unique
-    |> builtins.filter (k: sshKeyMap ? ${k})
-    |> map (k: sshKeyMap.${k});
-
-  sshConfigAssertions = let
-    allowedSections = ["keys" "users" "hosts"];
-    unknownSections =
-      builtins.attrNames sshKeysCfg
-      |> builtins.filter (s: !(builtins.elem s allowedSections));
-    unknownHosts =
-      builtins.attrNames sshHostUsers
-      |> builtins.filter (h: !(self.nixosConfigurations ? ${h}));
-    missingUserAliases = lib.concatLists (
-      lib.mapAttrsToList (
-        user: aliases:
-          aliases
-          |> builtins.filter (k: !(sshKeyMap ? ${k}))
-          |> map (k: "users.${user} -> '${k}'")
-      )
-      sshGlobalUsers
-    );
-    missingHostAliases = lib.concatLists (
-      lib.mapAttrsToList (
-        host: usersAttr:
-          lib.concatLists (
-            lib.mapAttrsToList (
-              user: aliases:
-                aliases
-                |> builtins.filter (k: !(sshKeyMap ? ${k}))
-                |> map (k: "hosts.${host}.${user} -> '${k}'")
-            )
-            usersAttr
-          )
-      )
-      sshHostUsers
-    );
-    allMissingAliases = missingUserAliases ++ missingHostAliases;
-  in [
-    {
-      assertion = unknownSections == [];
-      message = "secrets/keys.toml: unexpected top-level section(s): ${lib.concatStringsSep ", " unknownSections} (allowed: ${lib.concatStringsSep ", " allowedSections})";
-    }
-    {
-      assertion = unknownHosts == [];
-      message = "secrets/keys.toml: [hosts] references unknown NixOS host(s): ${lib.concatStringsSep ", " unknownHosts}";
-    }
-    {
-      assertion = allMissingAliases == [];
-      message = "secrets/keys.toml: undefined key alias(es) referenced: ${lib.concatStringsSep ", " allMissingAliases}";
-    }
-  ];
-in {
+{...}: {
   flake.homeModules."common/ssh" = {
     config,
     lib,
     osConfig ? null,
     ...
   }: let
-    standaloneSshKeys = resolveSshKeys (sshGlobalUsers.${config.home.username} or []);
+    cfg = config.mod.ssh;
+    reg = cfg.registry;
+    aliases = reg.users.${config.home.username} or [];
+    missingAliases = builtins.filter (k: !(reg.keys ? ${k})) aliases;
+    resolvedKeys =
+      aliases
+      |> builtins.filter (k: reg.keys ? ${k})
+      |> map (k: reg.keys.${k})
+      |> (ks: lib.unique (ks ++ cfg.authorizedKeys));
   in {
-    assertions = lib.optionals (osConfig == null) sshConfigAssertions;
-    home.file.".ssh/authorized_keys" = lib.mkIf (osConfig == null && standaloneSshKeys != []) {
-      text = lib.concatLines standaloneSshKeys;
+    mod.ssh = lib.mkIf (osConfig == null) {
+      keysFiles = [../secrets/keys.toml];
+      registry = lib.mkMerge (map lib.importTOML cfg.keysFiles);
+    };
+
+    assertions = [
+      {
+        assertion = osConfig == null || cfg.keysFiles == [];
+        message = "On NixOS hosts, set `mod.ssh.keysFiles` at the NixOS configuration level rather than inside `home-manager.users.${config.home.username}`.";
+      }
+      {
+        assertion = osConfig != null || missingAliases == [];
+        message = "mod.ssh: undefined key alias(es) for user '${config.home.username}': ${lib.concatStringsSep ", " missingAliases}";
+      }
+    ];
+
+    home.file.".ssh/authorized_keys" = lib.mkIf (osConfig == null && resolvedKeys != []) {
+      text = lib.concatLines resolvedKeys;
     };
   };
 
   flake.nixosModules."common/ssh" = {
     config,
     lib,
+    options,
     ...
   }: let
+    cfg = config.mod.ssh;
+    reg = cfg.registry;
     hostName = config.networking.hostName;
-    hostSshUsers = sshHostUsers.${hostName} or {};
+    hostUsers = reg.hosts.${hostName} or {};
+    hmUsers = lib.optionalAttrs (options ? home-manager) config.home-manager.users;
+    allAliases = lib.unique (
+      lib.concatLists (builtins.attrValues reg.users)
+      ++ lib.concatLists (lib.concatMap builtins.attrValues (builtins.attrValues reg.hosts))
+    );
+    missingAliases = builtins.filter (k: !(reg.keys ? ${k})) allAliases;
     missingHostUsers =
-      builtins.attrNames hostSshUsers
+      builtins.attrNames hostUsers
       |> builtins.filter (u: !(config.users.users ? ${u}));
   in {
     options.users.users = lib.mkOption {
       type = lib.types.attrsOf (
-        lib.types.submodule ({name, ...}: {
-          config.openssh.authorizedKeys.keys = resolveSshKeys (
-            (sshGlobalUsers.${name} or []) ++ (hostSshUsers.${name} or [])
-          );
+        lib.types.submodule ({name, ...}: let
+          userAliases = (reg.users.${name} or []) ++ (hostUsers.${name} or []);
+          hmKeys =
+            if hmUsers ? ${name}
+            then hmUsers.${name}.mod.ssh.authorizedKeys
+            else [];
+        in {
+          config.openssh.authorizedKeys.keys =
+            userAliases
+            |> builtins.filter (k: reg.keys ? ${k})
+            |> map (k: reg.keys.${k})
+            |> (ks: lib.unique (ks ++ hmKeys));
         })
       );
     };
 
     config = {
-      assertions =
-        sshConfigAssertions
-        ++ [
-          {
-            assertion = missingHostUsers == [];
-            message = "secrets/keys.toml: [hosts.${hostName}] references user(s) not declared on '${hostName}': ${lib.concatStringsSep ", " missingHostUsers}";
-          }
-        ];
+      mod.ssh = {
+        keysFiles = [../secrets/keys.toml];
+        registry = lib.mkMerge (map lib.importTOML cfg.keysFiles);
+      };
+
+      assertions = [
+        {
+          assertion = missingAliases == [];
+          message = "mod.ssh: undefined key alias(es) referenced: ${lib.concatStringsSep ", " missingAliases}";
+        }
+        {
+          assertion = missingHostUsers == [];
+          message = "mod.ssh: [hosts.${hostName}] references user(s) not declared on '${hostName}': ${lib.concatStringsSep ", " missingHostUsers}";
+        }
+      ];
 
       services.openssh = {
         enable = true;

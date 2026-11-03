@@ -124,6 +124,37 @@
           description = "List of imported modules";
         };
 
+        mod.ssh = {
+          keysFiles = lib.mkOption {
+            type = lib.types.listOf lib.types.path;
+            default = [];
+            description = "TOML files merged into mod.ssh.registry (use lib.mkForce to replace defaults).";
+          };
+          registry = lib.mkOption {
+            default = {};
+            description = "SSH public key registry and user/host authorization mappings.";
+            type = lib.types.submodule {
+              options = {
+                keys = lib.mkOption {
+                  type = lib.types.attrsOf lib.types.str;
+                  default = {};
+                  description = "Named SSH public keys (alias -> public key string).";
+                };
+                users = lib.mkOption {
+                  type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+                  default = {};
+                  description = "Key aliases authorized for each user across all hosts.";
+                };
+                hosts = lib.mkOption {
+                  type = lib.types.attrsOf (lib.types.attrsOf (lib.types.listOf lib.types.str));
+                  default = {};
+                  description = "Additional per-host key aliases authorized for each user.";
+                };
+              };
+            };
+          };
+        };
+
         # Readonly options
         mod.has = lib.mkOption {
           default = name:
@@ -165,6 +196,12 @@
             then osConfig.mod.nixconf.path or "/etc/nixos"
             else "${config.xdg.configHome}/home-manager";
           description = "Absolute path to this Nix flake (outside Nix store).  Used for NH_FLAKE and out-of-store symlinks.";
+        };
+
+        mod.ssh.authorizedKeys = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [];
+          description = "Additional SSH public keys authorized for this Home-Manager user.";
         };
 
         # Readonly options
