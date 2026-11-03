@@ -59,8 +59,11 @@
       pre-commit = {
         check.enable = true;
         settings.hooks = {
-          # Format check
-          treefmt.enable = true;
+          shellcheck = {
+            enable = true;
+            exclude_types = ["zsh"];
+          };
+          treefmt.enable = true; # Format check
         };
       };
     };
