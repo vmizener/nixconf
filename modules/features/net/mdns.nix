@@ -23,7 +23,7 @@ in {
   flake.nixosModules.${moduleName} = {config, ...}: let
     cfg = config.mod.${moduleName};
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     services.avahi = {
       enable = true;
       nssmdns4 = true;

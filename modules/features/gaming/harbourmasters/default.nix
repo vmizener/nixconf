@@ -32,9 +32,9 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    steamEnabled = (osConfig != null) && (osConfig.mod.has "feat/gaming/steam");
+    steamEnabled = (osConfig != null) && (osConfig.mod.meta.has "feat/gaming/steam");
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     imports = [inputs.hm64-flake.homeManagerModules.default];
     programs.harbourmasters = lib.mkMerge (
       (map (

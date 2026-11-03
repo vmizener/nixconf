@@ -33,11 +33,11 @@ let
     };
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = [(pkgs.callPackage mkPkg {})];
   };
   flake.nixosModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     environment.systemPackages = [(pkgs.callPackage mkPkg {})];
   };
   perSystem = {pkgs, ...}: {

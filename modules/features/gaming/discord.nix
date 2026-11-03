@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/gaming/discord";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = with pkgs; [
       discord
     ];

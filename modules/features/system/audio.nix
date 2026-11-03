@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/system/audio";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     security.rtkit.enable = true;
     services = {
       pipewire = {

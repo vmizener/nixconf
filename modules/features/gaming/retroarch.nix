@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/gaming/retroarch";
 in {
   flake.homeModules.${moduleName} = {config, ...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     programs.retroarch = {
       enable = true;
       cores = {

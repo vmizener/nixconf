@@ -13,10 +13,10 @@ Exposes:
   moduleName = "feat/terminal/shell/bash";
 in {
   flake.homeModules.${moduleName} = {...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     programs.bash.enable = true;
   };
   flake.nixosModules.${moduleName} = {...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
   };
 }

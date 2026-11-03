@@ -5,7 +5,7 @@
 }: let
   hostname = "baohaus";
 in {
-  mod.net.hosts.${hostname} = {
+  inventory.net.hosts.${hostname} = {
     interface = "enp3s0";
     ipv4 = "192.168.86.138";
     gateway = "192.168.86.1";

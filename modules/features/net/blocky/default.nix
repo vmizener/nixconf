@@ -56,7 +56,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    allCustomDNS = flake.config.mod.net.allDnsRecords // cfg.customDNS;
+    allCustomDNS = flake.config.inventory.net.allDnsRecords // cfg.customDNS;
 
     customDnsBlock =
       if allCustomDNS == {}
@@ -73,7 +73,7 @@ in {
       CUSTOM_DNS_BLOCK = customDnsBlock;
     };
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
 
     environment.systemPackages = with pkgs; [blocky];
     services.blocky = {

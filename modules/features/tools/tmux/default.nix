@@ -15,7 +15,7 @@ in {
     pkgs,
     ...
   }: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     programs.tmux = {
       enable = true;
 

@@ -35,7 +35,7 @@ in {
       config.home.packages
       ++ lib.optionals (osConfig != null) osConfig.environment.systemPackages;
   in {
-    mod = {
+    mod.meta = {
       imported = [moduleName];
       asserts = ["pairedNixosFeat"];
     };
@@ -106,7 +106,7 @@ in {
     '';
   };
   flake.nixosModules.${moduleName} = {...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     programs.zsh = {
       enable = true;
 

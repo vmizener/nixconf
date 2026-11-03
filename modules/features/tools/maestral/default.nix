@@ -33,7 +33,7 @@ in {
     configPath = "${config.xdg.configHome}/maestral/maestral.ini";
     templatePath = config.sops.templates."maestral.ini".path;
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = with pkgs; [
       maestral
       maestral-gui

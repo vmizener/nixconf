@@ -15,10 +15,10 @@ in {
     pkgs,
     ...
   }: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = with pkgs; [fuzzel];
     xdg.configFile = {
-      "fuzzel/fuzzel.ini".source = config.mod.nixconf.link ./fuzzel.ini;
+      "fuzzel/fuzzel.ini".source = config.mod.meta.link ./fuzzel.ini;
     };
   };
 }

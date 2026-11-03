@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/terminal/emulator/ghostty";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       nerd-fonts.fira-code

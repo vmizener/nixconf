@@ -20,7 +20,7 @@ in {
     #   ${flakepath}/scripts/run theme::reset
     # ''));
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = with pkgs; [kanshi];
     services.kanshi = {
       enable = true;

@@ -1,8 +1,28 @@
-{inputs, ...}: {
+{
+  inputs,
+  lib,
+  ...
+}: {
   imports = [
     inputs.git-hooks-nix.flakeModule
     inputs.treefmt-nix.flakeModule
   ];
+
+  options.flake = {
+    # Automatically merge homeModules, similar to nixosModules
+    homeModules = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.deferredModule;
+      default = {};
+      description = "Home-manager modules";
+    };
+
+    # Automatically merge homeConfigurations, similar to nixosConfigurations
+    homeConfigurations = lib.mkOption {
+      type = lib.types.lazyAttrsOf lib.types.raw;
+      default = {};
+      description = "Home-manager configurations";
+    };
+  };
 
   config = {
     # Enable debug options

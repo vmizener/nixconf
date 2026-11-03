@@ -53,7 +53,7 @@ in {
   }: let
     cfg = config.mod.${moduleName};
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     services.greetd = {
       enable = true;
       settings = {

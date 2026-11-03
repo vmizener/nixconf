@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/display-manager/gdm";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     services.displayManager.gdm.enable = true;
   };
 }

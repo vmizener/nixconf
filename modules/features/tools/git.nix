@@ -18,7 +18,7 @@ in {
     pkgs,
     ...
   }: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = with pkgs; [delta];
     programs.git = {
       enable = true;

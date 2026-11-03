@@ -44,7 +44,7 @@ in {
     cfg = config.mod.${moduleName};
   in {
     config = {
-      mod.imported = [moduleName];
+      mod.meta.imported = [moduleName];
       virtualisation.vmVariant =
         {
           mod.${moduleName}.isVm = true;
@@ -92,7 +92,7 @@ in {
         _: hostconf:
           hostconf.config.nixpkgs.hostPlatform.system
           == system
-          && (hostconf.config.mod.has or (_: false)) moduleName
+          && ((hostconf.config.mod.meta or {}).has or (_: false)) moduleName
       )
       |> (
         configs: let

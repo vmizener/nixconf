@@ -26,7 +26,7 @@ in {
   }: let
     cfg = config.mod.${moduleName};
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     programs.steam = {
       enable = true;
       extest.enable = cfg.enableExtest;

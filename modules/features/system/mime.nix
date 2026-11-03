@@ -76,7 +76,7 @@ in {
     pkgs,
     ...
   }: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     mod.${moduleName}.enable = true;
     home.packages = with pkgs; [
       handlr-regex # https://github.com/Anomalocaridid/handlr-regex

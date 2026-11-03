@@ -53,7 +53,7 @@ in {
     config = lib.mkMerge [
       # Base Config
       {
-        mod = {
+        mod.meta = {
           imported = [moduleName];
           asserts = lib.mkIf (hasCategory "desktop") ["nixosOnly" "pairedNixosFeat"];
         };
@@ -66,7 +66,7 @@ in {
           comma
         ];
         programs.nix-index.enable = true;
-        xdg.configFile."ov/config.yaml".source = config.mod.nixconf.link ./ov.yaml;
+        xdg.configFile."ov/config.yaml".source = config.mod.meta.link ./ov.yaml;
       })
       # Desktop-Only Config
       (lib.mkIf (hasCategory "desktop") {
@@ -86,7 +86,7 @@ in {
   }: let
     cfg = config.mod.${moduleName};
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     environment.systemPackages = selectPackages lib pkgs cfg.categories;
     services = {
       udisks2.enable = true;

@@ -33,7 +33,7 @@ in {
       paths = pkgs.vimPlugins.nvim-treesitter.withAllGrammars.dependencies;
     };
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     programs.neovim = {
       enable = true;
       sideloadInitLua = true;
@@ -59,7 +59,7 @@ in {
       withPython3 = true;
       withRuby = true;
     };
-    xdg.configFile."nvim".source = config.mod.nixconf.link ./config;
+    xdg.configFile."nvim".source = config.mod.meta.link ./config;
 
     # Mark neovim as preferred editor
     mod."feat/system/mime".add.editor."nvim.desktop" = 100;

@@ -42,7 +42,7 @@ in {
   }: let
     pkg = pkgs.callPackage mkPkg {};
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     hardware.ckb-next = {
       enable = true;
       package = pkg;

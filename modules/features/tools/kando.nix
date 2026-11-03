@@ -15,7 +15,7 @@ in {
     pkgs,
     ...
   }: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = with pkgs; [kando];
     systemd.user.services.kando = {
       Install = {

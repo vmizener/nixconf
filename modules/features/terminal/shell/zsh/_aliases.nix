@@ -11,7 +11,7 @@
   addIf = want: ifCond: addIfElse want ifCond [];
 in (
   [
-    "alias cdf='cd -P ${config.mod.nixconf.path}'"
+    "alias cdf='cd -P ${config.mod.meta.flakePath}'"
   ]
   ++ addIf "bat" [
     "alias cat='bat --wrap=never'"

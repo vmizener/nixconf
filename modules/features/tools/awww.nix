@@ -32,7 +32,7 @@ in {
     cfg = config.mod.${moduleName};
     pkg = pkgs.awww;
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = [pkg];
     systemd.user.services.awww = {
       Install = {

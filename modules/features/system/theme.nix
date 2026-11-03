@@ -17,7 +17,7 @@ in {
     cursorTheme = "mochaLight";
     cursorSize = 16;
   in {
-    mod = {
+    mod.meta = {
       imported = [moduleName];
       asserts = ["pairedNixosFeat"];
     };
@@ -39,7 +39,7 @@ in {
     };
   };
   flake.nixosModules.${moduleName} = {pkgs, ...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     environment.systemPackages = with pkgs; [
       # Themes
       kdePackages.breeze-gtk

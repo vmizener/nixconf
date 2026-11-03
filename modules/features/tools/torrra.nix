@@ -16,7 +16,7 @@ in {
     pkgs,
     ...
   }: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     home.packages = [inputs.torrra.packages.${pkgs.stdenv.hostPlatform.system}.default];
 
     # Copy a writable config

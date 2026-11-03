@@ -2,8 +2,10 @@
   inputs,
   self,
   ...
-}: {
-  flake.homeModules."common" = {
+}: let
+  moduleName = "common";
+in {
+  flake.homeModules.${moduleName} = {
     config,
     lib,
     osConfig ? null,
@@ -15,6 +17,7 @@
       self.homeModules."common/sops"
       self.homeModules."common/ssh"
     ];
+    mod.meta.imported = [moduleName];
     home = {
       stateVersion = lib.mkDefault "25.11";
       homeDirectory = lib.mkOptionDefault "/home/${config.home.username}";
@@ -47,7 +50,7 @@
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
     programs.nh = {
       enable = lib.mkDefault true;
-      flake = lib.mkDefault config.mod.nixconf.path;
+      flake = lib.mkDefault config.mod.meta.flakePath;
     };
     systemd.user.startServices = "sd-switch"; # Reload system units on config change
     xdg.enable = true; # Enable XDG directory management
@@ -62,7 +65,7 @@
       xdgOpenUsePortal = true;
     };
   };
-  flake.nixosModules."common" = {
+  flake.nixosModules.${moduleName} = {
     config,
     lib,
     ...
@@ -74,6 +77,7 @@
       self.nixosModules."common/sops"
       self.nixosModules."common/ssh"
     ];
+    mod.meta.imported = [moduleName];
     home-manager = {
       useGlobalPkgs = lib.mkDefault true;
       useUserPackages = lib.mkDefault true;
@@ -106,7 +110,7 @@
     ];
     programs.nh = {
       enable = lib.mkDefault true;
-      flake = lib.mkDefault config.mod.nixconf.path;
+      flake = lib.mkDefault config.mod.meta.flakePath;
     };
   };
 }

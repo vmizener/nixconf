@@ -33,7 +33,7 @@ in {
     cfg = config.mod.${moduleName};
 
     isNixOs = osConfig != null;
-    osHasNiri = isNixOs && osConfig.mod.has moduleName;
+    osHasNiri = isNixOs && osConfig.mod.meta.has moduleName;
     useFlakeNiri = !isNixOs;
   in {
     imports = lib.optional useFlakeNiri inputs.niri.homeModules.niri;
@@ -46,14 +46,14 @@ in {
         };
       })
       {
-        mod = {
+        mod.meta = {
           imported = [moduleName];
           asserts = ["pairedNixosFeat"];
         };
       }
       (lib.mkIf (!isNixOs || osHasNiri) {
         xdg.configFile = {
-          "niri/config.kdl".source = config.mod.nixconf.link ./config.kdl;
+          "niri/config.kdl".source = config.mod.meta.link ./config.kdl;
           "niri/local.kdl".source = pkgs.writeText "local.kdl" cfg.extraConfig;
           "niri/generated.kdl".text = let
             toKdl = inputs.wrapper-modules.lib.toKdl;
@@ -82,7 +82,7 @@ in {
   in {
     imports = [inputs.niri.nixosModules.niri];
     config = {
-      mod.imported = [moduleName];
+      mod.meta.imported = [moduleName];
       nixpkgs.overlays = [inputs.niri.overlays.niri];
       programs.niri = {
         enable = true;

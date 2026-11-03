@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/system/earlyoom";
 in {
   flake.nixosModules.${moduleName} = {lib, ...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     services.earlyoom = {
       enable = true;
 

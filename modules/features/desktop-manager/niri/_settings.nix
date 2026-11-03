@@ -10,7 +10,7 @@
   isVm = isNixOs && osConfig.mod."feat/vm".isVm;
 
   # Logic
-  hasMod = name: (isHm && hmConfig.mod.has name) || (isNixOs && osConfig.mod.has name);
+  hasMod = name: (isHm && hmConfig.mod.meta.has name) || (isNixOs && osConfig.mod.meta.has name);
   cmdByFeat = default: featList: (pkgs.lib.findFirst (f: hasMod f.feat) {cmd = default;} featList).cmd;
 
   # Commands

@@ -11,7 +11,7 @@ Exposes:
   moduleName = "feat/display-manager/ly";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     services.displayManager.ly.enable = true;
   };
 }

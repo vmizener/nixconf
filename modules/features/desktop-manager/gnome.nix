@@ -13,7 +13,7 @@ Exposes:
   moduleName = "feat/desktop-manager/gnome";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     services = {
       desktopManager.gnome.enable = true;
       xserver = {

@@ -15,7 +15,7 @@ in {
     pkgs,
     ...
   }: {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
       nerd-fonts.fira-code
@@ -49,7 +49,7 @@ in {
           cat >"$f"
 
           editor=${
-            if config.mod.has "feat/tools/nvim"
+            if config.mod.meta.has "feat/tools/nvim"
             then "nvim"
             else "vim"
           }

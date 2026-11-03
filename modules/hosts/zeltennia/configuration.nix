@@ -5,7 +5,7 @@
 }: let
   hostname = "zeltennia";
 in {
-  mod.net = {
+  inventory.net = {
     proxyHost = hostname;
     hosts.${hostname} = {
       interface = "enu1u1";

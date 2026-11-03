@@ -18,9 +18,9 @@ Exposes:
     filterActive = lib.filterAttrs (_: p: p.models != []);
     osProviders =
       if osConfig != null
-      then filterActive osConfig.mod.ai.providers
+      then filterActive osConfig.mod."feat/ai".providers
       else {};
-    hmProviders = filterActive config.mod.ai.providers;
+    hmProviders = filterActive config.mod."feat/ai".providers;
   in {
     # Right-biased merge: OS providers override HM providers on key collisions
     activeProviders = hmProviders // osProviders;
@@ -70,7 +70,7 @@ in {
     inherit (getActiveProviders {inherit config lib osConfig;}) activeProviders;
     hasProviders = activeProviders != {};
   in {
-    mod.imported = [moduleName];
+    mod.meta.imported = [moduleName];
     programs.pi-coding-agent = {
       enable = true;
       package = cfg.package;

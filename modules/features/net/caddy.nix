@@ -42,7 +42,7 @@ in {
         );
         default = {};
         description = ''
-          Declarative virtual hosts. Keys without a dot automatically get `.${flake.config.mod.net.domain}` appended.
+          Declarative virtual hosts. Keys without a dot automatically get `.${flake.config.inventory.net.domain}` appended.
           Values can be either an upstream URL/address string (shorthand for `reverse_proxy <upstream>`)
           or a `services.caddy.virtualHosts` submodule attrset.
         '';
@@ -68,9 +68,9 @@ in {
   }: let
     cfg = config.mod.${moduleName};
     currentHost = config.networking.hostName;
-    hostIpv4 = (flake.config.mod.net.hosts.${currentHost} or {}).ipv4 or null;
+    hostIpv4 = (flake.config.inventory.net.hosts.${currentHost} or {}).ipv4 or null;
 
-    # Auto-discover services declared across mod.net.hosts
+    # Auto-discover services declared across inventory.net.hosts
     discoveredVHosts =
       lib.foldlAttrs (
         acc: targetHostName: h: let
@@ -84,19 +84,19 @@ in {
             lib.mapAttrs' (
               _: svc:
                 lib.nameValuePair
-                (flake.config.mod.net.lib.qualifyKey svc.subdomain)
+                (flake.config.inventory.net.lib.qualifyKey svc.subdomain)
                 {extraConfig = "reverse_proxy ${svc.protocol}://${upstreamHost}:${toString svc.port}";}
             )
             h.services;
         in
           acc // hostSvcs
       ) {}
-      flake.config.mod.net.hosts;
+      flake.config.inventory.net.hosts;
 
     explicitEntries =
       lib.mapAttrsToList (rawKey: vhost: {
         inherit rawKey;
-        key = flake.config.mod.net.lib.qualifyKey rawKey;
+        key = flake.config.inventory.net.lib.qualifyKey rawKey;
         vhost =
           if builtins.isString vhost
           then {extraConfig = "reverse_proxy ${vhost}";}
@@ -113,8 +113,8 @@ in {
     assertions =
       [
         {
-          assertion = flake.config.mod.net.proxyHost == currentHost;
-          message = "Host '${currentHost}' imports ${moduleName}; set mod.net.proxyHost = \"${currentHost}\" so service DNS records point to this proxy.";
+          assertion = flake.config.inventory.net.proxyHost == currentHost;
+          message = "Host '${currentHost}' imports ${moduleName}; set inventory.net.proxyHost = \"${currentHost}\" so service DNS records point to this proxy.";
         }
       ]
       ++ lib.mapAttrsToList (key: entries: {
@@ -126,11 +126,11 @@ in {
       explicitCollisions;
 
     mod = {
-      imported = [moduleName];
+      meta.imported = [moduleName];
       "feat/net/blocky".customDNS = lib.mkIf (hostIpv4 != null) (
         lib.mapAttrs' (
           key: _:
-            lib.nameValuePair (flake.config.mod.net.lib.extractHostname key) (lib.mkDefault hostIpv4)
+            lib.nameValuePair (flake.config.inventory.net.lib.extractHostname key) (lib.mkDefault hostIpv4)
         )
         explicitVHosts
       );

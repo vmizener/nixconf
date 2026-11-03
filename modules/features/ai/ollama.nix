@@ -56,8 +56,8 @@ Exposes:
       else cfg.host;
   in {
     mod = {
-      imported = [moduleName];
-      ai.providers."ollama-local" = lib.mkIf (cfg.loadModels != []) {
+      meta.imported = [moduleName];
+      "feat/ai".providers."ollama-local" = lib.mkIf (cfg.loadModels != []) {
         api = "openai-completions";
         apiKey = "ollama";
         baseUrl = "http://${clientHost}:${toString cfg.port}/v1";
@@ -122,7 +122,7 @@ in {
     ];
   in {
     imports = [ollamaCommon];
-    mod.asserts = ["conflictsNixosFeat"];
+    mod.meta.asserts = ["conflictsNixosFeat"];
     systemd.user.services.ollama-model-loader = lib.mkIf (cfg.loadModels != [] || cfg.syncModels) {
       Unit = {
         Description = "Download ollama models in the background";

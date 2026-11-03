@@ -4,8 +4,10 @@
 Shared AI provider option definitions for NixOS and Home-Manager AI modules.
 */
 {...}: let
+  moduleName = "feat/ai";
+
   aiOptions = {lib, ...}: {
-    options.mod.ai = {
+    options.mod.${moduleName} = {
       providers = lib.mkOption {
         description = "Registered AI model providers";
         default = {};

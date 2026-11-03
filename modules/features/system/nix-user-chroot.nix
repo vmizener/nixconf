@@ -40,9 +40,9 @@ in {
       shell = lib.mkOption {
         type = lib.types.str;
         default =
-          if config.mod.has "feat/terminal/shell/zsh"
+          if config.mod.meta.has "feat/terminal/shell/zsh"
           then "${config.home.profileDirectory}/bin/zsh -l"
-          else if config.mod.has "feat/terminal/shell/bash"
+          else if config.mod.meta.has "feat/terminal/shell/bash"
           then "${config.home.profileDirectory}/bin/bash -l"
           else "/bin/bash -l";
         description = "Shell command executed by the enter script inside nix-user-chroot.";
@@ -76,7 +76,7 @@ in {
       ' -- "$@"
     '';
   in {
-    mod = {
+    mod.meta = {
       imported = [moduleName];
       asserts = ["standaloneOnly"];
     };
@@ -111,10 +111,10 @@ in {
     xdg.portal.enable = lib.mkForce false;
 
     programs = {
-      bash = lib.mkIf (config.mod.has "feat/terminal/shell/bash") {
+      bash = lib.mkIf (config.mod.meta.has "feat/terminal/shell/bash") {
         profileExtra = nixProfile;
       };
-      zsh = lib.mkIf (config.mod.has "feat/terminal/shell/zsh") {
+      zsh = lib.mkIf (config.mod.meta.has "feat/terminal/shell/zsh") {
         profileExtra = nixProfile;
       };
     };
