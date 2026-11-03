@@ -49,7 +49,7 @@ in {
           cat >"$f"
 
           editor=${
-            if config.mod.meta.has "feat/tools/nvim"
+            if config.mod.meta.has "feat/dev/nvim"
             then "nvim"
             else "vim"
           }

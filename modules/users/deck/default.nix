@@ -16,11 +16,11 @@ in {
   flake.homeModules."users/${username}@steamdeck" = {
     imports = [
       self.homeModules."common"
-      self.homeModules."feat/terminal/shell/zsh"
+      self.homeModules."feat/dev/git"
+      self.homeModules."feat/dev/nvim"
       self.homeModules."feat/system/nix-user-chroot"
       self.homeModules."feat/system/systools"
-      self.homeModules."feat/tools/git"
-      self.homeModules."feat/tools/nvim"
+      self.homeModules."feat/terminal/shell/zsh"
     ];
     home.username = username;
     mod."feat/system/systools".categories = ["core" "sysadmin"];

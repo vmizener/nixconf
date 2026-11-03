@@ -17,9 +17,9 @@ in {
       shell = pkgs.zsh;
     };
     home-manager.users.${username}.imports = [
-      self.homeModules."feat/browser/firefox"
-      self.homeModules."feat/tools/git"
-      self.homeModules."feat/tools/nvim"
+      self.homeModules."feat/desktop/browser/firefox"
+      self.homeModules."feat/dev/git"
+      self.homeModules."feat/dev/nvim"
       self.homeModules."feat/terminal/shell/zsh"
     ];
   };
@@ -31,8 +31,8 @@ in {
     ...
   }: {
     imports = [
+      self.nixosModules."feat/io/input-actions"
       self.nixosModules."feat/terminal/shell/zsh"
-      self.nixosModules."feat/tools/input-actions"
     ];
     sops.secrets."passwords/${username}".neededForUsers = true;
     users.users.${username} = {
@@ -52,32 +52,32 @@ in {
     home-manager.users.${username} = {config, ...}: {
       imports = [
         self.homeModules."feat/ai/pi"
-        self.homeModules."feat/browser/helium"
-        self.homeModules."feat/desktop-manager/niri"
-        self.homeModules."feat/desktop-shell/dms"
-        self.homeModules."feat/file-manager/thunar"
+        self.homeModules."feat/desktop/browser/helium"
+        self.homeModules."feat/desktop/file-manager/thunar"
+        self.homeModules."feat/desktop/manager/niri"
+        self.homeModules."feat/desktop/shell/awww"
+        self.homeModules."feat/desktop/shell/dms"
+        self.homeModules."feat/dev/git"
+        self.homeModules."feat/dev/nvim"
         self.homeModules."feat/gaming/discord"
         self.homeModules."feat/gaming/harbourmasters"
         self.homeModules."feat/gaming/retroarch"
-        self.homeModules."feat/gaming/streamlink"
+        self.homeModules."feat/io/input-actions"
+        self.homeModules."feat/io/kanshi"
+        self.homeModules."feat/media/playback/ani-cli"
+        self.homeModules."feat/media/playback/spotify"
+        self.homeModules."feat/media/playback/streamlink"
+        self.homeModules."feat/media/reader/evince"
+        self.homeModules."feat/media/services/torrra"
+        self.homeModules."feat/sync/maestral"
         self.homeModules."feat/system/mime"
         self.homeModules."feat/system/systools"
         self.homeModules."feat/system/theme"
-        self.homeModules."feat/tools/ani-cli"
-        self.homeModules."feat/tools/awww"
-        self.homeModules."feat/tools/evince"
-        self.homeModules."feat/tools/git"
-        self.homeModules."feat/tools/input-actions"
-        self.homeModules."feat/tools/kanshi"
-        self.homeModules."feat/tools/maestral"
-        self.homeModules."feat/tools/nvim"
-        self.homeModules."feat/tools/spotify"
-        self.homeModules."feat/tools/torrra"
         self.homeModules."feat/terminal/emulator/foot"
         self.homeModules."feat/terminal/emulator/ghostty"
         self.homeModules."feat/terminal/shell/zsh"
       ];
-      mod."feat/tools/awww".img =
+      mod."feat/desktop/shell/awww".img =
         ../../../assets/wallpapers/girl_leaving_apartment.png;
       mod."feat/gaming/harbourmasters" =
         builtins.mapAttrs (_: paths: {
@@ -107,7 +107,7 @@ in {
     };
     nix.settings.trusted-users = [username];
     home-manager.users.${username}.imports = [
-      self.homeModules."feat/tools/git"
+      self.homeModules."feat/dev/git"
       self.homeModules."feat/terminal/shell/zsh"
     ];
   };

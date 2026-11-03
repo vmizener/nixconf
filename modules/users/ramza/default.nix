@@ -21,16 +21,16 @@ in {
       shell = pkgs.zsh;
     };
     home-manager.users.${username}.imports = [
-      self.homeModules."feat/browser/firefox"
-      self.homeModules."feat/browser/helium"
-      self.homeModules."feat/desktop-manager/xfce"
+      self.homeModules."feat/desktop/browser/firefox"
+      self.homeModules."feat/desktop/browser/helium"
+      self.homeModules."feat/desktop/launcher/kando"
+      self.homeModules."feat/desktop/manager/xfce"
+      self.homeModules."feat/dev/git"
+      self.homeModules."feat/dev/nvim"
       self.homeModules."feat/gaming/discord"
-      self.homeModules."feat/gaming/streamlink"
+      self.homeModules."feat/media/playback/streamlink"
+      self.homeModules."feat/sync/maestral"
       self.homeModules."feat/system/systools"
-      self.homeModules."feat/tools/git"
-      self.homeModules."feat/tools/kando"
-      self.homeModules."feat/tools/maestral"
-      self.homeModules."feat/tools/nvim"
       self.homeModules."feat/terminal/emulator/foot"
       self.homeModules."feat/terminal/shell/zsh"
     ];

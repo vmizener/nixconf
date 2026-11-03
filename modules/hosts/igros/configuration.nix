@@ -18,12 +18,12 @@ in {
       self.nixosModules."users/bao@igros"
       self.nixosModules."users/ramza@igros"
 
-      self.nixosModules."feat/desktop-manager/xfce"
-      self.nixosModules."feat/display-manager/greetd"
+      self.nixosModules."feat/desktop/greeter/greetd"
+      self.nixosModules."feat/desktop/manager/xfce"
 
       self.nixosModules."feat/gaming/steam"
       self.nixosModules."feat/gaming/sunshine"
-      self.nixosModules."feat/system/audio"
+      self.nixosModules."feat/io/audio"
       self.nixosModules."feat/system/earlyoom"
       self.nixosModules."feat/system/keyring"
       self.nixosModules."feat/system/locale"

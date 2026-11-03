@@ -1,0 +1,67 @@
+/*
+  feat/desktop/shell/awww
+
+Enables AWWW wallpaper service.
+
+Exposes:
+
+- flake.homeModules."feat/desktop/shell/awww":
+*/
+let
+  moduleName = "feat/desktop/shell/awww";
+in {
+  flake.homeModules."common/options" = {lib, ...}: {
+    options.mod.${moduleName} = {
+      img = lib.mkOption {
+        type = lib.types.path;
+        description = "Path to image used for wallpaper";
+        default = ../../../../assets/wallpapers/fog_forest.webp;
+      };
+      flags = lib.mkOption {
+        type = lib.types.str;
+        description = "Additional string arguments to add to `awww` command";
+        default = "--resize stretch";
+      };
+    };
+  };
+  flake.homeModules.${moduleName} = {
+    config,
+    pkgs,
+    ...
+  }: let
+    cfg = config.mod.${moduleName};
+    pkg = pkgs.awww;
+  in {
+    mod.meta.imported = [moduleName];
+    home.packages = [pkg];
+    systemd.user.services.awww = {
+      Install = {
+        WantedBy = ["graphical-session.target"];
+      };
+      Unit = {
+        Description = "AWWW daemon";
+        After = ["graphical-session.target"];
+      };
+      Service = {
+        Type = "simple";
+        ExecStart = "${pkg}/bin/awww-daemon";
+        ExecStartPost = pkgs.writeShellScript "awww-set-wallpaper" ''
+          ${pkg}/bin/awww clear-cache
+          for i in $(seq 1 10); do
+            if ${pkg}/bin/awww img ${cfg.flags} ${cfg.img}; then
+              exit 0
+            fi
+            sleep 0.25
+          done
+
+          echo "awww-daemon did not become ready" >&2
+          exit 1
+        '';
+        ExecStop = "${pkg}/bin/awww kill";
+        Restart = "on-failure";
+        RestartSec = "3";
+        TimeoutStopSec = "1s";
+      };
+    };
+  };
+}
