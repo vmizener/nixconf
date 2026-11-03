@@ -25,11 +25,16 @@ in {
   };
 
   # @Baohaus (Nixos)
-  flake.nixosModules."users/${username}@baohaus" = {pkgs, ...}: {
+  flake.nixosModules."users/${username}@baohaus" = {
+    config,
+    pkgs,
+    ...
+  }: {
     imports = [
       self.nixosModules."feat/terminal/shell/zsh"
       self.nixosModules."feat/tools/input-actions"
     ];
+    sops.secrets."passwords/${username}".neededForUsers = true;
     users.users.${username} = {
       isNormalUser = true;
       description = username;
@@ -41,7 +46,7 @@ in {
         "video"
         "wheel"
       ];
-      initialPassword = "gobears";
+      hashedPasswordFile = config.sops.secrets."passwords/${username}".path;
       shell = pkgs.zsh;
     };
     home-manager.users.${username} = {config, ...}: {

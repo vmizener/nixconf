@@ -38,25 +38,44 @@ in {
   flake.nixosModules.${moduleName} = {
     config,
     lib,
+    options,
     ...
   }: let
     cfg = config.mod.${moduleName};
   in {
     config = {
       mod.imported = [moduleName];
-      virtualisation.vmVariant = {
-        mod.${moduleName}.isVm = true;
-        services.qemuGuest.enable = true;
-        services.getty.autologinUser = lib.mkIf (cfg.autologinUser != null) cfg.autologinUser;
-        virtualisation = {
-          memorySize = 4096; # use 4GiB memory
-          cores = 3; # use 3 cpu cores
-          qemu.options = [
-            "-device virtio-vga-gl"
-            "-display sdl,gl=on"
-          ];
+      virtualisation.vmVariant =
+        {
+          mod.${moduleName}.isVm = true;
+          services.qemuGuest.enable = true;
+          services.getty.autologinUser = lib.mkIf (cfg.autologinUser != null) cfg.autologinUser;
+          users.users =
+            config.users.users
+            |> lib.filterAttrs (_: u: u.isNormalUser)
+            |> lib.mapAttrs (_: _: {
+              hashedPasswordFile = lib.mkVMOverride null;
+              initialPassword = lib.mkVMOverride "vm";
+            });
+          virtualisation = {
+            memorySize = 4096; # use 4GiB memory
+            cores = 3; # use 3 cpu cores
+            qemu.options = [
+              "-device virtio-vga-gl"
+              "-display sdl,gl=on"
+            ];
+          };
+        }
+        // lib.optionalAttrs (options ? sops) {
+          sops = {
+            validateSopsFiles = lib.mkVMOverride false;
+            secrets =
+              config.sops.secrets
+              |> lib.mapAttrs (_: _: {
+                neededForUsers = lib.mkVMOverride false;
+              });
+          };
         };
-      };
     };
   };
 

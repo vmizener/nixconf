@@ -13,6 +13,7 @@
     imports = [
       self.homeModules."common/options"
       self.homeModules."common/sops"
+      self.homeModules."common/ssh"
     ];
     home = {
       stateVersion = lib.mkDefault "25.11";
@@ -71,6 +72,7 @@
       self.nixosModules."common/net"
       self.nixosModules."common/options"
       self.nixosModules."common/sops"
+      self.nixosModules."common/ssh"
     ];
     home-manager = {
       useGlobalPkgs = lib.mkDefault true;
@@ -106,6 +108,5 @@
       enable = lib.mkDefault true;
       flake = lib.mkDefault config.mod.nixconf.path;
     };
-    services.openssh.enable = true;
   };
 }

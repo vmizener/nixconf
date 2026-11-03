@@ -52,6 +52,7 @@ in {
 
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";
+    users.mutableUsers = false;
 
     boot = {
       binfmt.emulatedSystems = ["aarch64-linux"]; # Allow building aarch64-linux
