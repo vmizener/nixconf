@@ -47,7 +47,10 @@ in {
       mod.meta.imported = [moduleName];
       virtualisation.vmVariant =
         {
-          mod.${moduleName}.isVm = true;
+          mod = {
+            meta.flakePath = lib.mkVMOverride "${self}"; # mount flake store source for symlink support
+            ${moduleName}.isVm = true;
+          };
           services.qemuGuest.enable = true;
           services.getty.autologinUser = lib.mkIf (cfg.autologinUser != null) cfg.autologinUser;
           users.users =
