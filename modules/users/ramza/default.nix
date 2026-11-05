@@ -22,16 +22,15 @@ in {
     };
     home-manager.users.${username}.imports = [
       self.homeModules."feat/desktop/browser/firefox"
-      self.homeModules."feat/desktop/browser/helium"
-      self.homeModules."feat/desktop/launcher/kando"
       self.homeModules."feat/desktop/manager/xfce"
       self.homeModules."feat/dev/git"
       self.homeModules."feat/dev/nvim"
       self.homeModules."feat/gaming/discord"
       self.homeModules."feat/media/playback/streamlink"
       self.homeModules."feat/sync/maestral"
+      self.homeModules."feat/system/mime"
       self.homeModules."feat/system/systools"
-      self.homeModules."feat/terminal/emulator/foot"
+      self.homeModules."feat/terminal/emulator/ghostty"
       self.homeModules."feat/terminal/shell/zsh"
     ];
   };
