@@ -31,9 +31,6 @@ in {
 
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
-    installedPackages =
-      config.home.packages
-      ++ lib.optionals (osConfig != null) osConfig.environment.systemPackages;
   in {
     mod.meta = {
       imported = [moduleName];
@@ -48,14 +45,17 @@ in {
       zsh = {
         enable = true;
         dotDir = "${config.xdg.configHome}/zsh";
+        defaultKeymap = "viins";
 
-        # Leave `enableCompletion = true` so HM still installs `nix-zsh-completions`
-        # (needed on standalone HM, where NixOS isn't installing it system-wide) and
-        # signals to other HM modules that Zsh completions are enabled, but clear
-        # `completionInit` to skip HM's early `compinit` at `mkOrder 570`—`./zshrc`
-        # runs `compinit` once after loading plugins and before `zinit cdreplay`.
+        # Leave `enableCompletion = true` so HM installs `nix-zsh-completions` and signals
+        # completion support to other HM modules, but skip HM's `compinit` at `mkOrder 570`—
+        # ./zshrc (`mkOrder 550`) runs `compinit` once right after p10k instant prompt.
         completionInit = "";
 
+        autosuggestion = {
+          enable = true;
+          highlight = "fg=#696969";
+        };
         history = {
           size = 5000;
           path = "${config.xdg.stateHome}/zsh/history";
@@ -67,37 +67,41 @@ in {
           ignoreDups = true;
           findNoDups = true;
         };
-        initContent = lib.mkMerge [
-          (lib.mkOrder 500 ''
-            [[ -f "${hmSessionVars}" ]] && source "${hmSessionVars}"
-            [[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"
-            emulate zsh -c "$(${lib.getExe config.programs.direnv.package} export zsh)"
-            # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-            # Initialization code that may require console input (password prompts, [y/n]
-            # confirmations, etc.) must go above this block; everything else may go below.
-            if [[ -r "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh" ]]; then
-              source "''${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-''${(%):-%n}.zsh"
-            fi
-          '')
-          (lib.mkOrder 1000 (
-            lib.strings.concatStringsSep "\n" (
-              [
-                (builtins.readFile ./zshrc)
-                "source ${./p10k.zsh}"
-              ]
-              ++ (import ./_aliases.nix {
-                inherit config lib;
-                installed = installedPackages;
-              })
-              ++ cfg.extraConfig
-            )
-          ))
-        ];
+        historySubstringSearch = {
+          enable = true;
+          searchUpKey = [
+            "^[[A"
+            "^k"
+          ];
+          searchDownKey = [
+            "^[[B"
+            "^j"
+          ];
+        };
+        syntaxHighlighting.enable = true;
+        envExtra = ''
+          [[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"
+        '';
+        initContent = lib.mkOrder 550 "source ${pkgs.replaceVars ./zshrc {
+          ALIASES = lib.concatStringsSep "\n" (import ./_aliases.nix {
+            inherit config lib;
+            installed = config.home.packages ++ lib.optionals (osConfig != null) osConfig.environment.systemPackages;
+          });
+          DIRENV = lib.getExe config.programs.direnv.package;
+          EXTRA_CONFIG = lib.concatStringsSep "\n" cfg.extraConfig;
+          FZF_HISTORY_SEARCH = "${pkgs.zsh-fzf-history-search}/share/zsh-fzf-history-search/zsh-fzf-history-search.plugin.zsh";
+          FZF_TAB = "${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh";
+          HM_NIX_PROFILE = hmNixProfile;
+          HM_SESSION_VARS = hmSessionVars;
+          P10K_CONFIG = "${./p10k.zsh}";
+          P10K_THEME = "${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+        }}";
       };
     };
     home = {
       packages = with pkgs; [
         fzf
+        zsh-completions
       ];
     };
     xdg.configFile."direnv/direnv.toml".text = ''
@@ -111,7 +115,7 @@ in {
       enable = true;
 
       # Keep `enableCompletion = true` (links `/share/zsh` + installs `nix-zsh-completions`),
-      # but skip `/etc/zshrc`'s `compinit` so it only runs once in `./zshrc`.
+      # but skip `/etc/zshrc`'s `compinit` so Home-Manager runs it once in `.zshrc`.
       enableGlobalCompInit = false;
     };
   };
