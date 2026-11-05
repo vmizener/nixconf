@@ -23,6 +23,6 @@ in {
       self.homeModules."feat/terminal/shell/zsh"
     ];
     home.username = username;
-    mod."feat/system/systools".categories = ["core" "sysadmin"];
+    mod."feat/system/systools".categories = ["core" "sysadmin" "media"];
   };
 }

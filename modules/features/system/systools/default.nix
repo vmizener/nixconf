@@ -4,7 +4,7 @@
 Provides common utilities used for system administration and associated functionality.
 
 Set mod.${moduleName}.categories to specify requested toolsets.
-Available toolsets: ["core", "sysadmin", "desktop"] (default is all)
+Available toolsets: ["core", "sysadmin", "media", "desktop"] (default is all)
 
 Exposes:
 

@@ -4,6 +4,14 @@
   ...
 }: let
   moduleName = "common";
+
+  commonPackages = pkgs:
+    with pkgs; [
+      git # VCS for managing flake repository
+      jq # JSON processor used by flake scripts
+      just # Command runner for repo recipes
+      wget # Downloader used by bootstrap scripts
+    ];
 in {
   flake.homeModules.${moduleName} = {
     config,
@@ -22,6 +30,9 @@ in {
       stateVersion = lib.mkDefault "25.11";
       homeDirectory = lib.mkOptionDefault "/home/${config.home.username}";
       sessionPath = ["${config.home.profileDirectory}/bin"];
+      packages = lib.mkIf (osConfig == null || !(osConfig.mod.meta.has moduleName)) (
+        commonPackages pkgs
+      );
     };
     nix =
       {
@@ -68,6 +79,7 @@ in {
   flake.nixosModules.${moduleName} = {
     config,
     lib,
+    pkgs,
     ...
   }: {
     imports = [
@@ -103,11 +115,14 @@ in {
       ];
     };
     nixpkgs.config.allowUnfree = true;
-    environment.pathsToLink = [
-      # Needed by xdg.portal in the case no desktop is imported
-      "/share/applications"
-      "/share/xdg-desktop-portal"
-    ];
+    environment = {
+      systemPackages = commonPackages pkgs;
+      pathsToLink = [
+        # Needed by xdg.portal in the case no desktop is imported
+        "/share/applications"
+        "/share/xdg-desktop-portal"
+      ];
+    };
     programs.nh = {
       enable = lib.mkDefault true;
       flake = lib.mkDefault config.mod.meta.flakePath;
