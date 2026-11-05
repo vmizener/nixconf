@@ -55,11 +55,6 @@
   block = c: _: c;
 in [
   {
-    spawn-at-startup = [
-      "${pkgs.dbus}/bin/dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=X-NIXOS-SYSTEMD-AWARE"
-    ];
-  }
-  {
     environment = {
       QT_QPA_PLATFORM = "wayland";
       NIRI_NO_HARDWARE_CURSORS = "1";

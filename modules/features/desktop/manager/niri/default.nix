@@ -9,12 +9,26 @@ Exposes:
   - Configures Niri wayland compositor and startup applications.
 
 - flake.nixosModules."feat/desktop/manager/niri":
-  - Enables Niri wayland session and UWSM integration.
+  - Enables Niri wayland session and XDG desktop portals.
 */
-{inputs, ...}: let
+{
+  inputs,
+  lib,
+  ...
+}: let
   moduleName = "feat/desktop/manager/niri";
+
+  # Overrides niri-portals.conf from configPackages so FileChooser uses GTK
+  # instead of xdg-desktop-portal-gnome (which requires Nautilus).
+  niriPortalConfig = {
+    default = lib.mkDefault ["gnome" "gtk"];
+    "org.freedesktop.impl.portal.Access" = lib.mkDefault "gtk";
+    "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault "gtk";
+    "org.freedesktop.impl.portal.Notification" = lib.mkDefault "gtk";
+    "org.freedesktop.impl.portal.Secret" = lib.mkDefault "gnome-keyring";
+  };
 in {
-  flake.homeModules."common/options" = {lib, ...}: {
+  flake.homeModules."common/options" = {...}: {
     options.mod.${moduleName} = {
       extraConfig = lib.mkOption {
         type = lib.types.str;
@@ -43,6 +57,14 @@ in {
         programs.niri = {
           enable = true;
           package = config.lib.nixGL.wrap pkgs.niri-unstable;
+        };
+        xdg.portal = {
+          extraPortals = with pkgs; [
+            gnome-keyring
+            xdg-desktop-portal-gtk
+          ];
+          config.niri = niriPortalConfig;
+          xdgOpenUsePortal = lib.mkDefault true;
         };
       })
       {
@@ -88,20 +110,13 @@ in {
         enable = true;
         package = pkg;
       };
-      programs.uwsm.waylandCompositors = {
-        enable = true;
-        niri = {
-          compositorPrettyName = "Niri";
-          compositorComment = "Niri compositor managed by UWSM";
-          compositorBinPath = "${pkg}/bin/niri";
-        };
+      xdg.portal = {
+        extraPortals = [pkgs.xdg-desktop-portal-gtk];
+        config.niri = niriPortalConfig;
       };
       environment = {
         sessionVariables.NIXOS_OZONE_WL = "1";
         systemPackages = with pkgs; [xwayland-satellite-unstable];
-      };
-      systemd.services.display-manager.environment = {
-        XDG_CURRENT_DESKTOP = "X-NIXOS-SYSTEMD-AWARE";
       };
     };
   };

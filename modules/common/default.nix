@@ -65,16 +65,6 @@ in {
     };
     systemd.user.startServices = "sd-switch"; # Reload system units on config change
     xdg.enable = true; # Enable XDG directory management
-    xdg.portal = {
-      enable = true;
-      config = {
-        common.default = ["gtk"];
-      };
-      extraPortals = with pkgs; [
-        xdg-desktop-portal-gtk
-      ];
-      xdgOpenUsePortal = true;
-    };
   };
   flake.nixosModules.${moduleName} = {
     config,
@@ -127,5 +117,6 @@ in {
       enable = lib.mkDefault true;
       flake = lib.mkDefault config.mod.meta.flakePath;
     };
+    xdg.portal.xdgOpenUsePortal = lib.mkDefault true;
   };
 }
