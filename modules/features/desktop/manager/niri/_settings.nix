@@ -61,9 +61,7 @@ in [
   }
   {
     environment = {
-      DISPLAY = ":0";
       QT_QPA_PLATFORM = "wayland";
-      WAYLAND_DISPLAY = "wayland-1";
       NIRI_NO_HARDWARE_CURSORS = "1";
     };
   }
