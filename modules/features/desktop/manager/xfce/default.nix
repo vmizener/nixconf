@@ -15,6 +15,16 @@ Exposes:
 {...}: let
   moduleName = "feat/desktop/manager/xfce";
 in {
+  flake.homeModules."common/options" = {lib, ...}: {
+    options.mod.${moduleName} = {
+      wallpaper = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = ../../../../../assets/wallpapers/girl_adjusting_glasses.png;
+        description = "Path to image used for the XFCE desktop wallpaper.";
+      };
+    };
+  };
+
   flake.homeModules.${moduleName} = {
     config,
     lib,
@@ -38,9 +48,8 @@ in {
       })
     ];
 
-  flake.nixosModules.${moduleName} = {pkgs, ...}: {
+  flake.nixosModules.${moduleName} = {...}: {
     mod.meta.imported = [moduleName];
-    programs.gdk-pixbuf.modulePackages = [pkgs.webp-pixbuf-loader];
     services.xserver = {
       enable = true;
       desktopManager = {

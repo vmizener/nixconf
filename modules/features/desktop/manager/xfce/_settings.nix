@@ -9,7 +9,13 @@
   isVm = isNixOs && osConfig.mod."feat/vm".isVm;
 
   # Settings
-  wallpaper = "${../../../../../assets/wallpapers/fog_forest.webp}";
+  cfg =
+    if isHm
+    then hmConfig.mod."feat/desktop/manager/xfce"
+    else {wallpaper = null;};
+  hasWallpaper = isHm && cfg.wallpaper != null;
+  wallpaperRelPath = "wallpapers/${builtins.baseNameOf (toString cfg.wallpaper)}";
+  wallpaper = "${hmConfig.xdg.dataHome}/${wallpaperRelPath}";
 
   mimeEnabled = isHm && hmConfig.mod."feat/system/mime".enable;
   mimeDefault = mimeType: fallback: let
@@ -49,39 +55,46 @@ in {
       TerminalEmulator=custom-TerminalEmulator
       WebBrowser=custom-WebBrowser
     '';
-    dataFile = {
-      "xfce4/helpers/custom-TerminalEmulator.desktop".text = mkHelper {
-        category = "TerminalEmulator";
-        cmd = terminal;
-        cmdWithParam = "${terminal} -e %s";
-        icon = "utilities-terminal";
+    dataFile =
+      {
+        "xfce4/helpers/custom-TerminalEmulator.desktop".text = mkHelper {
+          category = "TerminalEmulator";
+          cmd = terminal;
+          cmdWithParam = "${terminal} -e %s";
+          icon = "utilities-terminal";
+        };
+        "xfce4/helpers/custom-WebBrowser.desktop".text = mkHelper {
+          category = "WebBrowser";
+          cmd = browser;
+          cmdWithParam = ''${browser} "%s"'';
+          icon = "web-browser";
+        };
+      }
+      // lib.optionalAttrs hasWallpaper {
+        ${wallpaperRelPath}.source = cfg.wallpaper;
       };
-      "xfce4/helpers/custom-WebBrowser.desktop".text = mkHelper {
-        category = "WebBrowser";
-        cmd = browser;
-        cmdWithParam = ''${browser} "%s"'';
-        icon = "web-browser";
-      };
-    };
   };
   xfconf = {
     enable = true;
-    settings = {
-      xfce4-desktop =
-        {
-          "backdrop/screen0/monitor0/image-path" = wallpaper;
-          "backdrop/screen0/monitor0/image-show" = true;
-          "backdrop/screen0/monitor0/workspace0/image-style" = 5;
-          "backdrop/screen0/monitor0/workspace0/last-image" = wallpaper;
-        }
-        // lib.optionalAttrs isVm {
-          "backdrop/screen0/monitorVirtual-1/workspace0/image-style" = 5;
-          "backdrop/screen0/monitorVirtual-1/workspace0/last-image" = wallpaper;
+    settings =
+      {
+        xfce4-keyboard-shortcuts = {
+          "commands/custom/override" = true;
+          "commands/custom/<${modKey}>Return" = terminal;
         };
-      xfce4-keyboard-shortcuts = {
-        "commands/custom/override" = true;
-        "commands/custom/<${modKey}>Return" = terminal;
+      }
+      // lib.optionalAttrs hasWallpaper {
+        xfce4-desktop =
+          {
+            "backdrop/screen0/monitor0/image-path" = wallpaper;
+            "backdrop/screen0/monitor0/image-show" = true;
+            "backdrop/screen0/monitor0/workspace0/image-style" = 5;
+            "backdrop/screen0/monitor0/workspace0/last-image" = wallpaper;
+          }
+          // lib.optionalAttrs isVm {
+            "backdrop/screen0/monitorVirtual-1/workspace0/image-style" = 5;
+            "backdrop/screen0/monitorVirtual-1/workspace0/last-image" = wallpaper;
+          };
       };
-    };
   };
 }
