@@ -90,7 +90,10 @@ in {
           DIRENV = lib.getExe config.programs.direnv.package;
           EXTRA_CONFIG = lib.concatStringsSep "\n" cfg.extraConfig;
           FZF_HISTORY_SEARCH = "${pkgs.zsh-fzf-history-search}/share/zsh-fzf-history-search/zsh-fzf-history-search.plugin.zsh";
-          FZF_TAB = "${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh";
+          FZF_TAB =
+            if osConfig != null
+            then "${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh"
+            else "${pkgs.zsh-fzf-tab.src}/fzf-tab.plugin.zsh";
           HM_NIX_PROFILE = hmNixProfile;
           HM_SESSION_VARS = hmSessionVars;
           P10K_CONFIG = "${./p10k.zsh}";
