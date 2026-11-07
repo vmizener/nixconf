@@ -11,6 +11,7 @@
         ];
         packages = with pkgs; [
           pre-commit
+          sops
 
           (python3.withPackages (ps:
             with ps; [
