@@ -26,15 +26,15 @@ update-packages:
 update-manifest *args="":
     ./scripts/update-assets-manifest.py {{args}}
 
-# Add sops entry for current host/user
+# Add sops entry for current or remote host/user
 [group('sops')]
-sops-init:
-    ./scripts/sops-init.sh
+sops-init *args="":
+    ./scripts/sops.py init {{args}}
 
 # Update sops encryption
 [group('sops')]
-sops-update:
-    ./scripts/sops-update.sh
+sops-update *args="":
+    ./scripts/sops.py update {{args}}
 
 # Launch VM for given host (see `just show` for host options)
 [group('vm')]
