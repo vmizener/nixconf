@@ -67,7 +67,7 @@ in {
         self.homeModules."feat/media/playback/ani-cli"
         self.homeModules."feat/media/playback/spotify"
         self.homeModules."feat/media/playback/streamlink"
-        self.homeModules."feat/media/reader/evince"
+        self.homeModules."feat/media/reader/zathura"
         self.homeModules."feat/media/services/torrra"
         self.homeModules."feat/sync/maestral"
         self.homeModules."feat/system/mime"
