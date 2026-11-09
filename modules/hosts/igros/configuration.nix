@@ -36,6 +36,7 @@ in {
 
     system.stateVersion = "24.05";
     networking.hostName = "${hostname}";
+    users.mutableUsers = false;
 
     boot.loader = {
       grub = {
