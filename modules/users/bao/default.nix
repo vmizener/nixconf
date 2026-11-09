@@ -96,10 +96,15 @@ in {
   };
 
   # @Zeltennia (Nixos)
-  flake.nixosModules."users/${username}@zeltennia" = {pkgs, ...}: {
+  flake.nixosModules."users/${username}@zeltennia" = {
+    config,
+    pkgs,
+    ...
+  }: {
     imports = [
       self.nixosModules."feat/terminal/shell/zsh"
     ];
+    sops.secrets."passwords/${username}".neededForUsers = true;
     users.users.${username} = {
       isNormalUser = true;
       description = username;
@@ -107,7 +112,7 @@ in {
         "networkmanager"
         "wheel"
       ];
-      initialPassword = "gobears";
+      hashedPasswordFile = config.sops.secrets."passwords/${username}".path;
       shell = pkgs.zsh;
     };
     nix.settings.trusted-users = [username];

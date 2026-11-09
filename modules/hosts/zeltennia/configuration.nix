@@ -41,5 +41,6 @@ in {
 
     system.stateVersion = "25.11";
     networking.hostName = "${hostname}";
+    users.mutableUsers = false;
   };
 }
