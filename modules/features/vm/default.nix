@@ -37,6 +37,21 @@ in {
         example = "bao";
         description = "User to automatically log in on TTYs inside the VM";
       };
+      memorySize = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 4096;
+        description = "Memory size in MiB allocated to the VM";
+      };
+      cores = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 3;
+        description = "Number of CPU cores allocated to the VM";
+      };
+      graphics = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable graphical SDL/OpenGL display for the VM";
+      };
     };
   };
   flake.nixosModules.${moduleName} = {
@@ -47,43 +62,57 @@ in {
   }: let
     cfg = config.mod.${moduleName};
   in {
-    config = {
-      mod.meta.imported = [moduleName];
-      virtualisation.vmVariant =
-        {
-          mod = {
-            meta.flakePath = lib.mkVMOverride "${self}"; # mount flake store source for symlink support
-            ${moduleName}.isVm = true;
+    config = lib.mkMerge [
+      {
+        mod.meta.imported = [moduleName];
+        virtualisation.vmVariant =
+          {
+            mod = {
+              meta.flakePath = lib.mkVMOverride "${self}"; # mount flake store source for symlink support
+              ${moduleName}.isVm = lib.mkVMOverride true;
+            };
+            hardware.graphics.enable = lib.mkIf cfg.graphics (lib.mkDefault true);
+            services.qemuGuest.enable = true;
+            services.getty.autologinUser = lib.mkIf (cfg.autologinUser != null) cfg.autologinUser;
+            users.users =
+              config.users.users
+              |> lib.filterAttrs (_: u: u.isNormalUser)
+              |> lib.mapAttrs (_: _: {
+                hashedPasswordFile = lib.mkVMOverride null;
+                initialPassword = lib.mkVMOverride "vm";
+              });
+            virtualisation = {
+              inherit (cfg) memorySize cores graphics;
+              qemu.options = lib.optionals cfg.graphics [
+                "-device virtio-vga-gl"
+                "-display sdl,gl=on"
+              ];
+            };
+          }
+          // lib.optionalAttrs (options ? sops) {
+            sops = {
+              validateSopsFiles = lib.mkVMOverride false;
+              secrets =
+                config.sops.secrets
+                |> lib.mapAttrs (_: _: {
+                  neededForUsers = lib.mkVMOverride false;
+                });
+            };
           };
-          services.qemuGuest.enable = true;
-          services.getty.autologinUser = lib.mkIf (cfg.autologinUser != null) cfg.autologinUser;
-          users.users =
-            config.users.users
-            |> lib.filterAttrs (_: u: u.isNormalUser)
-            |> lib.mapAttrs (_: _: {
-              hashedPasswordFile = lib.mkVMOverride null;
-              initialPassword = lib.mkVMOverride "vm";
-            });
-          virtualisation = {
-            memorySize = 4096; # use 4GiB memory
-            cores = 3; # use 3 cpu cores
-            qemu.options = [
-              "-device virtio-vga-gl"
-              "-display sdl,gl=on"
-            ];
+      }
+      (lib.mkIf cfg.isVm (
+        {
+          boot.loader.grub.enable = lib.mkDefault false;
+          fileSystems."/" = {
+            device = lib.mkDefault "/dev/vda";
+            fsType = lib.mkDefault "ext4";
           };
         }
         // lib.optionalAttrs (options ? sops) {
-          sops = {
-            validateSopsFiles = lib.mkVMOverride false;
-            secrets =
-              config.sops.secrets
-              |> lib.mapAttrs (_: _: {
-                neededForUsers = lib.mkVMOverride false;
-              });
-          };
-        };
-    };
+          sops.validateSopsFiles = lib.mkDefault false;
+        }
+      ))
+    ];
   };
 
   perSystem = {

@@ -55,6 +55,14 @@ color_scheme = "dark"
 dominant_color = "#152127"
 palette = ["#505d7b", "#3b3847", "#0b222a", "#03120d", "#000301"]
 
+[wallpapers.fft_agrias]
+file = "wallpapers/fft_agrias.jpg"
+width = 1920
+height = 1080
+aspect_ratio = "16:9"
+color_scheme = "light"
+dominant_color = "#8d7f7a"
+palette = ["#c7b9a4", "#a19080", "#90837d", "#8e837c", "#524857"]
 [icons]
 
 [icons.baozi]
