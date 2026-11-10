@@ -66,7 +66,11 @@ in {
           comma
         ];
         programs.nix-index.enable = true;
-        xdg.configFile."ov/config.yaml".source = config.mod.meta.link ./ov.yaml;
+        xdg.configFile."ov/config.yaml".source = config.mod.meta.link ./configs/ov.yaml;
+      })
+      # Sysadmin-Only Config
+      (lib.mkIf (hasCategory "sysadmin") {
+        xdg.configFile."btop/btop.conf".source = config.mod.meta.link ./configs/btop.conf;
       })
       # Desktop-Only Config
       (lib.mkIf (hasCategory "desktop") {
