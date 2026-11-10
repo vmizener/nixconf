@@ -50,7 +50,12 @@ in {
       graphics = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Enable graphical SDL/OpenGL display for the VM";
+        description = "Enable graphical SDL display for the VM";
+      };
+      gl = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable OpenGL/VirGL acceleration for the graphical display";
       };
       resolution = lib.mkOption {
         type = lib.types.nullOr (lib.types.submodule {
@@ -104,16 +109,24 @@ in {
                 hashedPasswordFile = lib.mkVMOverride null;
                 initialPassword = lib.mkVMOverride "vm";
               });
-            virtualisation = {
+            virtualisation = let
+              vgaDevice =
+                if cfg.gl
+                then "virtio-vga-gl"
+                else "virtio-vga";
+              resOpts =
+                lib.optionalString (cfg.resolution != null)
+                ",edid=on,xres=${toString cfg.resolution.width},yres=${toString cfg.resolution.height}";
+              sdlOpts =
+                if cfg.gl
+                then "sdl,gl=on"
+                else "sdl";
+            in {
               inherit (cfg) memorySize cores graphics;
               qemu.options = lib.optionals cfg.graphics [
                 "-vga none"
-                (
-                  "-device virtio-vga-gl"
-                  + lib.optionalString (cfg.resolution != null)
-                  ",edid=on,xres=${toString cfg.resolution.width},yres=${toString cfg.resolution.height}"
-                )
-                "-display sdl,gl=on"
+                "-device ${vgaDevice}${resOpts}"
+                "-display ${sdlOpts}"
               ];
             };
           }
