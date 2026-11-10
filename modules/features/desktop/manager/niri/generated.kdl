@@ -5,7 +5,5 @@ xwayland-satellite {
 @VM_INPUT@
 
 binds {
-    @BIND_TERMINAL@
-    @BIND_LAUNCHER@
-    @BIND_KANDO@
+@BINDS@
 }

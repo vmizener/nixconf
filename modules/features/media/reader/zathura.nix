@@ -14,6 +14,10 @@ in {
     mod.meta.imported = [moduleName];
     programs.zathura.enable = true;
 
-    mod."common/mime".add.pdfViewer."org.pwmt.zathura.desktop" = 100;
+    mod."common/handlers".add.pdfViewer.zathura = {
+      priority = 100;
+      label = "Zathura";
+      desktop = "org.pwmt.zathura.desktop";
+    };
   };
 }

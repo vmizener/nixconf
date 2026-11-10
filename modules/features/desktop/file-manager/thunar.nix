@@ -13,6 +13,11 @@ in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
     mod.meta.imported = [moduleName];
     home.packages = with pkgs; [thunar];
-    mod."common/mime".add.fileManager."thunar.desktop" = 150;
+    mod."common/handlers".add.fileManager.thunar = {
+      priority = 150;
+      label = "Thunar";
+      desktop = "thunar.desktop";
+      cmd = ["thunar"];
+    };
   };
 }

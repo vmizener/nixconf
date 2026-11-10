@@ -62,7 +62,11 @@ in {
     xdg.configFile."nvim".source = config.mod.meta.link ./config;
 
     # Mark neovim as preferred editor
-    mod."common/mime".add.editor."nvim.desktop" = 100;
+    mod."common/handlers".add.editor.nvim = {
+      priority = 100;
+      label = "Neovim";
+      desktop = "nvim.desktop";
+    };
     home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
   };
 }

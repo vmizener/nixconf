@@ -14,6 +14,10 @@ in {
     mod.meta.imported = [moduleName];
     home.packages = [pkgs.evince];
 
-    mod."common/mime".add.pdfViewer."evince.desktop" = 150;
+    mod."common/handlers".add.pdfViewer.evince = {
+      priority = 150;
+      label = "Evince";
+      desktop = "evince.desktop";
+    };
   };
 }

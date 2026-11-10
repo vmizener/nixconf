@@ -38,11 +38,32 @@ in {
       settings = builtins.fromJSON (builtins.readFile ./_settings.json);
     };
     programs.dsearch.enable = true;
-    xdg.desktopEntries.dms-spotlight = {
-      name = "DMS Spotlight";
-      exec = "dms ipc spotlight open";
-      noDisplay = true;
+    mod."common/handlers".add = {
+      launcher.dms = {
+        priority = 100;
+        label = "DMS Spotlight";
+        cmd = ["dms" "ipc" "spotlight" "open"];
+      };
+      clipboard.dms = {
+        priority = 100;
+        label = "DMS";
+        cmd = ["dms" "ipc" "call" "clipboard" "toggle"];
+      };
+      notificationsDismiss.dms = {
+        priority = 100;
+        label = "DMS";
+        cmd = ["dms" "ipc" "call" "notifications" "dismissAllPopups"];
+      };
+      notificationsRestore.dms = {
+        priority = 100;
+        label = "DMS";
+        cmd = ["dms" "ipc" "call" "notifications" "toggle"];
+      };
+      powerMenu.dms = {
+        priority = 100;
+        label = "DMS";
+        cmd = ["dms" "ipc" "powermenu" "toggle"];
+      };
     };
-    mod."common/mime".add.launcher."dms-spotlight.desktop" = 100;
   };
 }

@@ -25,28 +25,16 @@ in {
     };
   };
 
-  flake.homeModules.${moduleName} = {
-    config,
-    lib,
-    osConfig ? null,
-    pkgs,
-    ...
-  }:
-    lib.mkMerge [
-      {
-        mod.meta = {
-          imported = [moduleName];
-          asserts = ["pairedNixosFeat"];
-        };
-        home.packages = with pkgs; [
-          kando
-        ];
-      }
-      (import ./_settings.nix {
-        inherit lib osConfig pkgs;
-        hmConfig = config;
-      })
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
+    imports = [./_settings.nix];
+    mod.meta = {
+      imported = [moduleName];
+      asserts = ["pairedNixosFeat"];
+    };
+    home.packages = with pkgs; [
+      kando
     ];
+  };
 
   flake.nixosModules.${moduleName} = {...}: {
     mod.meta.imported = [moduleName];

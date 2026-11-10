@@ -15,6 +15,10 @@ in {
     home.packages = [
       inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
-    mod."common/mime".add.browser."helium.desktop" = 100;
+    mod."common/handlers".add.browser.helium = {
+      priority = 100;
+      label = "Helium";
+      desktop = "helium.desktop";
+    };
   };
 }

@@ -51,9 +51,26 @@ in {
     useFlakeNiri = !isNixOs;
     isVm = isNixOs && osConfig.mod."feat/vm".isVm;
 
-    hasMod = name: config.mod.meta.has name || (isNixOs && osConfig.mod.meta.has name);
-    terminalDesktop = config.mod."common/mime".defaultDesktop "x-scheme-handler/terminal";
-    launcherDesktop = config.mod."common/mime".defaultDesktop "x-scheme-handler/launcher";
+    handlers = config.mod."common/handlers".get;
+    mkBind = key: title: handler:
+      lib.optional (handler != null && handler.cmd != null) (
+        let
+          args = lib.concatMapStringsSep " " builtins.toJSON handler.cmd;
+        in
+          "    " + ''${key} hotkey-overlay-title="${title} (${handler.label})" repeat=false { spawn ${args}; }''
+      );
+    dynamicBinds =
+      [
+        (mkBind "Mod+Return" "Open Terminal" handlers.terminal)
+        (mkBind "Mod+D" "Open Launcher" handlers.launcher)
+        (mkBind "Mod+M" "Open Menu" handlers.menu)
+        (mkBind "Mod+P" "Open Clipboard" handlers.clipboard)
+        (mkBind "Mod+E" "Dismiss Notifications" handlers.notificationsDismiss)
+        (mkBind "Mod+Shift+E" "Restore Notification" handlers.notificationsRestore)
+        (mkBind "Mod+Shift+P" "Open Power Menu" handlers.powerMenu)
+      ]
+      |> lib.flatten
+      |> lib.concatStringsSep "\n";
 
     generatedKdl = pkgs.replaceVars ./generated.kdl {
       XWAYLAND_SATELLITE = lib.getExe pkgs.xwayland-satellite-unstable;
@@ -63,9 +80,7 @@ in {
             mod-key-nested "Mod5"
         }
       '');
-      BIND_TERMINAL = lib.optionalString (terminalDesktop != null) ''Mod+Return hotkey-overlay-title="Open Terminal (${terminalDesktop})" repeat=false { spawn-sh "handlr launch x-scheme-handler/terminal"; }'';
-      BIND_LAUNCHER = lib.optionalString (launcherDesktop != null) ''Mod+D hotkey-overlay-title="Open Launcher (${launcherDesktop})" repeat=false { spawn-sh "handlr launch x-scheme-handler/launcher"; }'';
-      BIND_KANDO = lib.optionalString (hasMod "feat/desktop/launcher/kando") ''Mod+M hotkey-overlay-title="Open Kando Menu" repeat=false { spawn-sh r#"kando --menu "Main Menu""#; }'';
+      BINDS = dynamicBinds;
     };
   in {
     imports = lib.optional useFlakeNiri inputs.niri.homeModules.niri;

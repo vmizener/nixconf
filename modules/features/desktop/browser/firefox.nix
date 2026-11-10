@@ -16,6 +16,11 @@ in {
       enable = true;
       configPath = "${config.xdg.configHome}/mozilla/firefox";
     };
-    mod."common/mime".add.browser."firefox.desktop" = 150;
+    mod."common/handlers".add.browser.firefox = {
+      priority = 150;
+      label = "Firefox";
+      desktop = "firefox.desktop";
+      cmd = ["firefox"];
+    };
   };
 }

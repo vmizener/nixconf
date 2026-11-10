@@ -35,6 +35,11 @@ in {
         theme = "Nocturnal Winter";
       };
     };
-    mod."common/mime".add.terminal."com.mitchellh.ghostty.desktop" = 150;
+    mod."common/handlers".add.terminal.ghostty = {
+      priority = 150;
+      label = "Ghostty";
+      desktop = "com.mitchellh.ghostty.desktop";
+      cmd = ["ghostty"];
+    };
   };
 }

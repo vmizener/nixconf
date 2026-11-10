@@ -23,7 +23,7 @@ in {
     ...
   }: {
     imports = [
-      self.homeModules."common/mime"
+      self.homeModules."common/handlers"
       self.homeModules."common/options"
       self.homeModules."common/sops"
       self.homeModules."common/ssh"

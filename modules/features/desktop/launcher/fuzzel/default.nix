@@ -20,11 +20,10 @@ in {
     xdg.configFile = {
       "fuzzel/fuzzel.ini".source = config.mod.meta.link ./fuzzel.ini;
     };
-    xdg.desktopEntries.fuzzel = {
-      name = "Fuzzel";
-      exec = "fuzzel";
-      noDisplay = true;
+    mod."common/handlers".add.launcher.fuzzel = {
+      priority = 150;
+      label = "Fuzzel";
+      cmd = ["fuzzel"];
     };
-    mod."common/mime".add.launcher."fuzzel.desktop" = 150;
   };
 }

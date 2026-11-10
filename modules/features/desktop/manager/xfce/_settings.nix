@@ -1,109 +1,97 @@
 {
-  hmConfig ? null,
-  osConfig ? null,
+  config,
   lib,
-  pkgs,
+  osConfig ? null,
+  ...
 }: let
-  # Checks
-  isNixOs = osConfig != null;
-  isHm = hmConfig != null;
-  isVm = isNixOs && osConfig.mod."feat/vm".isVm;
-
-  # Settings
-  cfg =
-    if isHm
-    then hmConfig.mod."feat/desktop/manager/xfce"
-    else {wallpaper = null;};
-  hasWallpaper = isHm && cfg.wallpaper != null;
-  wallpaperRelPath = "wallpapers/${builtins.baseNameOf (toString cfg.wallpaper)}";
-  wallpaper = "${hmConfig.xdg.dataHome}/${wallpaperRelPath}";
-
-  mimeEntry = mimeType:
-    if isHm
-    then hmConfig.mod."common/mime".defaultDesktop mimeType
+  cfg = config.mod."feat/desktop/manager/xfce";
+  inherit (config.mod."common/handlers".get) browser terminal;
+  isVm = osConfig != null && osConfig.mod."feat/vm".isVm;
+  termCmd =
+    if terminal != null && terminal.cmd != null
+    then lib.escapeShellArgs terminal.cmd
     else null;
+in
+  lib.mkMerge [
+    {xfconf.enable = true;}
 
-  modKey =
-    if isVm
-    then "Alt"
-    else "Super";
-
-  termExec = pkgs.writeShellScript "xfce-terminal-exec" ''
-    read -r -a cmd <<<"$(handlr get x-scheme-handler/terminal --json | jq -r .cmd)"
-    exec "''${cmd[@]}" -e "$@"
-  '';
-
-  helpers = lib.filter (h: h.entry != null) [
-    {
-      category = "TerminalEmulator";
-      entry = mimeEntry "x-scheme-handler/terminal";
-      cmd = "handlr launch x-scheme-handler/terminal";
-      cmdWithParam = ''${termExec} "%s"'';
-      icon = "utilities-terminal";
-    }
-    {
-      category = "WebBrowser";
-      entry = mimeEntry "x-scheme-handler/http";
-      cmd = "handlr launch x-scheme-handler/http";
-      cmdWithParam = ''handlr launch x-scheme-handler/http -- "%s"'';
-      icon = "web-browser";
-    }
-  ];
-
-  mkHelper = {
-    category,
-    entry,
-    cmd,
-    cmdWithParam,
-    icon,
-  }: ''
-    [Desktop Entry]
-    NoDisplay=true
-    Version=1.0
-    Encoding=UTF-8
-    Type=X-XFCE-Helper
-    X-XFCE-Category=${category}
-    X-XFCE-Commands=${cmd}
-    X-XFCE-CommandsWithParameter=${cmdWithParam}
-    Icon=${icon}
-    Name=${entry}
-  '';
-in {
-  xdg = {
-    configFile = lib.optionalAttrs (helpers != []) {
-      "xfce4/helpers.rc".text = lib.concatLines (map (h: "${h.category}=custom-${h.category}") helpers);
-    };
-    dataFile =
-      lib.listToAttrs (map (h: {
-          name = "xfce4/helpers/custom-${h.category}.desktop";
-          value.text = mkHelper h;
-        })
-        helpers)
-      // lib.optionalAttrs hasWallpaper {
-        ${wallpaperRelPath}.source = cfg.wallpaper;
-      };
-  };
-  xfconf = {
-    enable = true;
-    settings =
-      lib.optionalAttrs (mimeEntry "x-scheme-handler/terminal" != null) {
-        xfce4-keyboard-shortcuts = {
-          "commands/custom/override" = true;
-          "commands/custom/<${modKey}>Return" = "handlr launch x-scheme-handler/terminal";
-        };
-      }
-      // lib.optionalAttrs hasWallpaper {
-        xfce4-desktop =
-          {
-            "backdrop/screen0/monitor0/image-path" = wallpaper;
-            "backdrop/screen0/monitor0/image-show" = true;
-            "backdrop/screen0/monitor0/workspace0/image-style" = 5;
-            "backdrop/screen0/monitor0/workspace0/last-image" = wallpaper;
-          }
-          // lib.optionalAttrs isVm {
-            "backdrop/screen0/monitorVirtual-1/workspace0/image-style" = 5;
-            "backdrop/screen0/monitorVirtual-1/workspace0/last-image" = wallpaper;
+    (let
+      helpers =
+        lib.optionalAttrs (termCmd != null) {
+          TerminalEmulator = {
+            inherit (terminal) label;
+            cmd = termCmd;
+            cmdWithParam = ''${termCmd} -e "%s"'';
+            icon = "utilities-terminal";
           };
+        }
+        // lib.optionalAttrs (browser != null) (let
+          cmd =
+            if browser.cmd != null
+            then lib.escapeShellArgs browser.cmd
+            else "handlr launch x-scheme-handler/http";
+        in {
+          WebBrowser = {
+            inherit (browser) label;
+            inherit cmd;
+            cmdWithParam =
+              if browser.cmd != null
+              then ''${cmd} "%s"''
+              else ''${cmd} -- "%s"'';
+            icon = "web-browser";
+          };
+        });
+    in
+      lib.mkIf (helpers != {}) {
+        xdg.configFile."xfce4/helpers.rc".text =
+          helpers
+          |> lib.mapAttrsToList (cat: _: "${cat}=custom-${cat}")
+          |> lib.concatLines;
+        xdg.dataFile = lib.mapAttrs' (cat: h:
+          lib.nameValuePair "xfce4/helpers/custom-${cat}.desktop" {
+            text = ''
+              [Desktop Entry]
+              NoDisplay=true
+              Version=1.0
+              Encoding=UTF-8
+              Type=X-XFCE-Helper
+              X-XFCE-Category=${cat}
+              X-XFCE-Commands=${h.cmd}
+              X-XFCE-CommandsWithParameter=${h.cmdWithParam}
+              Icon=${h.icon}
+              Name=${h.label}
+            '';
+          })
+        helpers;
+      })
+
+    (lib.mkIf (termCmd != null) {
+      xfconf.settings.xfce4-keyboard-shortcuts = {
+        "commands/custom/override" = true;
+        "commands/custom/<${
+          if isVm
+          then "Alt"
+          else "Super"
+        }>Return" =
+          termCmd;
       };
-  };
-}
+    })
+
+    (lib.mkIf (cfg.wallpaper != null) (let
+      relPath = "wallpapers/${baseNameOf (toString cfg.wallpaper)}";
+      wallpaper = "${config.xdg.dataHome}/${relPath}";
+    in {
+      xdg.dataFile.${relPath}.source = cfg.wallpaper;
+      xfconf.settings.xfce4-desktop =
+        {
+          "backdrop/screen0/monitor0/image-path" = wallpaper;
+          "backdrop/screen0/monitor0/image-show" = true;
+          "backdrop/screen0/monitor0/workspace0/image-style" = 5;
+          "backdrop/screen0/monitor0/workspace0/last-image" = wallpaper;
+        }
+        // lib.optionalAttrs isVm {
+          "backdrop/screen0/monitorVirtual-1/workspace0/image-style" = 5;
+          "backdrop/screen0/monitorVirtual-1/workspace0/last-image" = wallpaper;
+        };
+    }))
+  ]

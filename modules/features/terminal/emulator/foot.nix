@@ -92,6 +92,11 @@ in {
         };
       };
     };
-    mod."common/mime".add.terminal."foot.desktop" = 100;
+    mod."common/handlers".add.terminal.foot = {
+      priority = 100;
+      label = "Foot";
+      desktop = "foot.desktop";
+      cmd = ["foot"];
+    };
   };
 }

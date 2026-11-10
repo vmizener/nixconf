@@ -32,5 +32,10 @@ in {
         RestartSec = "5";
       };
     };
+    mod."common/handlers".add.menu.kando = {
+      priority = 100;
+      label = "Kando";
+      cmd = ["kando" "--menu" "Main Menu"];
+    };
   };
 }
