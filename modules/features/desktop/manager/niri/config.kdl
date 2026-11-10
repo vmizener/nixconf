@@ -119,8 +119,9 @@ window-rule {
 
 // Other Apps
 window-rule {
-    match app-id=r#"qemu"#
-    open-maximized true
+    match app-id=r#"^\.?qemu(-system-[a-zA-Z0-9_]+)?(-wrapped)?$"#
+    match title=r#"^QEMU"#
+    open-floating true
 }
 window-rule {
     match app-id=r#"^discord$"#

@@ -52,6 +52,29 @@ in {
         default = true;
         description = "Enable graphical SDL/OpenGL display for the VM";
       };
+      resolution = lib.mkOption {
+        type = lib.types.nullOr (lib.types.submodule {
+          options = {
+            width = lib.mkOption {
+              type = lib.types.ints.positive;
+              description = "Horizontal resolution in pixels";
+            };
+            height = lib.mkOption {
+              type = lib.types.ints.positive;
+              description = "Vertical resolution in pixels";
+            };
+          };
+        });
+        default = {
+          width = 640;
+          height = 480;
+        };
+        example = {
+          width = 1280;
+          height = 720;
+        };
+        description = "Initial display resolution for graphical VMs";
+      };
     };
   };
   flake.nixosModules.${moduleName} = {
@@ -84,7 +107,12 @@ in {
             virtualisation = {
               inherit (cfg) memorySize cores graphics;
               qemu.options = lib.optionals cfg.graphics [
-                "-device virtio-vga-gl"
+                "-vga none"
+                (
+                  "-device virtio-vga-gl"
+                  + lib.optionalString (cfg.resolution != null)
+                  ",edid=on,xres=${toString cfg.resolution.width},yres=${toString cfg.resolution.height}"
+                )
                 "-display sdl,gl=on"
               ];
             };
