@@ -1,12 +1,11 @@
 {
   config,
   lib,
-  osConfig ? null,
   ...
 }: let
   cfg = config.mod."feat/desktop/manager/xfce";
   inherit (config.mod."common/handlers".get) browser terminal;
-  isVm = osConfig != null && osConfig.mod."feat/vm".isVm;
+  inherit (config.mod."feat/vm") isVm;
   termCmd =
     if terminal != null && terminal.cmd != null
     then lib.escapeShellArgs terminal.cmd

@@ -39,11 +39,11 @@ in {
       };
       shell = lib.mkOption {
         type = lib.types.str;
-        default =
-          if config.mod.meta.has "feat/terminal/shell/zsh"
-          then "${config.home.profileDirectory}/bin/zsh -l"
-          else if config.mod.meta.has "feat/terminal/shell/bash"
-          then "${config.home.profileDirectory}/bin/bash -l"
+        default = let
+          shellHandler = config.mod."common/handlers".get.shell;
+        in
+          if shellHandler != null
+          then "${lib.concatStringsSep " " shellHandler.cmd} -l"
           else "/bin/bash -l";
         description = "Shell command executed by the enter script inside nix-user-chroot.";
       };

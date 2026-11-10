@@ -61,6 +61,10 @@ in {
     nixpkgs = lib.optionalAttrs (osConfig == null) {
       config.allowUnfree = true;
     };
+    targets.genericLinux = lib.optionalAttrs (osConfig == null) {
+      enable = lib.mkIf (!(config.mod.meta.has "feat/system/nix-user-chroot")) (lib.mkDefault true);
+      nixGL.packages = lib.mkDefault inputs.nixgl.packages;
+    };
     programs.home-manager.enable = true; # Home-Manager installs and manages itself
     programs.nh = {
       enable = lib.mkDefault true;

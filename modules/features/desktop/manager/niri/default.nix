@@ -47,9 +47,8 @@ in {
     cfg = config.mod.${moduleName};
 
     isNixOs = osConfig != null;
-    osHasNiri = isNixOs && osConfig.mod.meta.has moduleName;
     useFlakeNiri = !isNixOs;
-    isVm = isNixOs && osConfig.mod."feat/vm".isVm;
+    inherit (config.mod."feat/vm") isVm;
 
     handlers = config.mod."common/handlers".get;
     mkBind = key: title: handler:
@@ -91,13 +90,23 @@ in {
           enable = true;
           package = config.lib.nixGL.wrap pkgs.niri-unstable;
         };
-        xdg.portal = {
-          extraPortals = with pkgs; [
-            gnome-keyring
-            xdg-desktop-portal-gtk
-          ];
-          config.niri = niriPortalConfig;
-          xdgOpenUsePortal = lib.mkDefault true;
+        xdg = {
+          # niri-flake's HM module doesn't install systemd user units (required by `niri-session`);
+          # use `share/` over `lib/` so `ExecStart` uses the nixGL-wrapped binary.
+          dataFile = {
+            "systemd/user/niri.service".source = "${config.programs.niri.package}/share/systemd/user/niri.service";
+            "systemd/user/niri-shutdown.target".source = "${config.programs.niri.package}/share/systemd/user/niri-shutdown.target";
+          };
+          # Standalone HM leaves portals disabled unless explicitly enabled (NixOS enables via niri-flake).
+          portal = {
+            enable = lib.mkDefault true;
+            extraPortals = with pkgs; [
+              gnome-keyring
+              xdg-desktop-portal-gtk
+            ];
+            config.niri = niriPortalConfig;
+            xdgOpenUsePortal = lib.mkDefault true;
+          };
         };
       })
       {
@@ -105,8 +114,6 @@ in {
           imported = [moduleName];
           asserts = ["pairedNixosFeat"];
         };
-      }
-      (lib.mkIf (!isNixOs || osHasNiri) {
         xdg.configFile = {
           "niri/config.kdl".source = config.mod.meta.link ./config.kdl;
           "niri/local.kdl".source = pkgs.writeText "local.kdl" cfg.extraConfig;
@@ -118,7 +125,7 @@ in {
         ];
         home.sessionVariables.NIXOS_OZONE_WL = lib.mkIf isNixOs "1";
         targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
-      })
+      }
     ];
   };
 

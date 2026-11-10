@@ -1,0 +1,9 @@
+# Default cloud-init guest images (Debian 13 "trixie" generic) for standalone Home-Manager VMs
+
+[x86_64-linux]
+url = "https://cloud.debian.org/images/cloud/trixie/20261103-2651/debian-13-generic-amd64-20261103-2651.qcow2"
+hash = "sha512-Egfm4++v+O53q3oywVaj7qap5T+Uz8SO+9H0m6VUyjasYqsnOVqoE6F3WowKOTsaHOU3fZ5WcPYRPjEQxX/uSw=="
+
+[aarch64-linux]
+url = "https://cloud.debian.org/images/cloud/trixie/20261103-2651/debian-13-generic-arm64-20261103-2651.qcow2"
+hash = "sha512-h49WP2yVr3/h6OUc05Rwoc21cN3b7iI3fIWjR7zp1SHZXyzw+CWji8CnV4iQNPrG2D6TLwSjoSKrCM6mjMn/ig=="

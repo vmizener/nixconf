@@ -92,4 +92,10 @@
     description = "restoring or toggling recent notifications";
     mimes = [];
   };
+
+  # CLI & system environment categories
+  shell = {
+    description = "interactive login shells";
+    mimes = [];
+  };
 }

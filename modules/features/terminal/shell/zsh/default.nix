@@ -32,9 +32,16 @@ in {
     hmSessionVars = "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh";
     hmNixProfile = "${config.home.profileDirectory}/etc/profile.d/nix.sh";
   in {
-    mod.meta = {
-      imported = [moduleName];
-      asserts = ["pairedNixosFeat"];
+    mod = {
+      meta = {
+        imported = [moduleName];
+        asserts = ["pairedNixosFeat"];
+      };
+      "common/handlers".add.shell.zsh = {
+        priority = 100;
+        label = "Zsh";
+        cmd = ["${config.home.profileDirectory}/bin/zsh"];
+      };
     };
     programs = {
       direnv = {

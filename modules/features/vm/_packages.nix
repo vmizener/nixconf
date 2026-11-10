@@ -1,5 +1,5 @@
-# Generate VM runner (`vm-run-<host>`) and reset (`vm-reset-<host>`) packages
-# for every nixosConfiguration matching `system` that imports `feat/vm`.
+# Aggregates VM runner (`vm-run-<host>`) and reset (`vm-reset-<host>`) packages
+# across NixOS (`_nixos-vm.nix`) and standalone Home-Manager (`_hm-vm.nix`).
 {
   inputs,
   lib,
@@ -14,78 +14,37 @@
     then "${nixglPkg}/bin/nixGLIntel"
     else "";
 
-  mkVmRunner = hostname: hostconf: let
-    cfg = hostconf.config.mod.${moduleName};
-    hostName = hostconf.config.networking.hostName;
+  mkBinScript = name: src: replacements: let
+    script = pkgs.replaceVars src replacements;
   in
-    lib.nameValuePair "vm-run-${hostname}" (pkgs.writeShellApplication {
-      name = "vm-run-${hostname}";
-      text =
-        ''
-          STORAGE_DIR="${cfg.storageDir}"
-          mkdir -p "$STORAGE_DIR"
-          export NIX_DISK_IMAGE="''${NIX_DISK_IMAGE:-$STORAGE_DIR/${hostName}.qcow2}"
+    pkgs.runCommand name {
+      nativeBuildInputs = [pkgs.shellcheck];
+      meta.mainProgram = name;
+    } ''
+      install -Dm755 "${script}" "$out/bin/${name}"
+      shellcheck -s bash "$out/bin/${name}"
+    '';
 
-          if [ ! -r /dev/kvm ] || [ ! -w /dev/kvm ]; then
-            echo "warning: /dev/kvm is not accessible; QEMU will fall back to slow TCG emulation" >&2
-          fi
+  mkResetPkg = {
+    hostName,
+    name,
+    storageDir,
+  }:
+    mkBinScript name ./scripts/vm-reset.sh {
+      HOST_NAME = hostName;
+      STORAGE_DIR = storageDir;
+    };
 
-          wrapper=()
-        ''
-        + lib.optionalString (cfg.graphics && cfg.gl) ''
-          has_host_gpu=0
-          for node in /dev/dri/renderD*; do
-            if [ -r "$node" ] && [ -w "$node" ]; then
-              has_host_gpu=1
-              break
-            fi
-          done
+  nixosVmPackages = import ./_nixos-vm.nix {
+    inherit lib mkBinScript mkResetPkg moduleName nixglBin self system;
+  };
 
-          if [ "$has_host_gpu" -eq 0 ]; then
-            export LIBGL_ALWAYS_SOFTWARE=1
-            export LP_NUM_THREADS="''${LP_NUM_THREADS:-4}"
-          fi
+  hmVmPackages = import ./_hm-vm.nix {
+    inherit lib mkBinScript mkResetPkg moduleName nixglBin pkgs self system;
+  };
 
-          nixgl_fallback="${nixglBin}"
-          if [ ! -d /run/opengl-driver ]; then
-            if command -v nixGL >/dev/null 2>&1; then
-              wrapper=(nixGL)
-            elif [ -n "$nixgl_fallback" ]; then
-              wrapper=("$nixgl_fallback")
-            fi
-          fi
-        ''
-        + lib.optionalString (cfg.graphics && !cfg.gl) ''
-          export SDL_RENDER_DRIVER="''${SDL_RENDER_DRIVER:-software}"
-        ''
-        + ''
-
-          exec "''${wrapper[@]}" ${hostconf.config.system.build.vm}/bin/run-${hostName}-vm "$@"
-        '';
-    });
-
-  mkVmResetter = hostname: hostconf:
-    lib.nameValuePair "vm-reset-${hostname}" (pkgs.writeShellApplication {
-      name = "vm-reset-${hostname}";
-      text = ''
-        STORAGE_DIR="${hostconf.config.mod.${moduleName}.storageDir}"
-        NIX_DISK_IMAGE="''${NIX_DISK_IMAGE:-$STORAGE_DIR/${hostconf.config.networking.hostName}.qcow2}"
-        if [ -f "$NIX_DISK_IMAGE" ]; then
-            echo "Removing $NIX_DISK_IMAGE"
-            rm "$NIX_DISK_IMAGE"
-        else
-            echo "No image found at $NIX_DISK_IMAGE"
-        fi
-      '';
-    });
-
-  vmHosts =
-    self.nixosConfigurations
-    |> lib.filterAttrs (
-      _: hostconf:
-        hostconf.config.nixpkgs.hostPlatform.system
-        == system
-        && ((hostconf.config.mod.meta or {}).has or (_: false)) moduleName
-    );
+  collidingPackages = builtins.attrNames (builtins.intersectAttrs nixosVmPackages hmVmPackages);
 in
-  (lib.mapAttrs' mkVmRunner vmHosts) // (lib.mapAttrs' mkVmResetter vmHosts)
+  if collidingPackages != []
+  then throw "${moduleName}: colliding NixOS and standalone Home-Manager VM package(s): ${lib.concatStringsSep ", " collidingPackages}"
+  else nixosVmPackages // hmVmPackages

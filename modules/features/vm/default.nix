@@ -1,12 +1,16 @@
 /*
   feat/vm
 
-Provides QEMU virtual machine runner generation for NixOS configurations.
+Provides QEMU virtual machine runner generation for NixOS and standalone
+Home-Manager configurations.
 
 Exposes:
 
 - flake.nixosModules."feat/vm":
-  - Enables virtualization features and associated packages (see below).
+  - Enables NixOS virtualization features and VM variant overrides.
+
+- flake.homeModules."feat/vm":
+  - Enables standalone Home-Manager non-NixOS guest VM configuration.
 
 - perSystem.packages:
   - Generates `vm-run-<hostname>` package (to run the <hostname> VM).
@@ -14,74 +18,159 @@ Exposes:
 */
 {
   inputs,
+  lib,
   self,
   ...
 }: let
   moduleName = "feat/vm";
-in {
-  flake.nixosModules."common/options" = {lib, ...}: {
-    options.mod.${moduleName} = {
-      isVm = lib.mkOption {
-        type = lib.types.bool;
-        default = false;
-        description = "Config describes VM";
-      };
-      storageDir = lib.mkOption {
-        type = lib.types.str;
-        default = "$HOME/.local/share/nix-vm";
-        description = "Directory to store VM disk images";
-      };
-      autologinUser = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        example = "bao";
-        description = "User to automatically log in on TTYs inside the VM";
-      };
-      memorySize = lib.mkOption {
-        type = lib.types.ints.positive;
-        default = 4096;
-        description = "Memory size in MiB allocated to the VM";
-      };
-      cores = lib.mkOption {
-        type = lib.types.ints.positive;
-        default = 3;
-        description = "Number of CPU cores allocated to the VM";
-      };
-      graphics = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Enable graphical SDL display for the VM";
-      };
-      gl = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Enable OpenGL/VirGL acceleration for the graphical display";
-      };
-      resolution = lib.mkOption {
-        type = lib.types.nullOr (lib.types.submodule {
-          options = {
-            width = lib.mkOption {
-              type = lib.types.ints.positive;
-              description = "Horizontal resolution in pixels";
-            };
-            height = lib.mkOption {
-              type = lib.types.ints.positive;
-              description = "Vertical resolution in pixels";
-            };
+  defaultHmImages = lib.importTOML ./images.toml;
+
+  sharedVmOptions = {
+    storageDir = lib.mkOption {
+      type = lib.types.str;
+      default = "$HOME/.local/share/nix-vm";
+      description = "Directory to store VM disk images";
+    };
+    memorySize = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 4096;
+      description = "Memory size in MiB allocated to the VM";
+    };
+    cores = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 3;
+      description = "Number of CPU cores allocated to the VM";
+    };
+    graphics = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Enable graphical SDL display for the VM";
+    };
+    gl = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Enable OpenGL/VirGL acceleration for the graphical display";
+    };
+    resolution = lib.mkOption {
+      type = lib.types.nullOr (lib.types.submodule {
+        options = {
+          width = lib.mkOption {
+            type = lib.types.ints.positive;
+            description = "Horizontal resolution in pixels";
           };
-        });
-        default = {
-          width = 640;
-          height = 480;
+          height = lib.mkOption {
+            type = lib.types.ints.positive;
+            description = "Vertical resolution in pixels";
+          };
         };
-        example = {
-          width = 1280;
-          height = 720;
-        };
-        description = "Initial display resolution for graphical VMs";
+      });
+      default = {
+        width = 640;
+        height = 480;
       };
+      example = {
+        width = 1280;
+        height = 720;
+      };
+      description = "Initial display resolution for graphical VMs";
     };
   };
+in {
+  flake.nixosModules."common/options" = {...}: {
+    options.mod.${moduleName} =
+      sharedVmOptions
+      // {
+        isVm = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+          description = "Config describes VM";
+        };
+        autologinUser = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = "bao";
+          description = "User to automatically log in on TTYs inside the VM";
+        };
+      };
+  };
+
+  flake.homeModules."common/options" = {
+    osConfig ? null,
+    pkgs,
+    ...
+  }: let
+    platformSystem = pkgs.stdenv.hostPlatform.system;
+  in {
+    options.mod.${moduleName} =
+      sharedVmOptions
+      // {
+        isVm = lib.mkOption {
+          type = lib.types.bool;
+          default = osConfig != null && ((osConfig.mod.${moduleName} or {}).isVm or false);
+          description = "Config describes VM";
+        };
+        hostName = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "VM hostname override (defaults to the <host> suffix of <user>@<host>)";
+        };
+        diskSize = lib.mkOption {
+          type = lib.types.str;
+          default = "20G";
+          description = "Virtual disk capacity for the qcow2 overlay image";
+        };
+        autologin = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Automatically log in the Home-Manager user on VM consoles";
+        };
+        guestPackages = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [];
+          description = "Extra guest distro packages installed on first boot";
+        };
+        image = lib.mkOption {
+          type = lib.types.either lib.types.path (lib.types.submodule {
+            options = {
+              url = lib.mkOption {
+                type = lib.types.str;
+                description = "URL of a cloud-init-enabled qcow2 guest image";
+              };
+              hash = lib.mkOption {
+                type = lib.types.str;
+                description = "SRI hash of the qcow2 guest image";
+              };
+            };
+          });
+          default =
+            defaultHmImages.${platformSystem}
+            or (throw "${moduleName}: no default standalone VM image for '${platformSystem}'; set mod.\"${moduleName}\".image explicitly");
+          description = "Base cloud-init qcow2 image (path or {url, hash}) for standalone Home-Manager VMs";
+        };
+      };
+  };
+
+  flake.homeModules.${moduleName} = {
+    config,
+    lib,
+    options,
+    ...
+  }: {
+    config = lib.mkMerge [
+      {
+        mod.meta = {
+          imported = [moduleName];
+          asserts = ["standaloneOnly"];
+        };
+      }
+      (lib.mkIf config.mod.${moduleName}.isVm (
+        lib.optionalAttrs (options ? sops) {
+          sops.validateSopsFiles = lib.mkDefault false;
+        }
+      ))
+    ];
+  };
+
   flake.nixosModules.${moduleName} = {
     config,
     lib,

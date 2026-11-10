@@ -12,8 +12,15 @@ Exposes:
 {...}: let
   moduleName = "feat/terminal/shell/bash";
 in {
-  flake.homeModules.${moduleName} = {...}: {
-    mod.meta.imported = [moduleName];
+  flake.homeModules.${moduleName} = {config, ...}: {
+    mod = {
+      meta.imported = [moduleName];
+      "common/handlers".add.shell.bash = {
+        priority = 200;
+        label = "Bash";
+        cmd = ["${config.home.profileDirectory}/bin/bash"];
+      };
+    };
     programs.bash.enable = true;
   };
   flake.nixosModules.${moduleName} = {...}: {
