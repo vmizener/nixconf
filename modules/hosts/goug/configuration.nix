@@ -28,26 +28,16 @@ in {
       self.nixosModules."common"
       self.nixosModules."users/mustadio@${hostname}"
 
-      # Default lightweight Wayland UI session
-      self.nixosModules."feat/desktop/greeter/greetd"
-      self.nixosModules."feat/desktop/manager/niri"
-
       self.nixosModules."feat/system/keyring"
       self.nixosModules."feat/system/locale"
       self.nixosModules."feat/system/systools"
       self.nixosModules."feat/vm"
     ];
-    mod = {
-      "feat/desktop/greeter/greetd" = {
-        autologinUser = "mustadio";
-        autologinCommand = "niri-session";
-      };
-      "feat/vm" = {
-        isVm = true;
-        autologinUser = "mustadio";
-        cores = 8;
-        memorySize = 16384;
-      };
+    mod."feat/vm" = {
+      isVm = true;
+      autologinUser = "mustadio";
+      cores = 8;
+      memorySize = 16384;
     };
 
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

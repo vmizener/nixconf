@@ -14,7 +14,16 @@ in {
   # @Goug (Nixos VM)
   flake.nixosModules."users/${username}@goug" = {pkgs, ...}: {
     imports = [
+      self.nixosModules."feat/desktop/greeter/greetd"
+      self.nixosModules."feat/desktop/manager/niri"
       self.nixosModules."feat/terminal/shell/zsh"
+
+      ({...}: {
+        mod."feat/desktop/greeter/greetd" = {
+          autologinUser = "mustadio";
+          autologinCommand = "niri-session";
+        };
+      })
     ];
     users.users.${username} = {
       isNormalUser = true;
