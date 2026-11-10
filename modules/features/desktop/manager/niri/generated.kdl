@@ -1,0 +1,11 @@
+xwayland-satellite {
+    path "@XWAYLAND_SATELLITE@"
+}
+
+@VM_INPUT@
+
+binds {
+    @BIND_TERMINAL@
+    @BIND_LAUNCHER@
+    @BIND_KANDO@
+}

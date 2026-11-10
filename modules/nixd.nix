@@ -10,7 +10,6 @@
     # Dynamically pick up all modules, ignoring those from these inputs
     ignoreInputs = [
       "nixpkgs"
-      "wrapper-modules"
     ];
     pickModule = name: modSet:
       if modSet ? default # check for <module>.default

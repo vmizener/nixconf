@@ -1,3 +1,206 @@
+// Environment
+environment {
+    QT_QPA_PLATFORM "wayland"
+    NIRI_NO_HARDWARE_CURSORS "1"
+}
+
+// Input
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        numlock
+    }
+    touchpad {
+        tap
+        natural-scroll
+    }
+    focus-follows-mouse max-scroll-amount="0%"
+}
+
+// Layout & Appearance
+layout {
+    gaps 10
+    background-color "transparent"
+    center-focused-column "never"
+    always-center-single-column
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+    preset-window-heights {
+        proportion 0.5
+        proportion 1.0
+    }
+
+    focus-ring {
+        width 4
+        active-color "#7fc8ff44"
+        inactive-color "#50505055"
+    }
+
+    shadow {
+        on
+        softness 30
+        spread 5
+        offset x=0 y=5
+        color "#0007"
+    }
+
+    tab-indicator {
+        hide-when-single-tab
+        place-within-column
+        gap 5
+        width 5
+        length total-proportion=1.0
+        position "right"
+        gaps-between-tabs 3
+        corner-radius 8
+        active-gradient from="#80c8ff" to="#bbddff" angle=45
+        inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
+        urgent-gradient from="#800" to="#a33" angle=45
+    }
+}
+
+prefer-no-csd
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+blur {
+    passes 2
+    offset 1.5
+    noise 0.05
+    saturation 1.5
+}
+
+overview {
+    workspace-shadow {
+        off
+    }
+}
+
+// Keybindings
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Shift+O { toggle-window-rule-opacity; }
+    Mod+O repeat=false { toggle-overview; }
+
+    Mod+Shift+Q { close-window; }
+    Mod+Ctrl+MouseRight { close-window; }
+
+    Mod+Left { focus-column-or-monitor-left; }
+    Mod+Right { focus-column-or-monitor-right; }
+    Mod+Up { focus-window-or-workspace-up; }
+    Mod+Down { focus-window-or-workspace-down; }
+    Mod+H { focus-column-or-monitor-left; }
+    Mod+L { focus-column-or-monitor-right; }
+    Mod+K { focus-window-or-workspace-up; }
+    Mod+J { focus-window-or-workspace-down; }
+
+    Mod+Ctrl+Left { move-column-left-or-to-monitor-left; }
+    Mod+Ctrl+Right { move-column-right-or-to-monitor-right; }
+    Mod+Ctrl+Up { move-window-up-or-to-workspace-up; }
+    Mod+Ctrl+Down { move-window-down-or-to-workspace-down; }
+    Mod+Ctrl+H { move-column-left-or-to-monitor-left; }
+    Mod+Ctrl+L { move-column-right-or-to-monitor-right; }
+    Mod+Ctrl+K { move-window-up-or-to-workspace-up; }
+    Mod+Ctrl+J { move-window-down-or-to-workspace-down; }
+
+    Mod+Shift+Left { focus-monitor-left; }
+    Mod+Shift+Right { focus-monitor-right; }
+    Mod+Shift+Up { focus-monitor-up; }
+    Mod+Shift+Down { focus-monitor-down; }
+    Mod+Shift+H { focus-monitor-left; }
+    Mod+Shift+L { focus-monitor-right; }
+    Mod+Shift+K { focus-monitor-up; }
+    Mod+Shift+J { focus-monitor-down; }
+
+    Mod+Shift+Ctrl+Left { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+Up { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+Down { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+H { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+L { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+K { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+J { move-column-to-monitor-down; }
+
+    Mod+Home { focus-column-first; }
+    Mod+End { focus-column-last; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+End { move-column-to-last; }
+
+    Mod+Page_Up { focus-workspace-up; }
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+I { focus-workspace-up; }
+    Mod+U { focus-workspace-down; }
+    Mod+Ctrl+Page_Up { move-workspace-up; }
+    Mod+Ctrl+Page_Down { move-workspace-down; }
+    Mod+Ctrl+I { move-workspace-up; }
+    Mod+Ctrl+U { move-workspace-down; }
+    Mod+Shift+Ctrl+Page_Up { move-workspace-to-monitor-previous; }
+    Mod+Shift+Ctrl+Page_Down { move-workspace-to-monitor-next; }
+    Mod+Shift+Ctrl+I { move-workspace-to-monitor-previous; }
+    Mod+Shift+Ctrl+U { move-workspace-to-monitor-next; }
+
+    Mod+WheelScrollUp cooldown-ms=100 { focus-workspace-up; }
+    Mod+WheelScrollDown cooldown-ms=100 { focus-workspace-down; }
+    Mod+WheelScrollLeft cooldown-ms=100 { focus-column-left; }
+    Mod+WheelScrollRight cooldown-ms=100 { focus-column-right; }
+    Mod+Ctrl+WheelScrollUp cooldown-ms=100 { focus-column-left-or-last; }
+    Mod+Ctrl+WheelScrollDown cooldown-ms=100 { focus-column-right-or-first; }
+
+    Mod+Grave { focus-workspace-previous; }
+    Mod+Backslash { focus-workspace-previous; }
+
+    Mod+Tab { focus-window-or-workspace-down; }
+    Mod+Shift+Tab { focus-window-or-workspace-up; }
+    Mod+Ctrl+Tab { focus-column-right-or-first; }
+    Mod+Ctrl+Shift+Tab { focus-column-left-or-last; }
+
+    Mod+BracketLeft { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+Comma { consume-window-into-column; }
+    Mod+Period { expel-window-from-column; }
+
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+R { switch-preset-window-height; }
+    Mod+Ctrl+R { reset-window-height; }
+
+    Mod+F { maximize-window-to-edges; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+Ctrl+F { expand-column-to-available-width; }
+
+    Mod+C { center-column; }
+    Mod+Ctrl+C { center-visible-columns; }
+
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    Mod+Space { toggle-window-floating; }
+    Mod+Shift+Space { switch-focus-between-floating-and-tiling; }
+
+    Mod+W { toggle-column-tabbed-display; }
+
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    Ctrl+Alt+Delete { quit; }
+    Mod+Ctrl+Shift+P { power-off-monitors; }
+
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
+    XF86AudioMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+    XF86AudioMicMute allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+}
+
+// Window & Layer Rules
 window-rule {
     // This app-id regular expression will work for both:
     // - host Firefox (app-id is "firefox")

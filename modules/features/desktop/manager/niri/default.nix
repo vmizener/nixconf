@@ -49,6 +49,24 @@ in {
     isNixOs = osConfig != null;
     osHasNiri = isNixOs && osConfig.mod.meta.has moduleName;
     useFlakeNiri = !isNixOs;
+    isVm = isNixOs && osConfig.mod."feat/vm".isVm;
+
+    hasMod = name: config.mod.meta.has name || (isNixOs && osConfig.mod.meta.has name);
+    terminalDesktop = config.mod."common/mime".defaultDesktop "x-scheme-handler/terminal";
+    launcherDesktop = config.mod."common/mime".defaultDesktop "x-scheme-handler/launcher";
+
+    generatedKdl = pkgs.replaceVars ./generated.kdl {
+      XWAYLAND_SATELLITE = lib.getExe pkgs.xwayland-satellite-unstable;
+      VM_INPUT = lib.optionalString isVm (lib.removeSuffix "\n" ''
+        input {
+            mod-key "Alt"
+            mod-key-nested "Mod5"
+        }
+      '');
+      BIND_TERMINAL = lib.optionalString (terminalDesktop != null) ''Mod+Return hotkey-overlay-title="Open Terminal (${terminalDesktop})" repeat=false { spawn-sh "handlr launch x-scheme-handler/terminal"; }'';
+      BIND_LAUNCHER = lib.optionalString (launcherDesktop != null) ''Mod+D hotkey-overlay-title="Open Launcher (${launcherDesktop})" repeat=false { spawn-sh "handlr launch x-scheme-handler/launcher"; }'';
+      BIND_KANDO = lib.optionalString (hasMod "feat/desktop/launcher/kando") ''Mod+M hotkey-overlay-title="Open Kando Menu" repeat=false { spawn-sh r#"kando --menu "Main Menu""#; }'';
+    };
   in {
     imports = lib.optional useFlakeNiri inputs.niri.homeModules.niri;
     config = lib.mkMerge [
@@ -77,17 +95,7 @@ in {
         xdg.configFile = {
           "niri/config.kdl".source = config.mod.meta.link ./config.kdl;
           "niri/local.kdl".source = pkgs.writeText "local.kdl" cfg.extraConfig;
-          "niri/generated.kdl".text = let
-            toKdl = inputs.wrapper-modules.lib.toKdl;
-            rawSettings = import ./_settings.nix {
-              inherit osConfig lib pkgs;
-              hmConfig = config;
-            };
-          in
-            toKdl (_: {
-              version = 1;
-              content = rawSettings;
-            });
+          "niri/generated.kdl".source = generatedKdl;
         };
         home.packages = with pkgs; [
           brightnessctl
