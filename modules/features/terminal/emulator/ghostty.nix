@@ -35,6 +35,6 @@ in {
         theme = "Nocturnal Winter";
       };
     };
-    mod."feat/system/mime".add.terminal."ghostty.desktop" = 150;
+    mod."common/mime".add.terminal."com.mitchellh.ghostty.desktop" = 150;
   };
 }

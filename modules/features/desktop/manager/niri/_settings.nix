@@ -11,39 +11,16 @@
 
   # Logic
   hasMod = name: (isHm && hmConfig.mod.meta.has name) || (isNixOs && osConfig.mod.meta.has name);
-  cmdByFeat = default: featList: (pkgs.lib.findFirst (f: hasMod f.feat) {cmd = default;} featList).cmd;
+  mimeEntry = mimeType:
+    if isHm
+    then hmConfig.mod."common/mime".defaultDesktop mimeType
+    else null;
 
   # Commands
-  cmdTerminal = cmdByFeat "st" [
-    {
-      cmd = "foot";
-      feat = "feat/terminal/emulator/foot";
-    }
-    {
-      cmd = "ghostty";
-      feat = "feat/terminal/emulator/ghostty";
-    }
-    # {
-    #   cmd = "kitty";
-    #   feat = "feat/terminal/emulator/kitty";
-    # }
-  ];
-  cmdLauncher = cmdByFeat null [
-    {
-      cmd = "dms ipc spotlight open";
-      feat = "feat/desktop/shell/dms";
-    }
-    {
-      cmd = "fuzzel";
-      feat = "feat/desktop/launcher/fuzzel";
-    }
-  ];
-  cmdKandoMenu = cmdByFeat null [
-    {
-      cmd = ''kando --menu "Main Menu"'';
-      feat = "feat/desktop/launcher/kando";
-    }
-  ];
+  cmdKandoMenu =
+    if hasMod "feat/desktop/launcher/kando"
+    then ''kando --menu "Main Menu"''
+    else null;
   cmdAudioRaiseVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+";
   cmdAudioLowerVolume = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-";
   cmdAudioMute = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
@@ -290,22 +267,22 @@ in [
         "Ctrl+Alt+Delete" = {quit = toggle;};
         "Mod+Ctrl+Shift+P" = {power-off-monitors = toggle;};
       }
-      // lib.optionalAttrs (cmdTerminal != null) {
+      // lib.optionalAttrs (mimeEntry "x-scheme-handler/terminal" != null) {
         "Mod+Return" = block {
           props = {
-            hotkey-overlay-title = "Open Terminal: ${cmdTerminal}";
+            hotkey-overlay-title = "Open Terminal (${mimeEntry "x-scheme-handler/terminal"})";
             repeat = false;
           };
-          content = {spawn-sh = "${cmdTerminal}";};
+          content = {spawn-sh = "handlr launch x-scheme-handler/terminal";};
         };
       }
-      // lib.optionalAttrs (cmdLauncher != null) {
+      // lib.optionalAttrs (mimeEntry "x-scheme-handler/launcher" != null) {
         "Mod+D" = block {
           props = {
-            hotkey-overlay-title = "Open Launcher: ${cmdLauncher}";
+            hotkey-overlay-title = "Open Launcher (${mimeEntry "x-scheme-handler/launcher"})";
             repeat = false;
           };
-          content = {spawn-sh = "${cmdLauncher}";};
+          content = {spawn-sh = "handlr launch x-scheme-handler/launcher";};
         };
       }
       // lib.optionalAttrs (cmdKandoMenu != null) {

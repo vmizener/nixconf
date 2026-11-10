@@ -92,6 +92,6 @@ in {
         };
       };
     };
-    mod."feat/system/mime".add.terminal."foot.desktop" = 100;
+    mod."common/mime".add.terminal."foot.desktop" = 100;
   };
 }

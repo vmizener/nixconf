@@ -20,5 +20,11 @@ in {
     xdg.configFile = {
       "fuzzel/fuzzel.ini".source = config.mod.meta.link ./fuzzel.ini;
     };
+    xdg.desktopEntries.fuzzel = {
+      name = "Fuzzel";
+      exec = "fuzzel";
+      noDisplay = true;
+    };
+    mod."common/mime".add.launcher."fuzzel.desktop" = 150;
   };
 }

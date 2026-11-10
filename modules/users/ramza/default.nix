@@ -28,7 +28,6 @@ in {
       self.homeModules."feat/gaming/discord"
       self.homeModules."feat/media/playback/streamlink"
       self.homeModules."feat/sync/maestral"
-      self.homeModules."feat/system/mime"
       self.homeModules."feat/system/systools"
       self.homeModules."feat/terminal/emulator/ghostty"
       self.homeModules."feat/terminal/shell/zsh"

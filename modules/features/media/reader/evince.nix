@@ -14,6 +14,6 @@ in {
     mod.meta.imported = [moduleName];
     home.packages = [pkgs.evince];
 
-    mod."feat/system/mime".add.pdfViewer."evince.desktop" = 150;
+    mod."common/mime".add.pdfViewer."evince.desktop" = 150;
   };
 }

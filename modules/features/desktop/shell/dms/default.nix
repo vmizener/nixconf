@@ -38,5 +38,11 @@ in {
       settings = builtins.fromJSON (builtins.readFile ./_settings.json);
     };
     programs.dsearch.enable = true;
+    xdg.desktopEntries.dms-spotlight = {
+      name = "DMS Spotlight";
+      exec = "dms ipc spotlight open";
+      noDisplay = true;
+    };
+    mod."common/mime".add.launcher."dms-spotlight.desktop" = 100;
   };
 }

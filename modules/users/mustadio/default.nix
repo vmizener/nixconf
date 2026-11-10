@@ -37,7 +37,6 @@ in {
         self.homeModules."feat/desktop/manager/niri"
         self.homeModules."feat/desktop/shell/awww"
         self.homeModules."feat/dev/git"
-        self.homeModules."feat/system/mime"
         self.homeModules."feat/system/systools"
         self.homeModules."feat/terminal/emulator/foot"
         self.homeModules."feat/terminal/shell/zsh"

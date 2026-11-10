@@ -13,6 +13,6 @@ in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
     mod.meta.imported = [moduleName];
     home.packages = with pkgs; [thunar];
-    mod."feat/system/mime".add.fileManager."thunar.desktop" = 150;
+    mod."common/mime".add.fileManager."thunar.desktop" = 150;
   };
 }

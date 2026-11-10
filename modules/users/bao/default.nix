@@ -75,7 +75,6 @@ in {
         self.homeModules."feat/media/reader/zathura"
         self.homeModules."feat/media/services/torrra"
         self.homeModules."feat/sync/maestral"
-        self.homeModules."feat/system/mime"
         self.homeModules."feat/system/systools"
         self.homeModules."feat/system/theme"
         self.homeModules."feat/terminal/emulator/foot"

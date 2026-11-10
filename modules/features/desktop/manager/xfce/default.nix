@@ -43,7 +43,7 @@ in {
         ];
       }
       (import ./_settings.nix {
-        inherit lib osConfig;
+        inherit lib osConfig pkgs;
         hmConfig = config;
       })
     ];

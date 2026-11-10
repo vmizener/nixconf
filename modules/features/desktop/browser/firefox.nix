@@ -16,6 +16,6 @@ in {
       enable = true;
       configPath = "${config.xdg.configHome}/mozilla/firefox";
     };
-    mod."feat/system/mime".add.browser."firefox.desktop" = 150;
+    mod."common/mime".add.browser."firefox.desktop" = 150;
   };
 }

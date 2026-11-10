@@ -8,9 +8,11 @@
   commonPackages = pkgs:
     with pkgs; [
       git # VCS for managing flake repository
+      handlr-regex # XDG MIME and desktop-entry handler (https://github.com/Anomalocaridid/handlr-regex)
       jq # JSON processor used by flake scripts
       just # Command runner for repo recipes
       wget # Downloader used by bootstrap scripts
+      xdg-utils # Standard XDG desktop integration utilities
     ];
 in {
   flake.homeModules.${moduleName} = {
@@ -21,6 +23,7 @@ in {
     ...
   }: {
     imports = [
+      self.homeModules."common/mime"
       self.homeModules."common/options"
       self.homeModules."common/sops"
       self.homeModules."common/ssh"

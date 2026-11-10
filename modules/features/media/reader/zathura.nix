@@ -14,6 +14,6 @@ in {
     mod.meta.imported = [moduleName];
     programs.zathura.enable = true;
 
-    mod."feat/system/mime".add.pdfViewer."org.pwmt.zathura.desktop" = 100;
+    mod."common/mime".add.pdfViewer."org.pwmt.zathura.desktop" = 100;
   };
 }
