@@ -42,9 +42,16 @@ in {
   flake.homeModules.${moduleName} = {
     config,
     lib,
+    pkgs,
     ...
   }: let
     cfg = config.mod.${moduleName};
+    sortedDesktops = catName:
+      cfg.add.${catName}
+      |> sortEntries
+      |> map (e: e.desktop)
+      |> builtins.filter (d: d != null);
+    terminalDesktops = sortedDesktops "terminal";
   in {
     mod.meta.imported = [moduleName];
 
@@ -83,16 +90,16 @@ in {
         defaultApplications =
           categories
           |> lib.mapAttrsToList (catName: cat: let
-            desktops =
-              cfg.add.${catName}
-              |> sortEntries
-              |> map (e: e.desktop)
-              |> builtins.filter (d: d != null);
+            desktops = sortedDesktops catName;
           in
             lib.optionalAttrs (cat.mimes != [] && desktops != []) (
               lib.genAttrs cat.mimes (_: desktops)
             ))
           |> lib.zipAttrsWith (_: lib.flatten);
+      };
+      terminal-exec = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin && terminalDesktops != []) {
+        enable = true;
+        settings.default = terminalDesktops;
       };
     };
   };

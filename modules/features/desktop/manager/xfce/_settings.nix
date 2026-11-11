@@ -16,11 +16,14 @@ in
 
     (let
       helpers =
-        lib.optionalAttrs (termCmd != null) {
+        lib.optionalAttrs (terminal != null) {
           TerminalEmulator = {
             inherit (terminal) label;
-            cmd = termCmd;
-            cmdWithParam = ''${termCmd} -e "%s"'';
+            cmd =
+              if termCmd != null
+              then termCmd
+              else "xdg-terminal-exec";
+            cmdWithParam = "xdg-terminal-exec -- %s";
             icon = "utilities-terminal";
           };
         }
