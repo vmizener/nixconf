@@ -31,6 +31,11 @@
       inp:
         inp.homeModules or inp.homeManagerModules or {}
     );
+    hmOptionModules =
+      [
+        self.homeModules."common/options"
+      ]
+      ++ hmInputModules;
     nixosInputModules = collectModules (
       inp:
         inp.nixosModules or {}
@@ -46,9 +51,8 @@
             home.username = "options";
             home.homeDirectory = "/home/options";
           }
-          self.homeModules."common/options"
         ]
-        ++ hmInputModules;
+        ++ hmOptionModules;
     };
     nixos = inputs.nixpkgs.lib.nixosSystem {
       modules =
@@ -56,6 +60,10 @@
           {
             system.stateVersion = "25.11";
             nixpkgs.hostPlatform = "x86_64-linux";
+            home-manager = {
+              useGlobalPkgs = true;
+              sharedModules = hmOptionModules;
+            };
           }
           self.nixosModules."common/options"
         ]
