@@ -37,14 +37,25 @@ in {
     options.mod.meta = {
       asserts = lib.mkOption {
         type = lib.types.listOf (lib.types.enum [
-          "nixosOnly" # Module is for nixos configs only
-          "standaloneOnly" # Module is for standalone home-manager configs only
-          "pairedNixosFeat" # Module must be paired with nixos feat import if on nixos
-          "conflictsNixosFeat" # Module conflicts with nixos feature; must import only one
+          # Disallow standalone HM (`osConfig != null`); NixOS hosts only.
+          "nixosOnly"
+          # Disallow NixOS HM (`osConfig == null`); standalone `homeConfigurations` only.
+          "standaloneOnly"
+          # Allowed standalone; on NixOS, requires paired `nixosModules.<name>` to also be imported.
+          "pairedNixosFeat"
+          # Allowed standalone; on NixOS, forbids importing `nixosModules.<name>` alongside this module.
+          "conflictsNixosFeat"
         ]);
         default = [];
         apply = lib.unique;
-        description = "Common assertions enforced for each Home-Manager module setting them.";
+        description = ''
+          Host/boundary assertions enforced for each Home-Manager module setting them:
+
+          - `"nixosOnly"`: Disallows standalone Home-Manager (`osConfig != null`); only usable on NixOS hosts.
+          - `"standaloneOnly"`: Disallows NixOS Home-Manager (`osConfig == null`); only usable in standalone `homeConfigurations`.
+          - `"pairedNixosFeat"`: Allowed in standalone Home-Manager; when imported on a NixOS host, requires the matching `flake.nixosModules.<name>` feature to also be imported.
+          - `"conflictsNixosFeat"`: Allowed in standalone Home-Manager; when imported on a NixOS host, forbids importing the matching `flake.nixosModules.<name>` feature alongside it.
+        '';
       };
 
       flakePath = lib.mkOption {
