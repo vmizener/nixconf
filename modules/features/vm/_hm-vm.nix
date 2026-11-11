@@ -177,7 +177,7 @@
       QEMU_BIN = "${pkgs.qemu_kvm}/bin/qemu-kvm";
       QEMU_IMG_BIN = "${pkgs.qemu_kvm}/bin/qemu-img";
       BASE_IMAGE = "${baseImage}";
-      DISK_SIZE = cfg.diskSize;
+      DISK_SIZE = "${toString cfg.diskSize}M";
       QEMU_ARGS_FILE = "${pkgs.writeText "hm-vm-args-${hostName}" (lib.concatLines qemuStaticArgs)}";
       DISPLAY_ARGS_FILE = "${pkgs.writeText "hm-vm-display-args-${hostName}" (lib.concatLines displayArgs)}";
     };

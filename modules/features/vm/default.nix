@@ -36,6 +36,11 @@ Exposes:
       default = 4096;
       description = "Memory size in MiB allocated to the VM";
     };
+    diskSize = lib.mkOption {
+      type = lib.types.ints.positive;
+      default = 20480;
+      description = "Virtual disk size in MiB allocated to the VM";
+    };
     cores = lib.mkOption {
       type = lib.types.ints.positive;
       default = 3;
@@ -114,11 +119,6 @@ in {
           default = null;
           description = "VM hostname override (defaults to the <host> suffix of <user>@<host>)";
         };
-        diskSize = lib.mkOption {
-          type = lib.types.str;
-          default = "20G";
-          description = "Virtual disk capacity for the qcow2 overlay image";
-        };
         autologin = lib.mkOption {
           type = lib.types.bool;
           default = true;
@@ -155,7 +155,9 @@ in {
     lib,
     options,
     ...
-  }: {
+  }: let
+    cfg = config.mod.${moduleName};
+  in {
     config = lib.mkMerge [
       {
         mod.meta = {
@@ -163,8 +165,14 @@ in {
           asserts = ["standaloneOnly"];
         };
       }
-      (lib.mkIf config.mod.${moduleName}.isVm (
-        lib.optionalAttrs (options ? sops) {
+      (lib.mkIf cfg.isVm (
+        {
+          # Mesa's virgl disk cache hashes uninitialized padding in `union virgl_caps`,
+          # missing on every boot and leaving stale/corrupted cache state across restarts.
+          home.sessionVariables.MESA_SHADER_CACHE_DISABLE = lib.mkIf (cfg.graphics && cfg.gl) (lib.mkDefault "true");
+          systemd.user.sessionVariables.MESA_SHADER_CACHE_DISABLE = lib.mkIf (cfg.graphics && cfg.gl) (lib.mkDefault "true");
+        }
+        // lib.optionalAttrs (options ? sops) {
           sops.validateSopsFiles = lib.mkDefault false;
         }
       ))
@@ -211,7 +219,7 @@ in {
                 then "sdl,gl=on"
                 else "sdl";
             in {
-              inherit (cfg) memorySize cores graphics;
+              inherit (cfg) memorySize diskSize cores graphics;
               qemu.options = lib.optionals cfg.graphics [
                 "-vga none"
                 "-device ${vgaDevice}${resOpts}"
@@ -237,6 +245,10 @@ in {
             device = lib.mkDefault "/dev/vda";
             fsType = lib.mkDefault "ext4";
           };
+          # Mesa's virgl disk cache hashes uninitialized padding in `union virgl_caps`,
+          # missing on every boot and leaving stale/corrupted cache state across restarts.
+          environment.sessionVariables.MESA_SHADER_CACHE_DISABLE = lib.mkIf (cfg.graphics && cfg.gl) (lib.mkDefault "true");
+          systemd.globalEnvironment.MESA_SHADER_CACHE_DISABLE = lib.mkIf (cfg.graphics && cfg.gl) (lib.mkDefault "true");
         }
         // lib.optionalAttrs (options ? sops) {
           sops.validateSopsFiles = lib.mkDefault false;

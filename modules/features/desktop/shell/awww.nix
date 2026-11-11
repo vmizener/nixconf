@@ -46,8 +46,7 @@ in {
         Type = "simple";
         ExecStart = "${pkg}/bin/awww-daemon";
         ExecStartPost = pkgs.writeShellScript "awww-set-wallpaper" ''
-          ${pkg}/bin/awww clear-cache
-          for i in $(seq 1 10); do
+          for i in $(seq 1 40); do
             if ${pkg}/bin/awww img ${cfg.flags} ${cfg.img}; then
               exit 0
             fi
