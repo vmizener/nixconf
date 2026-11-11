@@ -2,10 +2,15 @@
   username = "ramza";
 in {
   # @Igros (Nixos)
-  flake.nixosModules."users/${username}@igros" = {pkgs, ...}: {
+  flake.nixosModules."users/${username}@igros" = {
+    config,
+    pkgs,
+    ...
+  }: {
     imports = [
       self.nixosModules."feat/terminal/shell/zsh"
     ];
+    sops.secrets."passwords/${username}".neededForUsers = true;
     users.users.${username} = {
       isNormalUser = true;
       description = username;
@@ -17,7 +22,7 @@ in {
         "video"
         "wheel"
       ];
-      initialPassword = "gobears";
+      hashedPasswordFile = config.sops.secrets."passwords/${username}".path;
       shell = pkgs.zsh;
     };
     home-manager.users.${username}.imports = [
