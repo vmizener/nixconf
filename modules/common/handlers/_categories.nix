@@ -70,32 +70,26 @@
   # Desktop UI & IPC action categories
   launcher = {
     description = "application launchers";
-    mimes = [];
   };
   menu = {
     description = "interactive command or radial menus";
-    mimes = [];
   };
   clipboard = {
     description = "clipboard history pickers";
-    mimes = [];
   };
   powerMenu = {
     description = "session power menus";
-    mimes = [];
   };
-  notificationsDismiss = {
-    description = "dismissing notification popups";
-    mimes = [];
-  };
-  notificationsRestore = {
-    description = "restoring or toggling recent notifications";
-    mimes = [];
+  notifier = {
+    description = "notification daemons";
+    actions = {
+      dismiss.description = "dismissing notification popups";
+      restore.description = "restoring or toggling recent notifications";
+    };
   };
 
   # CLI & system environment categories
   shell = {
     description = "interactive login shells";
-    mimes = [];
   };
 }

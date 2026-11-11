@@ -49,15 +49,13 @@ in {
         label = "DMS";
         cmd = ["dms" "ipc" "call" "clipboard" "toggle"];
       };
-      notificationsDismiss.dms = {
+      notifier.dms = {
         priority = 100;
         label = "DMS";
-        cmd = ["dms" "ipc" "call" "notifications" "dismissAllPopups"];
-      };
-      notificationsRestore.dms = {
-        priority = 100;
-        label = "DMS";
-        cmd = ["dms" "ipc" "call" "notifications" "toggle"];
+        actions = {
+          dismiss.cmd = ["dms" "ipc" "call" "notifications" "dismissAllPopups"];
+          restore.cmd = ["dms" "ipc" "call" "notifications" "toggle"];
+        };
       };
       powerMenu.dms = {
         priority = 100;

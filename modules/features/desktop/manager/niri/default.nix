@@ -51,6 +51,10 @@ in {
     inherit (config.mod."feat/vm") isVm;
 
     handlers = config.mod."common/handlers".get;
+    getAction = handler: act:
+      if handler != null
+      then handler.actions.${act}
+      else null;
     mkBind = key: title: handler:
       lib.optional (handler != null && handler.cmd != null) (
         let
@@ -64,8 +68,8 @@ in {
         (mkBind "Mod+D" "Open Launcher" handlers.launcher)
         (mkBind "Mod+M" "Open Menu" handlers.menu)
         (mkBind "Mod+P" "Open Clipboard" handlers.clipboard)
-        (mkBind "Mod+E" "Dismiss Notifications" handlers.notificationsDismiss)
-        (mkBind "Mod+Shift+E" "Restore Notification" handlers.notificationsRestore)
+        (mkBind "Mod+E" "Dismiss Notifications" (getAction handlers.notifier "dismiss"))
+        (mkBind "Mod+Shift+E" "Restore Notification" (getAction handlers.notifier "restore"))
         (mkBind "Mod+Shift+P" "Open Power Menu" handlers.powerMenu)
       ]
       |> lib.flatten

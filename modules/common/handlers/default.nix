@@ -9,9 +9,21 @@ Exposes:
 - flake.homeModules."common/handlers"
 - flake.homeModules."common/options" (options.mod."common/handlers")
 */
-{...}: let
+{lib, ...}: let
   moduleName = "common/handlers";
-  categories = import ./_categories.nix;
+
+  categories =
+    import ./_categories.nix
+    |> builtins.mapAttrs (
+      _: {
+        description,
+        mimes ? [],
+        actions ? {},
+      }: {
+        inherit description mimes;
+        actions = builtins.mapAttrs (_: {description}: {inherit description;}) actions;
+      }
+    );
 
   sortEntries = entries:
     entries
@@ -20,83 +32,10 @@ Exposes:
       a: b: a.priority < b.priority || (a.priority == b.priority && a.id < b.id)
     );
 in {
-  flake.homeModules."common/options" = {
-    config,
-    lib,
-    ...
-  }: let
-    handlerType = lib.types.submodule ({name, ...}: {
-      options = {
-        id = lib.mkOption {
-          type = lib.types.str;
-          default = name;
-          readOnly = true;
-          description = "Identifier key of this handler entry.";
-        };
-        priority = lib.mkOption {
-          type = lib.types.int;
-          default = 100;
-          description = "Selection priority (lower numbers take precedence).";
-        };
-        label = lib.mkOption {
-          type = lib.types.str;
-          default = name;
-          description = "Human-readable name shown in hotkey overlays and desktop helpers.";
-        };
-        desktop = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          description = "XDG .desktop entry filename (required for MIME-backed categories).";
-        };
-        cmd = lib.mkOption {
-          type = lib.types.nullOr (lib.types.nonEmptyListOf lib.types.str);
-          default = null;
-          description = "Command argv list executed directly by keybindings or helpers.";
-        };
-      };
-    });
-  in {
-    options.mod.${moduleName} = {
-      add =
-        lib.mapAttrs (
-          _: cat:
-            lib.mkOption {
-              type = lib.types.attrsOf handlerType;
-              default = {};
-              description = "Registered candidate handlers for ${cat.description} (lower priority numbers take precedence).";
-              example = lib.literalExpression ''
-                {
-                  helium = {
-                    priority = 100;
-                    label = "Helium";
-                    desktop = "helium.desktop";
-                    cmd = ["helium"];
-                  };
-                }
-              '';
-            }
-        )
-        categories;
-      associations = lib.mkOption {
-        type = lib.types.attrsOf (lib.types.listOf lib.types.str);
-        default = {};
-        description = "Additional Open-With associations mapped to specific MIME types.";
-      };
-      get =
-        lib.mapAttrs (
-          catName: cat:
-            lib.mkOption {
-              readOnly = true;
-              description = "Winning highest-priority handler record for ${cat.description} (or null if unset).";
-              default = let
-                sorted = sortEntries config.mod.${moduleName}.add.${catName};
-              in
-                if sorted == []
-                then null
-                else builtins.head sorted;
-            }
-        )
-        categories;
+  flake.homeModules."common/options" = {config, ...}: {
+    options.mod.${moduleName} = import ./_options.nix {
+      inherit categories lib sortEntries;
+      added = config.mod.${moduleName}.add;
     };
   };
 
@@ -106,49 +45,54 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+  in {
+    mod.meta.imported = [moduleName];
 
-    categoryDefaults =
-      categories
-      |> lib.mapAttrsToList (catName: cat: let
-        desktops =
-          cfg.add.${catName}
-          |> sortEntries
-          |> map (e: e.desktop)
-          |> builtins.filter (d: d != null);
-      in
-        lib.optionalAttrs (cat.mimes != [] && desktops != []) (
-          lib.genAttrs cat.mimes (_: desktops)
-        ))
-      |> lib.zipAttrsWith (_: lib.flatten);
-
-    handlerAssertions =
+    assertions =
       categories
       |> lib.mapAttrsToList (
         catName: cat:
           lib.mapAttrsToList (id: entry: let
             loc = "mod.\"${moduleName}\".add.${catName}.${id}";
+            hasAction =
+              cat.actions
+              != {}
+              && lib.any (a: a != null) (builtins.attrValues entry.actions);
           in [
             {
               assertion = cat.mimes == [] || entry.desktop != null;
               message = "${loc}: MIME-backed category '${catName}' requires `desktop` to be set.";
             }
             {
-              assertion = cat.mimes != [] || entry.cmd != null;
-              message = "${loc}: action category '${catName}' requires `cmd` to be set.";
+              assertion = cat.mimes != [] || entry.cmd != null || hasAction;
+              message =
+                if cat.actions == {}
+                then "${loc}: action category '${catName}' requires `cmd` to be set."
+                else "${loc}: category '${catName}' requires `cmd` or at least one entry in `actions` to be set.";
             }
           ])
           cfg.add.${catName}
       )
       |> lib.flatten;
-  in {
-    mod.meta.imported = [moduleName];
-    assertions = handlerAssertions;
+
     xdg = {
       mime.enable = true;
       mimeApps = {
         enable = true;
-        defaultApplications = categoryDefaults;
         associations.added = cfg.associations;
+        defaultApplications =
+          categories
+          |> lib.mapAttrsToList (catName: cat: let
+            desktops =
+              cfg.add.${catName}
+              |> sortEntries
+              |> map (e: e.desktop)
+              |> builtins.filter (d: d != null);
+          in
+            lib.optionalAttrs (cat.mimes != [] && desktops != []) (
+              lib.genAttrs cat.mimes (_: desktops)
+            ))
+          |> lib.zipAttrsWith (_: lib.flatten);
       };
     };
   };
