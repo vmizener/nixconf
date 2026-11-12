@@ -21,11 +21,12 @@ in (
     "alias ,,=', -as'"
   ]
   ++ addIfElse "eza" [
-    "alias ls='eza --sort=type --icons=always'"
-    "alias la='eza --sort=type --icons=always -a'"
-    "alias ll='eza --sort=type --icons=always -al --git --header'"
-    "alias lt='eza --sort=type --icons=always -T'"
-    "alias lT='eza --sort=type --icons=always -lT --git --header'"
+    "alias ls='eza --icons=always --sort=type'"
+    "alias la='eza --icons=always --sort=type -a'"
+    "alias ll='eza --icons=always --sort=type -al --git --header'"
+    "alias lt='eza --icons=always --sort=type -T'"
+    "alias lT='eza --icons=always --sort=type -lT --git --header'"
+    "alias lc='eza --icons=always --code'"
   ] [
     "export LSCOLORS=gxBxhxDxfxhxhxhxhxcxcx"
     "alias ls='ls -Fh'"
