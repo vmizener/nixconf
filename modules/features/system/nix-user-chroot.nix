@@ -62,14 +62,13 @@ in {
     '';
     enterScript = pkgs.writeText "nix-user-chroot-enter" ''
       #!/bin/bash
-      export HOME=${config.home.homeDirectory}
-      cd ~/
-      du -hs ${cfg.nixDir}
-      echo "home:" $HOME
+      export HOME="${config.home.homeDirectory}"
+      cd "$HOME" || exit 1
+      echo "home: $HOME"
       if [ $# -eq 0 ]; then
         set -- ${cfg.shell}
       fi
-      exec ${cfg.nixDir}/nix-user-chroot ${cfg.nixDir}/root-nix /bin/sh -c '
+      exec "${cfg.nixDir}/nix-user-chroot" "${cfg.nixDir}/root-nix" /bin/sh -c '
         rm -rf /homeless-shelter 2>/dev/null || true
         mount -o remount,bind,ro / 2>/dev/null || true
         exec "$@"
