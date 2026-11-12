@@ -60,7 +60,7 @@ in {
     nixProfile = ''
       . "${config.home.profileDirectory}/etc/profile.d/nix.sh"
     '';
-    enterScript = ''
+    enterScript = pkgs.writeText "nix-user-chroot-enter" ''
       #!/bin/bash
       export HOME=${config.home.homeDirectory}
       cd ~/
@@ -92,9 +92,7 @@ in {
 
         # Keep enter script updated outside the store
         if [ -d "${cfg.nixDir}" ]; then
-          $DRY_RUN_CMD cat <<'EOF' > "${cfg.nixDir}/enter.tmp"
-        ${enterScript}EOF
-          run chmod u+x "${cfg.nixDir}/enter.tmp"
+          run install -m 0755 "${enterScript}" "${cfg.nixDir}/enter.tmp"
           run mv -f "${cfg.nixDir}/enter.tmp" "${cfg.nixDir}/enter"
         fi
       '';
