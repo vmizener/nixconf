@@ -1,0 +1,25 @@
+--- a/waypie_config.py
++++ b/waypie_config.py
+@@ -2223,16 +2223,15 @@
+             parse_key_sets(self.settings.autogenerate_key_sets)
+             validate_editable_tree(self.settings.root)
+             text = serialize_config(self.settings)
++            target = self.config_path.resolve()
+             self.config_path.parent.mkdir(parents=True, exist_ok=True)
++            target.parent.mkdir(parents=True, exist_ok=True)
+             backup = self.config_path.with_name(f"{self.config_path.name}.bak")
+-            if self.config_path.exists() and not backup.exists():
+-                shutil.copy2(
+-                    self.config_path,
+-                    backup,
+-                )
+-            temporary = self.config_path.with_name(f".{self.config_path.name}.tmp")
++            if target.exists() and not backup.exists():
++                shutil.copy2(target, backup)
++            temporary = target.with_name(f".{target.name}.tmp")
+             temporary.write_text(text, encoding="utf-8")
+-            temporary.replace(self.config_path)
++            temporary.replace(target)
+         except (OSError, ValueError, SystemExit) as error:
+             self.set_status(str(error), error=True)
+             return

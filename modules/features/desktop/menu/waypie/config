@@ -1,0 +1,83 @@
+menu-radius = 120
+center-hitbox-size = 160
+minimum-edge-distance = 200
+center-mode = false
+always-center-mode = false
+back-keys = "q"
+autogenerate-key-sets = "1 2 3 4 5 6 7 8 9"
+close-submenu-on-center-click = false
+hover-mode = false
+turbo-mode = true
+hold-to-turbo = true
+travel-item-animation = true
+preserve-proportions = false
+auto-alignment = true
+configurator-show-icons = true
+
+[menu]
+label = "Waypie"
+icon-theme = "rywby-icons"
+icon = "waypie.svg"
+
+[[menu.items]]
+label = "Terminal"
+keys = "1"
+command = "xdg-terminal-exec"
+icon-theme = "tabler-icons"
+icon = "outline/terminal-2.svg"
+angle = 0
+
+[[menu.items]]
+label = "Browser"
+keys = "2"
+command = "handlr launch x-scheme-handler/http"
+icon-theme = "tabler-icons"
+icon = "filled/link.svg"
+angle = 72
+
+[[menu.items]]
+label = "Files"
+keys = "3"
+command = "handlr launch inode/directory"
+icon-theme = "tabler-icons"
+icon = "outline/folder-symlink.svg"
+angle = 144
+
+[[menu.items]]
+label = "Configure"
+keys = "4"
+command = "waypie-config"
+icon-theme = "tabler-icons"
+icon = "filled/settings.svg"
+angle = 216
+
+[[menu.items]]
+label = "Power"
+keys = "5"
+icon-theme = "tabler-icons"
+icon = "outline/power.svg"
+angle = 288
+
+[[menu.items.items]]
+label = "Sleep"
+keys = "1"
+command = "loginctl suspend"
+icon-theme = "tabler-icons"
+icon = "outline/zzz.svg"
+angle = 0
+
+[[menu.items.items]]
+label = "Reboot"
+keys = "2"
+command = "loginctl reboot"
+icon-theme = "tabler-icons"
+icon = "outline/reload.svg"
+angle = 180
+
+[[menu.items.items]]
+label = "Power Off"
+keys = "3"
+command = "loginctl poweroff"
+icon-theme = "tabler-icons"
+icon = "outline/power.svg"
+angle = 270
