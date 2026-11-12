@@ -1,14 +1,14 @@
 /*
-  feat/desktop/launcher/kando
+  feat/desktop/menu/kando
 
 Enables the Kando menu tool.
 
 Exposes:
 
-- flake.homeModules."feat/desktop/launcher/kando":
+- flake.homeModules."feat/desktop/menu/kando":
 */
 let
-  moduleName = "feat/desktop/launcher/kando";
+  moduleName = "feat/desktop/menu/kando";
 in {
   flake.homeModules.${moduleName} = {
     lib,
