@@ -96,7 +96,7 @@ in {
     mod.meta.imported = [moduleName];
     home.packages = [pkg];
     xdg.configFile = {
-      "waypie/config".source = config.mod.meta.link ./config;
+      "waypie/config".source = config.mod.meta.link ./config.toml;
       "waypie/style.css".source = config.mod.meta.link ./style.css;
       "waypie/icons".source = "${pkg}/share/waypie/icons";
     };
