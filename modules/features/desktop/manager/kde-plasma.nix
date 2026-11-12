@@ -8,7 +8,7 @@ Exposes:
 - flake.homeModules."feat/desktop/manager/kde-plasma":
   - Configures KDE Plasma 6 via plasma-manager.
 - flake.nixosModules."feat/desktop/manager/kde-plasma":
-  - Enables KDE Plasma 6 desktop manager
+  - Enables KDE Plasma 6 desktop manager and registers built-in apps in `common/handlers`
   - Configures X11/Wayland windowing system.
 */
 {inputs, ...}: let
@@ -22,6 +22,7 @@ in {
   }: let
     hasTheme = config.mod.meta.has "feat/system/theme";
     themeCfg = config.mod."feat/system/theme";
+    inherit (config.mod."common/handlers".get) terminal;
   in {
     mod.meta = {
       imported = [moduleName];
@@ -60,10 +61,15 @@ in {
         wallpaper = ../../../../assets/wallpapers/girl_leaving_apartment.png;
         wallpaperFillMode = "stretch";
       };
-      hotkeys.commands."launch-konsole" = {
-        name = "Launch Konsole";
-        key = "Meta+Alt+K";
-        command = "konsole";
+      hotkeys.commands = lib.mkIf (terminal != null) {
+        "launch-terminal" = {
+          name = "Launch ${terminal.label}";
+          key = "Meta+Alt+K";
+          command =
+            if terminal.cmd != null
+            then lib.escapeShellArgs terminal.cmd
+            else "xdg-terminal-exec";
+        };
       };
       fonts = {
         general = {
@@ -74,8 +80,62 @@ in {
     };
   };
 
-  flake.nixosModules.${moduleName} = {...}: {
-    mod.meta.imported = [moduleName];
+  flake.nixosModules.${moduleName} = {
+    config,
+    pkgs,
+    utils,
+    ...
+  }: let
+    hasPkg = pkg:
+      utils.disablePackageByName pkg config.environment.plasma6.excludePackages;
+  in {
+    mod = {
+      meta.imported = [moduleName];
+      "common/handlers".add = {
+        terminal.konsole = {
+          enable = hasPkg pkgs.kdePackages.konsole;
+          priority = 200;
+          label = "Konsole";
+          desktop = "org.kde.konsole.desktop";
+          cmd = ["konsole"];
+        };
+        fileManager.dolphin = {
+          enable = hasPkg pkgs.kdePackages.dolphin;
+          priority = 200;
+          label = "Dolphin";
+          desktop = "org.kde.dolphin.desktop";
+          cmd = ["dolphin"];
+        };
+        editor.kate = {
+          enable = hasPkg pkgs.kdePackages.kate;
+          priority = 200;
+          label = "Kate";
+          desktop = "org.kde.kate.desktop";
+          cmd = ["kate"];
+        };
+        imageViewer.gwenview = {
+          enable = hasPkg pkgs.kdePackages.gwenview;
+          priority = 200;
+          label = "Gwenview";
+          desktop = "org.kde.gwenview.desktop";
+          cmd = ["gwenview"];
+        };
+        pdfViewer.okular = {
+          enable = hasPkg pkgs.kdePackages.okular;
+          priority = 200;
+          label = "Okular";
+          desktop = "okularApplication_pdf.desktop";
+          cmd = ["okular"];
+        };
+        audioPlayer.elisa = {
+          enable = hasPkg pkgs.kdePackages.elisa;
+          priority = 200;
+          label = "Elisa";
+          desktop = "org.kde.elisa.desktop";
+          cmd = ["elisa"];
+        };
+      };
+    };
     services = {
       desktopManager.plasma6.enable = true;
       xserver = {

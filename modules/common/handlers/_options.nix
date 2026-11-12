@@ -1,4 +1,4 @@
-# Home-Manager option definitions for `common/handlers`.
+# NixOS & Home-Manager option definitions for `common/handlers`.
 {
   added,
   categories,
@@ -42,12 +42,21 @@
     };
 
   handlerSubmodule = actions:
-    types.submodule (self: {
+    types.submodule ({
+      config,
+      name,
+      ...
+    }: {
       options =
         {
+          enable = mkOption {
+            type = types.bool;
+            default = true;
+            description = "Whether this handler candidate is active.";
+          };
           id = mkOption {
             type = types.str;
-            default = self.name;
+            default = name;
             readOnly = true;
             description = "Identifier key of this handler entry.";
           };
@@ -58,7 +67,7 @@
           };
           label = mkOption {
             type = types.str;
-            default = self.name;
+            default = name;
             description = "Human-readable name shown in hotkey overlays and desktop helpers.";
           };
           desktop = mkOption {
@@ -77,7 +86,7 @@
             default = {};
             description = "Named sub-action commands provided by this handler.";
             type = types.submodule {
-              options = builtins.mapAttrs (mkActionOption self.config) actions;
+              options = builtins.mapAttrs (mkActionOption config) actions;
             };
           };
         };

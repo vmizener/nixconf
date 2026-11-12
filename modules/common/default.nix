@@ -81,6 +81,7 @@ in {
   }: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
+      self.nixosModules."common/handlers"
       self.nixosModules."common/net"
       self.nixosModules."common/options"
       self.nixosModules."common/sops"

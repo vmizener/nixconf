@@ -4,7 +4,7 @@
   ...
 }: let
   cfg = config.mod."feat/desktop/manager/xfce";
-  inherit (config.mod."common/handlers".get) browser terminal;
+  inherit (config.mod."common/handlers".get) browser fileManager terminal;
   inherit (config.mod."feat/vm") isVm;
   termCmd =
     if terminal != null && terminal.cmd != null
@@ -41,6 +41,22 @@ in
               then ''${cmd} "%s"''
               else ''${cmd} -- "%s"'';
             icon = "web-browser";
+          };
+        })
+        // lib.optionalAttrs (fileManager != null) (let
+          cmd =
+            if fileManager.cmd != null
+            then lib.escapeShellArgs fileManager.cmd
+            else "handlr launch inode/directory";
+        in {
+          FileManager = {
+            inherit (fileManager) label;
+            inherit cmd;
+            cmdWithParam =
+              if fileManager.cmd != null
+              then ''${cmd} "%s"''
+              else ''${cmd} -- "%s"'';
+            icon = "system-file-manager";
           };
         });
     in
