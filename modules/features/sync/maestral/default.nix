@@ -40,10 +40,10 @@ in {
     ];
 
     sops = {
-      secrets."maestral/account_id" = {};
+      secrets."services/maestral/account_id" = {};
       templates."maestral.ini".file = pkgs.replaceVars ./maestral.ini {
         MAESTRAL_PATH = cfg.maestral_path;
-        MAESTRAL_ACCOUNT_ID = config.sops.placeholder."maestral/account_id";
+        MAESTRAL_ACCOUNT_ID = config.sops.placeholder."services/maestral/account_id";
       };
     };
 
