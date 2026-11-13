@@ -28,7 +28,7 @@ in {
       };
       httpPort = lib.mkOption {
         type = lib.types.either lib.types.port lib.types.str;
-        default = 4000;
+        default = "127.0.0.1:4000";
         description = "HTTP listen port or address:port for API/DoH/metrics";
       };
       customDNS = lib.mkOption {
@@ -41,10 +41,15 @@ in {
         default = true;
         description = "Validate the Blocky configuration template at build time";
       };
-      openFirewall = lib.mkOption {
+      openDnsFirewall = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Whether to open the DNS and HTTP ports in the firewall";
+        description = "Whether to open an integer `dnsPort` (TCP/UDP) in the firewall";
+      };
+      openHttpFirewall = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Whether to open an integer `httpPort` (TCP) in the firewall";
       };
     };
   };
@@ -75,7 +80,7 @@ in {
   in {
     mod.meta.imported = [moduleName];
 
-    environment.systemPackages = with pkgs; [blocky];
+    environment.systemPackages = [cfg.package];
     services.blocky = {
       enable = true;
       inherit (cfg) package;
@@ -93,11 +98,12 @@ in {
       '')
     ];
 
-    networking.firewall = lib.mkIf cfg.openFirewall {
+    networking.firewall = {
       allowedTCPPorts =
-        (lib.optional (builtins.isInt cfg.dnsPort) cfg.dnsPort)
-        ++ (lib.optional (builtins.isInt cfg.httpPort) cfg.httpPort);
-      allowedUDPPorts = lib.optional (builtins.isInt cfg.dnsPort) cfg.dnsPort;
+        (lib.optional (cfg.openDnsFirewall && builtins.isInt cfg.dnsPort) cfg.dnsPort)
+        ++ (lib.optional (cfg.openHttpFirewall && builtins.isInt cfg.httpPort) cfg.httpPort);
+      allowedUDPPorts =
+        lib.optional (cfg.openDnsFirewall && builtins.isInt cfg.dnsPort) cfg.dnsPort;
     };
   };
 }

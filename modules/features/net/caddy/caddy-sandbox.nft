@@ -1,0 +1,52 @@
+set service_uids {
+  typeof meta skuid
+}
+
+set private_ipv4 {
+  type ipv4_addr
+  flags interval
+  elements = {
+    10.0.0.0/8,
+    100.64.0.0/10,
+    169.254.0.0/16,
+    172.16.0.0/12,
+    192.168.0.0/16
+  }
+}
+
+set private_ipv6 {
+  type ipv6_addr
+  flags interval
+  elements = {
+    fc00::/7,
+    fe80::/10
+  }
+}
+
+chain caddy_egress {
+  ct state established,related accept
+
+  # Loopback allowlist (Caddy reload admin API :2019, DNS :53, declared local upstreams)
+  oifname "lo" tcp dport 2019 accept
+  oifname "lo" udp dport 53 accept
+  oifname "lo" tcp dport 53 accept
+@LOOPBACK_TARGET_RULES@
+  oifname "lo" reject with icmpx type admin-prohibited
+
+  # Explicitly declared LAN upstreams
+@LAN_UPSTREAM_RULES@
+
+  # Block lateral movement to all other private/LAN/link-local addresses
+  ip daddr @private_ipv4 reject with icmpx type admin-prohibited
+  ip6 daddr @private_ipv6 reject with icmpx type admin-prohibited
+
+  # Public internet egress (DNS, HTTP/HTTPS OCSP stapling & ACME)
+  tcp dport { 80, 443 } accept
+  udp dport { 53, 443 } accept
+  reject with icmpx type admin-prohibited
+}
+
+chain output {
+  type filter hook output priority filter; policy accept;
+  meta skuid @service_uids jump caddy_egress
+}

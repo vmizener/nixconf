@@ -11,7 +11,13 @@ in {
     domain = lib.mkOption {
       type = lib.types.str;
       default = "lan";
-      description = "Base domain for Blocky/Caddy virtual hosts (while .local is used by mDNS)";
+      description = "Base domain for internal Blocky/Caddy virtual hosts (while .local is used by mDNS)";
+    };
+    publicDomain = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "example.com";
+      description = "Public base domain for internet-exposed services (`visibility = \"public\"`)";
     };
     proxyHost = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
@@ -58,7 +64,11 @@ in {
               default = {};
               description = "Network services exposed by this host for reverse proxying";
               type = lib.types.attrsOf (
-                lib.types.submodule ({name, ...}: {
+                lib.types.submodule ({
+                  config,
+                  name,
+                  ...
+                }: {
                   options = {
                     port = lib.mkOption {
                       type = lib.types.port;
@@ -73,6 +83,20 @@ in {
                       type = lib.types.enum ["http" "https"];
                       default = "http";
                       description = "Upstream protocol used by the service";
+                    };
+                    visibility = lib.mkOption {
+                      type = lib.types.enum ["lan" "public"];
+                      default = "lan";
+                      description = "Whether the service is restricted to the LAN (`.lan`) or exposed on `publicDomain`";
+                    };
+                    auth = lib.mkOption {
+                      type = lib.types.enum ["sso" "none"];
+                      default =
+                        if config.visibility == "public"
+                        then "sso"
+                        else "none";
+                      defaultText = lib.literalExpression ''if config.visibility == "public" then "sso" else "none"'';
+                      description = "Proxy authentication policy enforced by Caddy before `reverse_proxy`";
                     };
                   };
                 })
@@ -107,16 +131,26 @@ in {
         in
           builtins.head (lib.splitString ":" noHttp);
 
-        qualifyKey = key: let
+        qualifyKeyFor = baseDomain: key: let
           hostPart = extractHostname key;
         in
-          if lib.hasInfix "." hostPart
+          if lib.hasInfix "." hostPart || baseDomain == null
           then key
-          else builtins.replaceStrings [hostPart] ["${hostPart}.${flakeNet.domain}"] key;
+          else builtins.replaceStrings [hostPart] ["${hostPart}.${baseDomain}"] key;
+
+        qualifyKey = qualifyKeyFor flakeNet.domain;
+
+        qualifyService = svc:
+          qualifyKeyFor (
+            if svc.visibility == "public"
+            then flakeNet.publicDomain
+            else flakeNet.domain
+          )
+          svc.subdomain;
       };
 
       allDnsRecords = let
-        inherit (flakeNet.lib) extractHostname qualifyKey;
+        inherit (flakeNet.lib) extractHostname qualifyService;
         proxyIpv4 =
           if flakeNet.proxyHost != null
           then (flakeNet.hosts.${flakeNet.proxyHost} or {}).ipv4 or null
@@ -135,11 +169,14 @@ in {
           lib.foldlAttrs (
             acc: _: h:
               acc
-              // lib.mapAttrs' (
-                _: svc:
-                  lib.nameValuePair (extractHostname (qualifyKey svc.subdomain)) proxyIpv4
+              // (
+                h.services
+                |> lib.filterAttrs (_: svc: lib.hasInfix "." (extractHostname (qualifyService svc)))
+                |> lib.mapAttrs' (
+                  _: svc:
+                    lib.nameValuePair (extractHostname (qualifyService svc)) proxyIpv4
+                )
               )
-              h.services
           ) {}
           flakeNet.hosts
         );
@@ -177,7 +214,7 @@ in {
       };
 
       assertions = let
-        inherit (flakeNet.lib) extractHostname qualifyKey;
+        inherit (flakeNet.lib) extractHostname qualifyService;
 
         duplicatesBy = keyFn: items:
           builtins.groupBy keyFn items
@@ -200,9 +237,11 @@ in {
         serviceEntries =
           lib.mapAttrsToList (
             host: h:
-              lib.mapAttrsToList (svcName: svc: {
-                key = qualifyKey svc.subdomain;
-                fqdn = extractHostname (qualifyKey svc.subdomain);
+              lib.mapAttrsToList (svcName: svc: let
+                key = qualifyService svc;
+                fqdn = extractHostname key;
+              in {
+                inherit fqdn key svc;
                 source = "${host}.${svcName}";
               })
               h.services
@@ -210,6 +249,7 @@ in {
           flakeNet.hosts
           |> lib.concatLists;
 
+        publicServices = builtins.filter (e: e.svc.visibility == "public") serviceEntries;
         serviceCollisions = duplicatesBy (e: e.key) serviceEntries;
 
         hostDnsEntries =
@@ -229,7 +269,11 @@ in {
           |> lib.concatLists;
 
         serviceDnsEntries =
-          lib.optionalAttrs (proxyIpv4 != null) (builtins.groupBy (e: e.fqdn) serviceEntries)
+          lib.optionalAttrs (proxyIpv4 != null) (
+            serviceEntries
+            |> builtins.filter (e: lib.hasInfix "." e.fqdn)
+            |> builtins.groupBy (e: e.fqdn)
+          )
           |> lib.mapAttrsToList (fqdn: entries: {
             inherit fqdn;
             ip = proxyIpv4;
@@ -239,6 +283,10 @@ in {
         dnsCollisions = duplicatesBy (e: e.fqdn) (hostDnsEntries ++ serviceDnsEntries);
       in
         [
+          {
+            assertion = flakeNet.publicDomain == null || flakeNet.publicDomain != flakeNet.domain;
+            message = "inventory.net.publicDomain ('${toString flakeNet.publicDomain}') must differ from internal inventory.net.domain ('${flakeNet.domain}').";
+          }
           {
             assertion = flakeNet.proxyHost == null || flakeNet.hosts ? ${flakeNet.proxyHost};
             message = "inventory.net.proxyHost '${toString flakeNet.proxyHost}' is not declared in inventory.net.hosts.";
@@ -252,6 +300,17 @@ in {
           assertion = hostCfg.interface != null;
           message = "inventory.net.hosts.${hostName}.interface must be set when ipv4 is specified.";
         }
+        ++ lib.concatMap (e: [
+          {
+            assertion = lib.hasInfix "." e.fqdn;
+            message = "inventory.net.hosts.${e.source}: visibility = \"public\" requires inventory.net.publicDomain to be set (or an explicit FQDN in subdomain).";
+          }
+          {
+            assertion = !(e.fqdn == flakeNet.domain || lib.hasSuffix ".${flakeNet.domain}" e.fqdn);
+            message = "inventory.net.hosts.${e.source}: public service hostname '${e.fqdn}' cannot use internal domain '.${flakeNet.domain}'.";
+          }
+        ])
+        publicServices
         ++ lib.mapAttrsToList (ip: entries: {
           assertion = false;
           message = "inventory.net.hosts: static IPv4 '${ip}' is assigned to multiple hosts: ${lib.concatMapStringsSep ", " (e: e.host) entries}";
