@@ -18,6 +18,10 @@ check: format
 show:
     ./scripts/show-flake.sh | jq
 
+# Update private nixconf-config flake input
+update-config:
+    nix flake update nixconf-config
+
 # Update non-flake input packages
 update-packages:
     ./scripts/update-packages.sh
@@ -25,16 +29,6 @@ update-packages:
 # Update assets manifest
 update-manifest *args="":
     ./scripts/update-assets-manifest.py {{args}}
-
-# Add sops entry for current or remote host/user
-[group('sops')]
-sops-init *args="":
-    ./scripts/sops.py init {{args}}
-
-# Update sops encryption
-[group('sops')]
-sops-update *args="":
-    ./scripts/sops.py update {{args}}
 
 # Launch VM for given host (see `just show` for host options)
 [group('vm')]
