@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   self,
   ...
@@ -59,7 +60,10 @@ in {
     ];
   in {
     inventory.ssh = {
-      keysFiles = [../../secrets/keys.toml];
+      keysFiles =
+        lib.optional
+        (builtins.pathExists "${inputs.nixconf-config}/keys.toml")
+        "${inputs.nixconf-config}/keys.toml";
       keys = lib.mkMerge (map (t: t.keys or {}) tomlConfigs);
       authorize = {
         allHosts = lib.mkMerge (map (t: t.authorize.all_hosts or {}) tomlConfigs);

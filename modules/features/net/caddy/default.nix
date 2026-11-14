@@ -1,9 +1,9 @@
 /*
   feat/net/caddy
 
-Enables Caddy web server and dual-horizon (`lan` + `public`) reverse proxy with
-per-vhost internal/ACME TLS, client CIDR isolation, `forward_auth` SSO hooks,
-and kernel `nftables` ingress/egress sandboxing.
+Enables Caddy web server and multi-domain reverse proxy driven by
+`inventory.net.domains`, with per-domain internal/ACME TLS, client CIDR
+isolation, `forward_auth` SSO hooks, and kernel `nftables` sandboxing.
 
 Exposes:
 
@@ -11,29 +11,30 @@ Exposes:
 */
 {...} @ flake: let
   moduleName = "feat/net/caddy";
+  httpPort = 80;
+  httpsPort = 443;
 in {
-  flake.nixosModules."common/options" = {
-    lib,
-    pkgs,
-    ...
-  }: {
+  flake.nixosModules."common/options" = {lib, ...}: let
+    acmeProviderOpts = {
+      dnsProvider = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "porkbun";
+        description = "Lego DNS-01 provider name passed to `security.acme`";
+      };
+      environmentFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Runtime environment file containing DNS provider API credentials";
+      };
+      credentialFiles = lib.mkOption {
+        type = lib.types.attrsOf lib.types.path;
+        default = {};
+        description = "Runtime secret files injected into `security.acme` via systemd `LoadCredential` (keys must end in `_FILE` or `_PATH`)";
+      };
+    };
+  in {
     options.mod.${moduleName} = {
-      package = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.caddy;
-        defaultText = lib.literalExpression "pkgs.caddy";
-        description = "Caddy package to use";
-      };
-      httpPort = lib.mkOption {
-        type = lib.types.port;
-        default = 80;
-        description = "HTTP listen port (restricted to `lanCidrs` in the firewall)";
-      };
-      httpsPort = lib.mkOption {
-        type = lib.types.port;
-        default = 443;
-        description = "HTTPS listen port";
-      };
       lanCidrs = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [
@@ -44,7 +45,7 @@ in {
           "192.168.0.0/16"
           "fd00::/8"
         ];
-        description = "Trusted client CIDRs allowed to access LAN virtual hosts and HTTP port 80";
+        description = "Trusted client CIDRs allowed to access `access = \"lan\"` virtual hosts and HTTP port 80";
       };
       virtualHosts = lib.mkOption {
         type = lib.types.attrsOf (
@@ -52,44 +53,30 @@ in {
         );
         default = {};
         description = ''
-          Declarative virtual hosts. Keys without a dot automatically get `.${flake.config.inventory.net.domain}` appended.
+          Declarative virtual hosts. Keys without a dot automatically get `.${flake.config.inventory.net.defaultDomain}` appended.
           Values can be either an upstream URL/address string (shorthand for `reverse_proxy <upstream>`)
           or a `services.caddy.virtualHosts` submodule attrset.
         '';
       };
-      acme = {
-        enable = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-          description = "Issue a wildcard ACME DNS-01 certificate for `inventory.net.publicDomain` via `security.acme`";
+      acme =
+        acmeProviderOpts
+        // {
+          enable = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Issue wildcard ACME DNS-01 certificates via `security.acme` for every domain in `inventory.net.domains` with `tls = \"acme\"`";
+          };
+          email = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = "Optional contact email address for Let's Encrypt ACME account registration";
+          };
+          domains = lib.mkOption {
+            default = {};
+            type = lib.types.attrsOf (lib.types.submodule {options = acmeProviderOpts;});
+            description = "Optional per-domain DNS-01 provider/credential overrides (keyed by domain name in `inventory.net.domains`)";
+          };
         };
-        email = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          description = "Contact email address for Let's Encrypt ACME account registration";
-        };
-        dnsProvider = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          example = "cloudflare";
-          description = "Lego DNS-01 provider name passed to `security.acme`";
-        };
-        environmentFile = lib.mkOption {
-          type = lib.types.nullOr lib.types.path;
-          default = null;
-          description = "Runtime secret file containing DNS provider API credentials (e.g. `sops.secrets.<name>.path`)";
-        };
-        dnsPropagationCheck = lib.mkOption {
-          type = lib.types.bool;
-          default = true;
-          description = "Wait for authoritative DNS TXT propagation before completing DNS-01 challenges";
-        };
-        staging = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-          description = "Use Let's Encrypt's staging directory for testing ACME issuance without hitting rate limits";
-        };
-      };
       forwardAuth = {
         enable = lib.mkOption {
           type = lib.types.bool;
@@ -101,21 +88,6 @@ in {
           default = null;
           example = "127.0.0.1:9091";
           description = "Upstream authentication server `host:port` passed to Caddy `forward_auth`";
-        };
-        uri = lib.mkOption {
-          type = lib.types.str;
-          default = "/api/authz/forward-auth";
-          description = "Verification endpoint path queried on the `forward_auth` upstream";
-        };
-        copyHeaders = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [
-            "Remote-User"
-            "Remote-Groups"
-            "Remote-Email"
-            "Remote-Name"
-          ];
-          description = "Identity headers copied from the `forward_auth` response to upstream services";
         };
       };
       egressSandbox = {
@@ -149,20 +121,15 @@ in {
           );
         };
       };
-      enableConfigCheck = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Validate the generated Caddy configuration at build time";
-      };
       openLanFirewall = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Whether to open `httpPort` (and `httpsPort` when `openPublicFirewall` is inactive) to `lanCidrs`";
+        description = "Whether to open HTTP/HTTPS ports to `lanCidrs`";
       };
       openPublicFirewall = lib.mkOption {
         type = lib.types.nullOr lib.types.bool;
         default = null;
-        description = "Whether to open `httpsPort` (TCP/UDP) globally; defaults to true when any public virtual host is configured";
+        description = "Whether to open HTTPS (443 TCP/UDP) globally; defaults to true when any public virtual host is configured";
       };
     };
   };
@@ -174,23 +141,72 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    package = pkgs.caddy;
     flakeNet = flake.config.inventory.net;
     currentHost = config.networking.hostName;
     hostIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
-    publicDomain = flakeNet.publicDomain;
+
+    managedAcmeDomains =
+      flakeNet.domains
+      |> lib.filterAttrs (_: dCfg: dCfg.tls == "acme")
+      |> builtins.attrNames;
+
+    resolveAcmeFor = d: let
+      ovr = cfg.acme.domains.${d} or {};
+    in {
+      dnsProvider =
+        if (ovr.dnsProvider or null) != null
+        then ovr.dnsProvider
+        else cfg.acme.dnsProvider;
+      environmentFile =
+        if (ovr.environmentFile or null) != null
+        then ovr.environmentFile
+        else cfg.acme.environmentFile;
+      credentialFiles =
+        if (ovr.credentialFiles or {}) != {}
+        then ovr.credentialFiles
+        else cfg.acme.credentialFiles;
+    };
 
     vhosts = import ./_vhosts.nix {
-      inherit cfg currentHost flakeNet lib;
+      inherit cfg currentHost flakeNet lib managedAcmeDomains;
     };
     firewallCfg = import ./_firewall.nix {
-      inherit cfg config lib pkgs vhosts;
+      inherit
+        cfg
+        config
+        httpPort
+        httpsPort
+        lib
+        pkgs
+        vhosts
+        ;
+    };
+
+    checkScript = pkgs.replaceVars ./check-config.sh {
+      CADDY_BIN = lib.getExe package;
+      CONFIG_FILE = config.services.caddy.configFile;
+      LOG_DIR = config.services.caddy.logDir;
+      MODE =
+        if vhosts.usesRuntimeAcmeCerts
+        then "adapt"
+        else "validate";
     };
   in
     lib.mkMerge [
       firewallCfg
       {
         assertions = import ./_assertions.nix {
-          inherit cfg currentHost flakeNet lib moduleName vhosts;
+          inherit
+            cfg
+            currentHost
+            flakeNet
+            lib
+            managedAcmeDomains
+            moduleName
+            resolveAcmeFor
+            vhosts
+            ;
         };
 
         mod = {
@@ -204,49 +220,37 @@ in {
           );
         };
 
-        security.acme = lib.mkIf (cfg.acme.enable && publicDomain != null) {
+        security.acme = lib.mkIf (cfg.acme.enable && managedAcmeDomains != []) {
           acceptTerms = true;
-          defaults =
-            {
-              inherit (cfg.acme) email;
-            }
-            // lib.optionalAttrs cfg.acme.staging {
-              server = "https://acme-staging-v02.api.letsencrypt.org/directory";
-            };
-          certs.${publicDomain} = {
-            domain = publicDomain;
-            extraDomainNames = ["*.${publicDomain}"];
-            inherit (cfg.acme) dnsPropagationCheck dnsProvider environmentFile;
-            group = config.services.caddy.group;
+          defaults = lib.optionalAttrs (cfg.acme.email != null) {
+            inherit (cfg.acme) email;
           };
+          certs = lib.genAttrs managedAcmeDomains (d: let
+            resolved = resolveAcmeFor d;
+          in {
+            domain = d;
+            extraDomainNames = ["*.${d}"];
+            inherit (resolved) credentialFiles dnsProvider environmentFile;
+            group = config.services.caddy.group;
+          });
         };
 
         services.caddy = {
           enable = true;
-          inherit (cfg) httpPort httpsPort package;
+          inherit httpPort httpsPort package;
           # Managed via `_firewall.nix` so port 80 stays restricted to `lanCidrs`
           openFirewall = false;
           globalConfig = lib.optionalString vhosts.hasHttpsVHosts ''
-            servers :${toString cfg.httpsPort} {
+            servers :${toString httpsPort} {
               strict_sni_host
             }
           '';
           virtualHosts = vhosts.allVHosts;
         };
 
-        system.checks = lib.mkIf cfg.enableConfigCheck [
+        system.checks = [
           (pkgs.runCommand "check-caddy-config" {} ''
-            export XDG_DATA_HOME="$TMPDIR/data"
-            export XDG_CONFIG_HOME="$TMPDIR/config"
-            mkdir -p "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$TMPDIR/log"
-            substitute ${config.services.caddy.configFile} "$TMPDIR/Caddyfile" \
-              --replace-quiet "${config.services.caddy.logDir}" "$TMPDIR/log"
-            ${
-              if vhosts.usesRuntimeAcmeCerts
-              then "${lib.getExe cfg.package} adapt --adapter caddyfile --config \"$TMPDIR/Caddyfile\" > /dev/null"
-              else "${lib.getExe cfg.package} validate --adapter caddyfile --config \"$TMPDIR/Caddyfile\""
-            }
-            touch $out
+            ${pkgs.runtimeShell} ${checkScript} "$out"
           '')
         ];
       }

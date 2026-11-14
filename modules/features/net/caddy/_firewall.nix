@@ -2,6 +2,8 @@
 {
   cfg,
   config,
+  httpPort,
+  httpsPort,
   lib,
   pkgs,
   vhosts,
@@ -30,10 +32,10 @@
     ++ (map (cidr: "ip6 saddr ${cidr} ${proto} dport ${toString port} accept") ipv6LanCidrs);
 
   lanInputRules = lib.concatStringsSep "\n" (
-    (mkLanAcceptRules "tcp" cfg.httpPort)
+    (mkLanAcceptRules "tcp" httpPort)
     ++ lib.optionals (!openPublic) (
-      (mkLanAcceptRules "tcp" cfg.httpsPort)
-      ++ (mkLanAcceptRules "udp" cfg.httpsPort)
+      (mkLanAcceptRules "tcp" httpsPort)
+      ++ (mkLanAcceptRules "udp" httpsPort)
     )
   );
 
@@ -118,8 +120,8 @@ in {
     };
 
     firewall = {
-      allowedTCPPorts = lib.optional openPublic cfg.httpsPort;
-      allowedUDPPorts = lib.optional openPublic cfg.httpsPort;
+      allowedTCPPorts = lib.optional openPublic httpsPort;
+      allowedUDPPorts = lib.optional openPublic httpsPort;
       extraInputRules = lib.mkIf cfg.openLanFirewall lanInputRules;
     };
   };

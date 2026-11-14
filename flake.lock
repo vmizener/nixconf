@@ -367,6 +367,22 @@
         "type": "github"
       }
     },
+    "nixconf-config": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794621521,
+        "narHash": "sha256-0YZlJDrd+pbGE1/uYvYlLFQfEp49zTDd01KRDDiv6hs=",
+        "ref": "refs/heads/main",
+        "rev": "1a64d05a0600f7929cad65dcce7137428f188758",
+        "revCount": 1,
+        "type": "git",
+        "url": "ssh://git@github.com/vmizener/nixconf-config"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/vmizener/nixconf-config"
+      }
+    },
     "nixgl": {
       "inputs": {
         "flake-utils": "flake-utils",
@@ -443,6 +459,7 @@
         "inputactions-standalone": "inputactions-standalone",
         "niri": "niri",
         "nix-index-database": "nix-index-database",
+        "nixconf-config": "nixconf-config",
         "nixgl": "nixgl",
         "nixpkgs": "nixpkgs",
         "plasma-manager": "plasma-manager",

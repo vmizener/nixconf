@@ -5,6 +5,12 @@
     # Nix Packages
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
+    # Private Site Configuration
+    nixconf-config = {
+      url = "git+ssh://git@github.com/vmizener/nixconf-config";
+      flake = false;
+    };
+
     # Core Utils
     flake-parts = {
       url = "github:hercules-ci/flake-parts";

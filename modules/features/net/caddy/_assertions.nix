@@ -4,7 +4,9 @@
   currentHost,
   flakeNet,
   lib,
+  managedAcmeDomains,
   moduleName,
+  resolveAcmeFor,
   vhosts,
 }: let
   inherit
@@ -24,8 +26,12 @@
     then parseEndpoint cfg.forwardAuth.address
     else null;
 
-  publicSsoServices =
-    builtins.filter (d: d.svc.visibility == "public" && d.svc.auth == "sso") discoveredServices;
+  ssoServices =
+    builtins.filter (d: d.svc.auth == "sso") discoveredServices;
+
+  unknownAcmeOverrideDomains =
+    builtins.attrNames cfg.acme.domains
+    |> builtins.filter (d: !(builtins.elem d managedAcmeDomains));
 
   remoteDiscoveredHostsWithoutIpv4 =
     discoveredServices
@@ -46,18 +52,26 @@ in
       message = "mod.\"${moduleName}\".forwardAuth.address must be set when forwardAuth.enable is true.";
     }
     {
-      assertion =
-        !cfg.acme.enable
-        || (
-          flakeNet.publicDomain
-          != null
-          && cfg.acme.email != null
-          && cfg.acme.dnsProvider != null
-          && cfg.acme.environmentFile != null
-        );
-      message = "mod.\"${moduleName}\".acme.enable requires inventory.net.publicDomain plus acme.{email,dnsProvider,environmentFile} to be set.";
+      assertion = !cfg.acme.enable || managedAcmeDomains != [];
+      message = "mod.\"${moduleName}\".acme.enable = true requires at least one domain in inventory.net.domains with tls = \"acme\".";
+    }
+    {
+      assertion = unknownAcmeOverrideDomains == [];
+      message = "mod.\"${moduleName}\".acme.domains references domain(s) without tls = \"acme\" in inventory.net.domains: ${lib.concatStringsSep ", " unknownAcmeOverrideDomains}";
     }
   ]
+  ++ lib.optionals cfg.acme.enable (
+    map (d: let
+      resolved = resolveAcmeFor d;
+    in {
+      assertion =
+        resolved.dnsProvider
+        != null
+        && (resolved.environmentFile != null || resolved.credentialFiles != {});
+      message = "mod.\"${moduleName}\".acme: domain '${d}' requires dnsProvider and either environmentFile or credentialFiles.";
+    })
+    managedAcmeDomains
+  )
   ++ lib.mapAttrsToList (key: entries: {
     assertion = false;
     message =
@@ -67,9 +81,9 @@ in
   explicitCollisions
   ++ map (d: {
     assertion = cfg.forwardAuth.enable && cfg.forwardAuth.address != null;
-    message = "inventory.net.hosts.${d.source}: public service requires auth = \"sso\", but mod.\"${moduleName}\".forwardAuth is not enabled.";
+    message = "inventory.net.hosts.${d.source}: service requires auth = \"sso\", but mod.\"${moduleName}\".forwardAuth is not enabled.";
   })
-  publicSsoServices
+  ssoServices
   ++ lib.optionals cfg.egressSandbox.enable (
     (map (host: {
         assertion = false;

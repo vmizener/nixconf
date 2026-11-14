@@ -19,6 +19,7 @@ from ruamel.yaml.scalarstring import PlainScalarString, ScalarString
 SSH_HOST_PUB_PATH = "/etc/ssh/ssh_host_ed25519_key.pub"
 PROBE_MARKER = "---SOPS-PROBE---"
 TARGET_HELPER = Path(__file__).resolve().parent / "_sops-target.sh"
+DEFAULT_CONFIG_DIR = Path.home() / "repos" / "nixconf-config"
 
 
 def prompt_yes_no(question: str, default: bool = False) -> bool:
@@ -330,9 +331,24 @@ class Command:
 
     @property
     def repo_root(self) -> Path:
-        """Locate and cache the repository root directory containing `.sops.yaml`."""
+        """Locate and cache the config directory containing `.sops.yaml`."""
         if self._repo_root is not None:
             return self._repo_root
+
+        if self.args.dir:
+            explicit_dir = Path(self.args.dir).expanduser().resolve()
+            if (explicit_dir / ".sops.yaml").is_file():
+                self._repo_root = explicit_dir
+                return self._repo_root
+            raise FileNotFoundError(f"No .sops.yaml found in '{explicit_dir}'.")
+
+        sops_yaml_env = os.environ.get("SOPS_YAML")
+        if sops_yaml_env:
+            sops_yaml_path = Path(sops_yaml_env).expanduser().resolve()
+            if sops_yaml_path.is_file():
+                self._repo_root = sops_yaml_path.parent
+                return self._repo_root
+
         try:
             res = subprocess.run(
                 ["git", "rev-parse", "--show-toplevel"],
@@ -352,7 +368,14 @@ class Command:
             self._repo_root = script_parent
             return self._repo_root
 
-        raise FileNotFoundError("Could not find repository root containing .sops.yaml.")
+        if (DEFAULT_CONFIG_DIR / ".sops.yaml").is_file():
+            self._repo_root = DEFAULT_CONFIG_DIR.resolve()
+            return self._repo_root
+
+        raise FileNotFoundError(
+            "Could not find config directory containing .sops.yaml"
+            " (pass -C/--dir or set NIXCONF_CONFIG_DIR)."
+        )
 
     @staticmethod
     def _ssh_pub_to_age(ssh_pub_key: str) -> str:
@@ -371,11 +394,23 @@ class Command:
         parser = argparse.ArgumentParser(
             description="Manage .sops.yaml age keys and secret file encryption."
         )
+        parser.add_argument(
+            "-C",
+            "--dir",
+            default=os.environ.get("NIXCONF_CONFIG_DIR"),
+            help="Directory containing .sops.yaml and secret YAML files (defaults to NIXCONF_CONFIG_DIR, git root, or ~/repos/nixconf-config)",
+        )
         subparsers = parser.add_subparsers(dest="command", required=True)
 
         init_parser = subparsers.add_parser(
             "init",
             help="Enroll a local or remote host/user into .sops.yaml",
+        )
+        init_parser.add_argument(
+            "-C",
+            "--dir",
+            default=argparse.SUPPRESS,
+            help="Directory containing .sops.yaml and secret YAML files",
         )
         init_parser.add_argument(
             "target",
@@ -423,12 +458,18 @@ class Command:
 
         upd_parser = subparsers.add_parser(
             "update",
-            help="Re-encrypt secrets/*.yaml with current .sops.yaml keys",
+            help="Re-encrypt secret YAML files with current .sops.yaml keys",
+        )
+        upd_parser.add_argument(
+            "-C",
+            "--dir",
+            default=argparse.SUPPRESS,
+            help="Directory containing .sops.yaml and secret YAML files",
         )
         upd_parser.add_argument(
             "files",
             nargs="*",
-            help="Secret files to update (defaults to secrets/*.yaml)",
+            help="Secret files to update (defaults to *.yaml and secrets/*.yaml in config directory)",
         )
         upd_parser.add_argument(
             "-n",
@@ -448,8 +489,10 @@ class Command:
 
     def init(self) -> None:
         """Enroll user and/or host age keys for a local or SSH target into `.sops.yaml`."""
-        sops_yaml_path = Path(
-            os.environ.get("SOPS_YAML", self.repo_root / ".sops.yaml")
+        sops_yaml_path = (
+            Path(os.environ["SOPS_YAML"]).expanduser().resolve()
+            if (not self.args.dir and os.environ.get("SOPS_YAML"))
+            else self.repo_root / ".sops.yaml"
         )
         sops_cfg = SopsConfig.from_file(sops_yaml_path)
 
@@ -542,30 +585,48 @@ class Command:
             self.update()
 
     def update(self, files: list[str] | None = None) -> None:
-        """Run `sops updatekeys -y` across `files` (defaults to `secrets/*.yaml`)."""
+        """Run `sops updatekeys -y` across `files` (defaults to config secret YAML files)."""
         if files:
-            targets = [Path(f) for f in files]
+            targets = [
+                (
+                    Path(f)
+                    if Path(f).is_absolute() or Path(f).exists()
+                    else self.repo_root / f
+                )
+                for f in files
+            ]
         else:
+            root_yamls = [
+                p
+                for p in sorted(self.repo_root.glob("*.yaml"))
+                if not p.name.startswith(".")
+            ]
             secrets_dir = self.repo_root / "secrets"
-            targets = sorted(secrets_dir.glob("*.yaml"))
+            nested_yamls = (
+                sorted(secrets_dir.glob("*.yaml")) if secrets_dir.is_dir() else []
+            )
+            targets = root_yamls + nested_yamls
 
         if not targets:
             print("No secret YAML files found to update.")
             return
 
+        repo_root_resolved = self.repo_root.resolve()
         for path in targets:
+            resolved = path.resolve()
             rel = (
-                path.resolve().relative_to(self.repo_root.resolve())
-                if path.is_absolute()
-                and path.resolve().is_relative_to(self.repo_root.resolve())
-                else path
+                resolved.relative_to(repo_root_resolved)
+                if resolved.is_relative_to(repo_root_resolved)
+                else resolved
             )
             if self.dry_run:
-                print(f"[Dry Run] Would run: sops updatekeys -y {rel}")
+                print(
+                    f"[Dry Run] Would run (in {repo_root_resolved}): sops updatekeys -y {rel}"
+                )
                 continue
             subprocess.run(
                 ["sops", "updatekeys", "-y", str(rel)],
-                cwd=self.repo_root,
+                cwd=repo_root_resolved,
                 check=True,
             )
 

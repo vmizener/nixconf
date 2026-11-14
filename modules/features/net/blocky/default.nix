@@ -10,17 +10,8 @@ Exposes:
 {...} @ flake: let
   moduleName = "feat/net/blocky";
 in {
-  flake.nixosModules."common/options" = {
-    lib,
-    pkgs,
-    ...
-  }: {
+  flake.nixosModules."common/options" = {lib, ...}: {
     options.mod.${moduleName} = {
-      package = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.blocky;
-        description = "Blocky package to use";
-      };
       dnsPort = lib.mkOption {
         type = lib.types.either lib.types.port lib.types.str;
         default = 53;
@@ -35,11 +26,6 @@ in {
         type = lib.types.attrsOf lib.types.str;
         default = {};
         description = "Additional custom DNS hostname-to-IP mappings";
-      };
-      enableConfigCheck = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Validate the Blocky configuration template at build time";
       };
       openDnsFirewall = lib.mkOption {
         type = lib.types.bool;
@@ -61,6 +47,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    package = pkgs.blocky;
     allCustomDNS = flake.config.inventory.net.allDnsRecords // cfg.customDNS;
 
     customDnsBlock =
@@ -77,24 +64,29 @@ in {
       HTTP_PORT = toString cfg.httpPort;
       CUSTOM_DNS_BLOCK = customDnsBlock;
     };
+
+    checkScript = pkgs.replaceVars ./check-config.sh {
+      BLOCKY_BIN = lib.getExe package;
+      CONFIG_FILE = templateFile;
+    };
   in {
     mod.meta.imported = [moduleName];
 
-    environment.systemPackages = [cfg.package];
+    environment.systemPackages = [package];
     services.blocky = {
       enable = true;
-      inherit (cfg) package;
+      inherit package;
       # Replaced below to validate templateFile instead of services.blocky.settings
       enableConfigCheck = false;
     };
 
     # Overwrite default ExecStart from services.blocky to use templateFile
     systemd.services.blocky.serviceConfig.ExecStart =
-      lib.mkForce "${lib.getExe cfg.package} --config ${templateFile}";
+      lib.mkForce "${lib.getExe package} --config ${templateFile}";
 
-    system.checks = lib.mkIf cfg.enableConfigCheck [
+    system.checks = [
       (pkgs.runCommand "check-blocky-config" {} ''
-        ${lib.getExe cfg.package} --config ${templateFile} validate && touch $out
+        ${pkgs.runtimeShell} ${checkScript} "$out"
       '')
     ];
 

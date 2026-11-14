@@ -33,6 +33,7 @@ in {
       self.nixosModules."feat/io/ckb-next"
       self.nixosModules."feat/io/ditto"
       self.nixosModules."feat/media/services/jackett"
+      self.nixosModules."feat/net/tailscale"
       self.nixosModules."feat/system/earlyoom"
       self.nixosModules."feat/system/keyring"
       self.nixosModules."feat/system/locale"
