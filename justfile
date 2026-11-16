@@ -4,27 +4,36 @@ flake_dir := justfile_directory()
 default:
     just --list
 
-# Open nix dev shell
-dev shell="zsh":
-    nix develop -c env SHELL="$(which {{shell}})" {{shell}}
-
-# Format repo files
-format:
-    nix fmt
-
-# Format & run nix checks
-check: format
-    nix flake check --quiet --show-trace
-
 # Show flake outputs
 show:
     ./scripts/show-flake.sh | jq
 
+# Bootstrap or migrate nix-user-chroot Home-Manager environment
+chroot-init *args="":
+    FLAKE_DIR="{{flake_dir}}" ./scripts/chroot-init.sh {{args}}
+
+# Open nix dev shell
+[group('dev')]
+dev shell="zsh":
+    nix develop -c env SHELL="$(which {{shell}})" {{shell}}
+
+# Format repo files
+[group('dev')]
+format:
+    nix fmt
+
+# Format & run nix checks
+[group('dev')]
+check: format
+    nix flake check --quiet --show-trace
+
 # Update non-flake input packages
+[group('dev')]
 update-packages:
     ./scripts/update-packages.sh
 
 # Update assets manifest
+[group('dev')]
 update-manifest *args="":
     ./scripts/update-assets-manifest.py {{args}}
 
@@ -41,7 +50,3 @@ vm-reset hostname:
 # Reset then launch VM of given host
 [group('vm')]
 vm-fresh hostname *args="": (vm-reset hostname) (vm-run hostname args)
-
-# Bootstrap or migrate nix-user-chroot Home-Manager environment
-chroot-init *args="":
-    FLAKE_DIR="{{flake_dir}}" ./scripts/chroot-init.sh {{args}}
