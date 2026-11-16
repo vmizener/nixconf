@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-nix eval --impure --json --expr '
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+nix eval --impure --json --expr "
   let
-    flake = builtins.getFlake ("git+file://" + (builtins.getEnv "PWD"));
+    flake = builtins.getFlake \"git+file://${repo_root}\";
     unique = list: builtins.attrNames (builtins.groupBy (x: x) list);
   in {
     homeModules = builtins.attrNames (flake.homeModules or {});
@@ -17,4 +20,4 @@ nix eval --impure --json --expr '
       )
     );
   }
-'
+"

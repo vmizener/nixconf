@@ -12,6 +12,7 @@
 in (
   [
     "alias cdf='cd -P ${config.mod.meta.flakePath}'"
+    "alias cdfi='cd -P ${config.mod.meta.nixconfPath}'"
   ]
   ++ addIf "bat" [
     "alias cat='bat --wrap=never'"

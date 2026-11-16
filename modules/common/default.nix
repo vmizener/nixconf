@@ -33,6 +33,7 @@ in {
       stateVersion = lib.mkDefault "25.11";
       homeDirectory = lib.mkOptionDefault "/home/${config.home.username}";
       sessionPath = ["${config.home.profileDirectory}/bin"];
+      sessionVariables.NIXCONF_FLAKE = lib.mkDefault config.mod.meta.nixconfPath;
       packages = lib.mkIf (osConfig == null || !(osConfig.mod.meta.has moduleName)) (
         commonPackages pkgs
       );
@@ -116,6 +117,9 @@ in {
     nixpkgs.config.allowUnfree = true;
     environment = {
       systemPackages = commonPackages pkgs;
+      sessionVariables = lib.mkIf (config.mod.meta.nixconfPath != null) {
+        NIXCONF_FLAKE = lib.mkDefault config.mod.meta.nixconfPath;
+      };
       pathsToLink = [
         # Needed by xdg.portal in the case no desktop is imported
         "/share/applications"

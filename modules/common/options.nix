@@ -78,7 +78,7 @@ in {
           then osConfig.mod.meta.nixconfPath
           else "''${config.xdg.dataHome}/nixconf"
         '';
-        description = "Absolute path to the local nixconf repository checkout (outside Nix store).  Used for out-of-store symlinks via `mod.meta.link`.";
+        description = "Absolute path to the local nixconf repository checkout (outside Nix store).  Used for out-of-store symlinks via `mod.meta.link` and NIXCONF_FLAKE.";
       };
 
       link = lib.mkOption {
@@ -104,7 +104,7 @@ in {
       nixconfPath = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        description = "Optional host-wide path to the local nixconf checkout (inherited by Home-Manager users when set).";
+        description = "Optional host-wide path to the local nixconf checkout (inherited by Home-Manager users and exported as NIXCONF_FLAKE when set).";
       };
     };
   };
