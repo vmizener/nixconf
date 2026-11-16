@@ -5,6 +5,7 @@
   mkBinScript,
   mkResetPkg,
   moduleName,
+  nixconfSrc,
   nixglBin,
   pkgs,
   self,
@@ -30,7 +31,10 @@
       config =
         {
           mod = {
-            meta.flakePath = lib.mkVMOverride "${self}";
+            meta = {
+              flakePath = lib.mkVMOverride "${self}";
+              nixconfPath = lib.mkVMOverride nixconfSrc;
+            };
             ${moduleName}.isVm = lib.mkVMOverride true;
           };
         }
@@ -62,7 +66,7 @@
 
     closure = pkgs.closureInfo {
       rootPaths =
-        [activationPkg nixPkg "${self}"]
+        lib.unique [activationPkg nixPkg "${self}" nixconfSrc]
         ++ lib.optional useUserChroot pkgs.nix-user-chroot;
     };
 

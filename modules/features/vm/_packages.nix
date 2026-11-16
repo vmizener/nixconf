@@ -41,6 +41,7 @@
 
   hmVmPackages = import ./_hm-vm.nix {
     inherit lib mkBinScript mkResetPkg moduleName nixglBin pkgs self system;
+    nixconfSrc = "${inputs.nixconf}";
   };
 
   collidingPackages = builtins.attrNames (builtins.intersectAttrs nixosVmPackages hmVmPackages);

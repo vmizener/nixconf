@@ -193,7 +193,10 @@ in {
         virtualisation.vmVariant =
           {
             mod = {
-              meta.flakePath = lib.mkVMOverride "${self}"; # mount flake store source for symlink support
+              meta = {
+                flakePath = lib.mkVMOverride "${self}";
+                nixconfPath = lib.mkVMOverride "${inputs.nixconf}"; # mount nixconf store source for symlink support
+              };
               ${moduleName}.isVm = lib.mkVMOverride true;
             };
             hardware.graphics.enable = lib.mkIf cfg.graphics (lib.mkDefault true);

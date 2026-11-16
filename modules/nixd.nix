@@ -9,7 +9,9 @@
   flake.nixdOptions = let
     # Dynamically pick up all modules, ignoring those from these inputs
     ignoreInputs = [
+      "nixconf"
       "nixpkgs"
+      "self"
     ];
     pickModule = name: modSet:
       if modSet ? default # check for <module>.default

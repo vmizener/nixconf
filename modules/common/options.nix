@@ -64,14 +64,28 @@ in {
           if osConfig != null
           then osConfig.mod.meta.flakePath or "/etc/nixos"
           else "${config.xdg.configHome}/home-manager";
-        description = "Absolute path to this Nix flake (outside Nix store).  Used for NH_FLAKE and out-of-store symlinks.";
+        description = "Absolute path to the deployment flake (outside Nix store).  Used for NH_FLAKE.";
+      };
+
+      nixconfPath = lib.mkOption {
+        type = lib.types.str;
+        default =
+          if osConfig != null && (osConfig.mod.meta.nixconfPath or null) != null
+          then osConfig.mod.meta.nixconfPath
+          else "${config.xdg.dataHome}/nixconf";
+        defaultText = lib.literalExpression ''
+          if osConfig != null && osConfig.mod.meta.nixconfPath != null
+          then osConfig.mod.meta.nixconfPath
+          else "''${config.xdg.dataHome}/nixconf"
+        '';
+        description = "Absolute path to the local nixconf repository checkout (outside Nix store).  Used for out-of-store symlinks via `mod.meta.link`.";
       };
 
       link = lib.mkOption {
         default = filepath: let
           relpath = lib.removePrefix "./" (lib.path.removePrefix ./../.. filepath);
         in
-          config.lib.file.mkOutOfStoreSymlink "${config.mod.meta.flakePath}/${relpath}";
+          config.lib.file.mkOutOfStoreSymlink "${config.mod.meta.nixconfPath}/${relpath}";
         description = "Make a mutable symlink path to the given config source";
         readOnly = true;
       };
@@ -84,7 +98,13 @@ in {
       flakePath = lib.mkOption {
         type = lib.types.str;
         default = "/etc/nixos";
-        description = "Absolute path to this Nix flake (outside Nix store).  Used for NH_FLAKE.";
+        description = "Absolute path to the deployment flake (outside Nix store).  Used for NH_FLAKE.";
+      };
+
+      nixconfPath = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "Optional host-wide path to the local nixconf checkout (inherited by Home-Manager users when set).";
       };
     };
   };

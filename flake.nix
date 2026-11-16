@@ -1,5 +1,16 @@
 {
-  outputs = inputs: inputs.flake-parts.lib.mkFlake {inherit inputs;} (inputs.import-tree ./modules);
+  outputs = nixconfInputs: let
+    mkFlake = consumerInputs: extraModule:
+      nixconfInputs.flake-parts.lib.mkFlake {
+        inputs = {nixconf = nixconfInputs.self;} // nixconfInputs // consumerInputs;
+      } {
+        imports = [
+          (nixconfInputs.import-tree ./modules)
+          extraModule
+        ];
+      };
+  in
+    (mkFlake nixconfInputs {}) // {lib = {inherit mkFlake;};};
 
   inputs = {
     # Nix Packages

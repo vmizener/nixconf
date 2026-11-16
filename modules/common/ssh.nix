@@ -1,11 +1,11 @@
 {
   config,
-  inputs,
   lib,
   self,
   ...
 }: let
   moduleName = "common/ssh";
+  siteCfg = config.inventory.siteConfig;
   flakeSsh = config.inventory.ssh;
   resolveKeys = aliases:
     aliases
@@ -60,10 +60,12 @@ in {
     ];
   in {
     inventory.ssh = {
-      keysFiles =
+      keysFiles = let
+        defaultFile = "${siteCfg}/keys.toml";
+      in
         lib.optional
-        (builtins.pathExists "${inputs.nixconf-config}/keys.toml")
-        "${inputs.nixconf-config}/keys.toml";
+        (siteCfg != null && builtins.pathExists defaultFile)
+        defaultFile;
       keys = lib.mkMerge (map (t: t.keys or {}) tomlConfigs);
       authorize = {
         allHosts = lib.mkMerge (map (t: t.authorize.all_hosts or {}) tomlConfigs);

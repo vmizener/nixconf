@@ -2,12 +2,13 @@
   common/config
 
 Loads site-wide deployment settings from TOML configuration files
-(`inputs.nixconf-config/config.toml`) into `inventory.{config,net}` and wires
+(`${inventory.siteConfig}/config.toml`) into `inventory.{config,net}` and wires
 shared NixOS module defaults without hardcoding hosts, users, or domains in Nix
 modules.
 
 Exposes:
 
+- options.inventory.siteConfig
 - options.inventory.config
 - flake.nixosModules."common/config"
 */
@@ -15,27 +16,38 @@ Exposes:
   config,
   inputs,
   lib,
+  self,
   ...
 }: let
   moduleName = "common/config";
+  siteCfg = config.inventory.siteConfig;
   flakeCfg = config.inventory.config;
   flakeNet = config.inventory.net;
 in {
-  options.inventory.config = {
-    files = lib.mkOption {
-      type = lib.types.listOf lib.types.path;
-      default = [];
-      description = "TOML files merged into `inventory.config` and `inventory.net` (use `lib.mkForce` to replace defaults).";
+  options.inventory = {
+    siteConfig = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = inputs.nixconf-config or self;
+      defaultText = lib.literalExpression "inputs.nixconf-config or self";
+      description = "Directory or flake input containing site `config.toml`, `keys.toml`, and `secrets.yaml`.";
     };
-    adminEmails = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [];
-      description = "Admin identities (`user@domain`) granted VPN route/tag ownership.";
-    };
-    dnsProvider = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Default ACME DNS-01 provider name configured across proxy hosts.";
+
+    config = {
+      files = lib.mkOption {
+        type = lib.types.listOf lib.types.path;
+        default = [];
+        description = "TOML files merged into `inventory.config` and `inventory.net` (use `lib.mkForce` to replace defaults).";
+      };
+      adminEmails = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "Admin identities (`user@domain`) granted VPN route/tag ownership.";
+      };
+      dnsProvider = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = "Default ACME DNS-01 provider name configured across proxy hosts.";
+      };
     };
   };
 
@@ -115,10 +127,12 @@ in {
   in {
     inventory = {
       config = {
-        files =
+        files = let
+          defaultFile = "${siteCfg}/config.toml";
+        in
           lib.optional
-          (builtins.pathExists "${inputs.nixconf-config}/config.toml")
-          "${inputs.nixconf-config}/config.toml";
+          (siteCfg != null && builtins.pathExists defaultFile)
+          defaultFile;
         adminEmails = lib.concatMap (t: t.net.admin_emails or []) tomlConfigs;
         dnsProvider = lib.mkIf (explicitDnsProvider != null) (lib.mkDefault explicitDnsProvider);
       };
