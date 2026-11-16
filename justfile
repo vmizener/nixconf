@@ -18,10 +18,6 @@ check: format
 show:
     ./scripts/show-flake.sh | jq
 
-# Update private nixconf-config flake input
-update-config:
-    nix flake update nixconf-config
-
 # Update non-flake input packages
 update-packages:
     ./scripts/update-packages.sh

@@ -1,11 +1,11 @@
-{...}: {
+{lib, ...}: {
   config = {
     perSystem = {
       pkgs,
       config,
       ...
     }: {
-      devShells.default = pkgs.mkShell {
+      devShells.default = lib.mkDefault (pkgs.mkShell {
         inputsFrom = [
           config.treefmt.build.devShell
         ];
@@ -21,7 +21,7 @@
         shellHook = ''
           ${config.pre-commit.shellHook}
         '';
-      };
+      });
     };
   };
 }

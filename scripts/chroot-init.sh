@@ -74,7 +74,7 @@ fetch_verified() {
 USER_NAME="${USER:-$(id -un)}"
 HOSTNAME="$(uname -n | cut -d. -f1)"
 TARGET_CONFIG="${1:-}"
-REPO_DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")"
+REPO_DIR="$(realpath "${FLAKE_DIR:-$(dirname "${BASH_SOURCE[0]}")/..}")"
 
 # Detect architecture for nix-user-chroot static binary
 ARCH="$(uname -m)"

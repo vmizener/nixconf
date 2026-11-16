@@ -39,7 +39,9 @@
     flake.schemas = inputs.flake-schemas.schemas;
 
     # Define standard formatter & pre-commit hooks
-    perSystem = {...}: {
+    perSystem = {system, ...}: {
+      _module.args.pkgs = lib.mkDefault inputs.nixpkgs.legacyPackages.${system};
+
       treefmt = {
         projectRootFile = "flake.nix";
         programs = {
