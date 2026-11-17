@@ -30,12 +30,10 @@
     vmOverride = {options, ...}: {
       config =
         {
-          mod = {
-            meta = {
-              flakePath = lib.mkVMOverride "${self}";
-              nixconfPath = lib.mkVMOverride nixconfSrc;
-            };
-            ${moduleName}.isVm = lib.mkVMOverride true;
+          mod.meta = {
+            isVm = lib.mkVMOverride true;
+            flakePath = lib.mkVMOverride "${self}";
+            nixconfPath = lib.mkVMOverride nixconfSrc;
           };
         }
         // lib.optionalAttrs (options ? sops) {
@@ -60,7 +58,9 @@
     shellHandler = hmCfg.mod."common/handlers".get.shell;
 
     baseImage =
-      if builtins.isPath cfg.image || builtins.isString cfg.image
+      if cfg.image == null
+      then builtins.seq activationPkg (throw "${moduleName}: mod.\"${moduleName}\".image must be set")
+      else if builtins.isPath cfg.image || builtins.isString cfg.image
       then cfg.image
       else pkgs.fetchurl {inherit (cfg.image) url hash;};
 
@@ -76,7 +76,7 @@
       HOME_DIR = hmCfg.home.homeDirectory;
       NIX_DIR =
         if useUserChroot
-        then hmCfg.mod."feat/system/nix-user-chroot".nixDir
+        then builtins.dirOf hmCfg.home.homeDirectory
         else "";
       CHROOT_BIN_STORE_REL =
         if useUserChroot

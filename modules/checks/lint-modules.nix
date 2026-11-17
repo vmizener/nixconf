@@ -13,31 +13,40 @@
       commonOptionsFile = toString ../common/options.nix;
       stripVia = s: builtins.head (lib.splitString ", via option " s);
 
+      modSuffixFor = relPath:
+        if lib.hasPrefix "_" (baseNameOf relPath)
+        then let
+          dir = builtins.dirOf relPath;
+        in
+          if dir == "."
+          then ""
+          else dir
+        else if lib.hasSuffix "/default.nix" relPath
+        then lib.removeSuffix "/default.nix" relPath
+        else lib.removeSuffix ".nix" relPath;
+
       expectedModFor = file:
         if lib.hasPrefix commonPrefix file
         then let
           relPath = lib.removePrefix commonPrefix file;
-          modSuffix =
-            if lib.hasSuffix "/default.nix" relPath
-            then lib.removeSuffix "/default.nix" relPath
-            else lib.removeSuffix ".nix" relPath;
+          modSuffix = modSuffixFor relPath;
         in {
           label = "common/${relPath}";
           expectedMod =
-            if relPath == "default.nix"
+            if relPath == "default.nix" || modSuffix == ""
             then "common"
             else "common/${modSuffix}";
         }
         else if lib.hasPrefix featuresPrefix file
         then let
           relPath = lib.removePrefix featuresPrefix file;
-          modSuffix =
-            if lib.hasSuffix "/default.nix" relPath
-            then lib.removeSuffix "/default.nix" relPath
-            else lib.removeSuffix ".nix" relPath;
+          modSuffix = modSuffixFor relPath;
         in {
           label = "features/${relPath}";
-          expectedMod = "feat/${modSuffix}";
+          expectedMod =
+            if modSuffix == ""
+            then "feat"
+            else "feat/${modSuffix}";
         }
         else null;
 
@@ -70,7 +79,6 @@
       };
       allHmEval = inputs.home-manager.lib.homeManagerConfiguration {
         pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
-        extraSpecialArgs = {osConfig = null;};
         modules =
           [
             {
@@ -213,6 +221,74 @@
             else []
           ));
 
+      # 6. Disallow cross-feature `mod."feat/*"` option definitions and references
+      collectOptionDefs = optSet:
+        lib.concatLists (
+          lib.mapAttrsToList (
+            _: v:
+              if lib.isOption v
+              then map (d: stripVia d.file) v.definitionsWithLocations
+              else if builtins.isAttrs v
+              then collectOptionDefs v
+              else []
+          )
+          optSet
+        );
+
+      checkCrossFeatDefs = kind: modOptSet:
+        modOptSet
+        |> lib.filterAttrs (ns: _: lib.hasPrefix "feat/" ns)
+        |> lib.mapAttrsToList (
+          ns: subOpts:
+            lib.unique (collectOptionDefs subOpts)
+            |> builtins.filter (f: expectedModFor f != null)
+            |> lib.concatMap (
+              file: let
+                inherit (expectedModFor file) label expectedMod;
+              in
+                lib.optional (expectedMod != ns)
+                "${label}: defines ${kind} options under mod.\"${ns}\" (cross-feature mod option references are disallowed)"
+            )
+        )
+        |> lib.concatLists;
+
+      stripComments = text: let
+        noBlocks =
+          builtins.split "[/][*]([^*]|[*]+[^*/])*[*]+[/]" text
+          |> builtins.filter builtins.isString
+          |> lib.concatStringsSep " ";
+      in
+        lib.splitString "\n" noBlocks
+        |> map (
+          line:
+            if builtins.match "[[:space:]]*#.*" line != null
+            then ""
+            else builtins.head (builtins.split "[[:space:]]+#.*" line)
+        )
+        |> lib.concatStringsSep "\n";
+
+      extractFeatModRefs = text:
+        builtins.split "mod([[:space:]]+or[[:space:]]+[{][[:space:]]*[}])?[)]*[[:space:]]*[.][[:space:]]*\"(feat/[^\"$]+)\"" (stripComments text)
+        |> builtins.filter builtins.isList
+        |> map lib.last
+        |> lib.unique;
+
+      managedNixFiles =
+        (lib.filesystem.listFilesRecursive ../common ++ lib.filesystem.listFilesRecursive ../features)
+        |> map toString
+        |> builtins.filter (lib.hasSuffix ".nix");
+
+      crossFeatRefErrors =
+        managedNixFiles
+        |> lib.concatMap (
+          file: let
+            inherit (expectedModFor file) label expectedMod;
+          in
+            extractFeatModRefs (builtins.readFile file)
+            |> builtins.filter (ref: ref != expectedMod)
+            |> map (ref: "${label}: references mod.\"${ref}\" (cross-feature mod option references are disallowed)")
+        );
+
       errors = builtins.seq allHmEval.config.mod.meta.asserts (
         flakeModOptionErrors
         ++ fileExportErrors
@@ -221,6 +297,9 @@
         ++ checkModImported "nixosModules" trackedNixos allNixosEval.options.mod.meta.imported.definitionsWithLocations
         ++ checkModImported "homeModules" trackedHm allHmEval.options.mod.meta.imported.definitionsWithLocations
         ++ assertErrors
+        ++ checkCrossFeatDefs "NixOS" allNixosEval.options.mod
+        ++ checkCrossFeatDefs "Home-Manager" allHmEval.options.mod
+        ++ crossFeatRefErrors
       );
     in
       if errors == []

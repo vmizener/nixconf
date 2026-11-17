@@ -57,7 +57,7 @@ Exposes:
   in {
     mod = {
       meta.imported = [moduleName];
-      "feat/ai".providers."ollama-local" = lib.mkIf (cfg.loadModels != []) {
+      "common/ai".providers."ollama-local" = lib.mkIf (cfg.loadModels != []) {
         api = "openai-completions";
         apiKey = "ollama";
         baseUrl = "http://${clientHost}:${toString cfg.port}/v1";

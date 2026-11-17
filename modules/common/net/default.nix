@@ -49,7 +49,7 @@ in {
       netCfg = config.mod.${moduleName};
       hostName = config.networking.hostName;
       hostCfg = flakeNet.hosts.${hostName} or null;
-      isVm = config.mod."feat/vm".isVm or false;
+      inherit (config.mod.meta) isVm;
     in {
       mod = {
         meta.imported = [moduleName];

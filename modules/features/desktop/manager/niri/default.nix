@@ -40,15 +40,15 @@ in {
   flake.homeModules.${moduleName} = {
     config,
     lib,
-    osConfig ? null,
     pkgs,
+    specialArgs,
     ...
   }: let
     cfg = config.mod.${moduleName};
 
-    isNixOs = osConfig != null;
+    isNixOs = (specialArgs.osConfig or null) != null;
     useFlakeNiri = !isNixOs;
-    inherit (config.mod."feat/vm") isVm;
+    inherit (config.mod.meta) isVm;
 
     handlers = config.mod."common/handlers".get;
     getAction = handler: act:

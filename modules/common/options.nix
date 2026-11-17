@@ -58,6 +58,13 @@ in {
         '';
       };
 
+      isVm = lib.mkOption {
+        type = lib.types.bool;
+        default = osConfig != null && (osConfig.mod.meta.isVm or false);
+        defaultText = lib.literalExpression "osConfig != null && (osConfig.mod.meta.isVm or false)";
+        description = "Whether this configuration targets a virtual machine (inherits `osConfig.mod.meta.isVm` on NixOS hosts).";
+      };
+
       flakePath = lib.mkOption {
         type = lib.types.str;
         default =
@@ -95,6 +102,12 @@ in {
   flake.nixosModules.${moduleName} = {...}: {
     imports = [commonOptions];
     options.mod.meta = {
+      isVm = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Whether this configuration targets a virtual machine.";
+      };
+
       flakePath = lib.mkOption {
         type = lib.types.str;
         default = "/etc/nixos";

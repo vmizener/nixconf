@@ -18,9 +18,9 @@ Exposes:
     filterActive = lib.filterAttrs (_: p: p.models != []);
     osProviders =
       if osConfig != null
-      then filterActive osConfig.mod."feat/ai".providers
+      then filterActive osConfig.mod."common/ai".providers
       else {};
-    hmProviders = filterActive config.mod."feat/ai".providers;
+    hmProviders = filterActive config.mod."common/ai".providers;
   in {
     # Right-biased merge: OS providers override HM providers on key collisions
     activeProviders = hmProviders // osProviders;

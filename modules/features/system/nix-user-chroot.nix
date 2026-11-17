@@ -105,15 +105,12 @@ in {
       settings.auto-optimise-store = lib.mkDefault true;
     };
     systemd.user.startServices = lib.mkForce "suggest";
+    targets.genericLinux.enable = false;
     xdg.portal.enable = lib.mkForce false;
 
     programs = {
-      bash = lib.mkIf (config.mod.meta.has "feat/terminal/shell/bash") {
-        profileExtra = nixProfile;
-      };
-      zsh = lib.mkIf (config.mod.meta.has "feat/terminal/shell/zsh") {
-        profileExtra = nixProfile;
-      };
+      bash.profileExtra = lib.mkIf config.programs.bash.enable nixProfile;
+      zsh.profileExtra = lib.mkIf config.programs.zsh.enable nixProfile;
     };
   };
 }

@@ -20,8 +20,6 @@ in {
     pkgs,
     ...
   }: let
-    hasTheme = config.mod.meta.has "feat/system/theme";
-    themeCfg = config.mod."feat/system/theme";
     inherit (config.mod."common/handlers".get) terminal;
   in {
     mod.meta = {
@@ -37,25 +35,25 @@ in {
     programs.plasma = {
       enable = true;
       overrideConfig = true;
-      # Defer GTK config ownership to Home-Manager when `feat/system/theme` is active
-      configFile = lib.mkIf hasTheme {
+      # Defer GTK config ownership to Home-Manager when GTK theming is enabled
+      configFile = lib.mkIf config.gtk.enable {
         kded5rc."Module-gtkconfig".autoload = false;
         kded6rc."Module-gtkconfig".autoload = false;
       };
       workspace = {
         cursor = {
           theme =
-            if hasTheme
-            then themeCfg.cursorTheme
+            if config.gtk.enable && config.gtk.cursorTheme != null
+            then config.gtk.cursorTheme.name
             else "breeze_cursors";
           size =
-            if hasTheme
-            then themeCfg.cursorSize
+            if config.gtk.enable && config.gtk.cursorTheme != null && config.gtk.cursorTheme.size != null
+            then config.gtk.cursorTheme.size
             else 32;
         };
         iconTheme =
-          if hasTheme
-          then themeCfg.iconTheme
+          if config.gtk.enable && config.gtk.iconTheme != null
+          then config.gtk.iconTheme.name
           else "breeze-dark";
         # wallpaper = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Patak/contents/images/1080x1920.png";
         wallpaper = ../../../../assets/wallpapers/girl_leaving_apartment.png;

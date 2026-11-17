@@ -12,6 +12,7 @@ Exposes:
 in {
   flake.homeModules.${moduleName} = {
     config,
+    lib,
     pkgs,
     ...
   }: {
@@ -38,7 +39,30 @@ in {
           foot sh -c 'fzf --no-sort --no-mouse -i --tac < "$1"' sh "$f"
         '';
       };
-      "foot/edit-scrollback.sh" = {
+      "foot/edit-scrollback.sh" = let
+        inherit (config.mod."common/handlers".get) editor;
+        editorCmd =
+          if editor != null && editor.cmd != null
+          then editor.cmd
+          else ["vim"];
+        isVim = builtins.elem (baseNameOf (builtins.head editorCmd)) ["nvim" "vim"];
+        launchCmd =
+          if isVim
+          then ''
+            foot ${lib.escapeShellArgs editorCmd} -u NONE "$f" \
+              -c 'set nonumber nolist showtabline=0 foldcolumn=0 virtualedit=block' \
+              -c 'autocmd VimEnter * normal G' \
+              -c 'map q :qa!<CR>' \
+              -c 'map i <NOP>' \
+              -c 'map I <NOP>' \
+              -c 'map a <NOP>' \
+              -c 'map A <NOP>' \
+              -c 'set clipboard+=unnamedplus'
+          ''
+          else ''
+            foot ${lib.escapeShellArgs editorCmd} "$f"
+          '';
+      in {
         executable = true;
         text = ''
           #!/bin/sh
@@ -48,21 +72,7 @@ in {
 
           cat >"$f"
 
-          editor=${
-            if config.mod.meta.has "feat/dev/nvim"
-            then "nvim"
-            else "vim"
-          }
-
-          foot $editor -u NONE "$f" \
-            -c 'set nonumber nolist showtabline=0 foldcolumn=0 virtualedit=block' \
-            -c 'autocmd VimEnter * normal G' \
-            -c 'map q :qa!<CR>' \
-            -c 'map i <NOP>' \
-            -c 'map I <NOP>' \
-            -c 'map a <NOP>' \
-            -c 'map A <NOP>' \
-            -c 'set clipboard+=unnamedplus'
+          ${launchCmd}
         '';
       };
     };

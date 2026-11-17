@@ -5,7 +5,7 @@
 }: let
   cfg = config.mod."feat/desktop/manager/xfce";
   inherit (config.mod."common/handlers".get) browser fileManager terminal;
-  inherit (config.mod."feat/vm") isVm;
+  inherit (config.mod.meta) isVm;
   termCmd =
     if terminal != null && terminal.cmd != null
     then lib.escapeShellArgs terminal.cmd

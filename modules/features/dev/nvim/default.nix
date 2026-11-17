@@ -66,6 +66,7 @@ in {
       priority = 100;
       label = "Neovim";
       desktop = "nvim.desktop";
+      cmd = ["nvim"];
     };
     home.sessionVariables.EDITOR = lib.mkOverride 100 "nvim";
   };

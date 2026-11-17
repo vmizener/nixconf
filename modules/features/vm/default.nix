@@ -85,11 +85,6 @@ in {
     options.mod.${moduleName} =
       sharedVmOptions
       // {
-        isVm = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-          description = "Config describes VM";
-        };
         autologinUser = lib.mkOption {
           type = lib.types.nullOr lib.types.str;
           default = null;
@@ -99,21 +94,12 @@ in {
       };
   };
 
-  flake.homeModules."common/options" = {
-    osConfig ? null,
-    pkgs,
-    ...
-  }: let
+  flake.homeModules."common/options" = {pkgs, ...}: let
     platformSystem = pkgs.stdenv.hostPlatform.system;
   in {
     options.mod.${moduleName} =
       sharedVmOptions
       // {
-        isVm = lib.mkOption {
-          type = lib.types.bool;
-          default = osConfig != null && ((osConfig.mod.${moduleName} or {}).isVm or false);
-          description = "Config describes VM";
-        };
         hostName = lib.mkOption {
           type = lib.types.nullOr lib.types.str;
           default = null;
@@ -130,7 +116,7 @@ in {
           description = "Extra guest distro packages installed on first boot";
         };
         image = lib.mkOption {
-          type = lib.types.either lib.types.path (lib.types.submodule {
+          type = lib.types.nullOr (lib.types.either lib.types.path (lib.types.submodule {
             options = {
               url = lib.mkOption {
                 type = lib.types.str;
@@ -141,10 +127,9 @@ in {
                 description = "SRI hash of the qcow2 guest image";
               };
             };
-          });
-          default =
-            defaultHmImages.${platformSystem}
-            or (throw "${moduleName}: no default standalone VM image for '${platformSystem}'; set mod.\"${moduleName}\".image explicitly");
+          }));
+          default = defaultHmImages.${platformSystem} or null;
+          defaultText = lib.literalExpression "defaultHmImages.\${pkgs.stdenv.hostPlatform.system} or null";
           description = "Base cloud-init qcow2 image (path or {url, hash}) for standalone Home-Manager VMs";
         };
       };
@@ -154,6 +139,7 @@ in {
     config,
     lib,
     options,
+    pkgs,
     ...
   }: let
     cfg = config.mod.${moduleName};
@@ -164,8 +150,14 @@ in {
           imported = [moduleName];
           asserts = ["standaloneOnly"];
         };
+        assertions = [
+          {
+            assertion = cfg.image != null;
+            message = "${moduleName}: no default standalone VM image for '${pkgs.stdenv.hostPlatform.system}'; set mod.\"${moduleName}\".image explicitly";
+          }
+        ];
       }
-      (lib.mkIf cfg.isVm (
+      (lib.mkIf config.mod.meta.isVm (
         {
           # Mesa's virgl disk cache hashes uninitialized padding in `union virgl_caps`,
           # missing on every boot and leaving stale/corrupted cache state across restarts.
@@ -192,12 +184,10 @@ in {
         mod.meta.imported = [moduleName];
         virtualisation.vmVariant =
           {
-            mod = {
-              meta = {
-                flakePath = lib.mkVMOverride "${self}";
-                nixconfPath = lib.mkVMOverride "${inputs.nixconf}"; # mount nixconf store source for symlink support
-              };
-              ${moduleName}.isVm = lib.mkVMOverride true;
+            mod.meta = {
+              isVm = lib.mkVMOverride true;
+              flakePath = lib.mkVMOverride "${self}";
+              nixconfPath = lib.mkVMOverride "${inputs.nixconf}"; # mount nixconf store source for symlink support
             };
             hardware.graphics.enable = lib.mkIf cfg.graphics (lib.mkDefault true);
             services.qemuGuest.enable = true;
@@ -241,7 +231,7 @@ in {
             };
           };
       }
-      (lib.mkIf cfg.isVm (
+      (lib.mkIf config.mod.meta.isVm (
         {
           boot.loader.grub.enable = lib.mkDefault false;
           fileSystems."/" = {
