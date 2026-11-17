@@ -66,6 +66,11 @@ in {
         defaultText = lib.literalExpression ''config.mod."common/net".oidc.available'';
         description = "Enable OpenID Connect node authentication via `mod.\"common/net\".oidc`";
       };
+      oidcClientSecretFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "Runtime secret file containing Headscale's OIDC client secret when `enableOidc` is enabled (defaults to `config.sops.secrets.\"services/headscale/oidc_client_secret\".path`; for custom `sops.secrets.<key>`, use `\"\${config.sops.defaultSymlinkPath}/<key>\"`)";
+      };
       webUi = {
         enable = lib.mkOption {
           type = lib.types.bool;
@@ -122,9 +127,11 @@ in {
 
     oidcIssuerUrl = netCfg.oidc.issuerUrl;
     oidcSecretPath =
-      if cfg.enableOidc
-      then config.sops.secrets."services/headscale/oidc_client_secret".path
-      else "";
+      if !cfg.enableOidc
+      then ""
+      else if cfg.oidcClientSecretFile != null
+      then toString cfg.oidcClientSecretFile
+      else config.sops.secrets."services/headscale/oidc_client_secret".path;
 
     splitDnsDomains =
       flakeNet.domains
@@ -208,9 +215,9 @@ in {
       };
     };
 
-    sops.secrets = lib.mkIf cfg.enableOidc {
+    sops.secrets = lib.mkIf (cfg.enableOidc && cfg.oidcClientSecretFile == null) {
       "services/headscale/oidc_client_secret" = {
-        owner = config.services.headscale.user;
+        owner = lib.mkDefault config.services.headscale.user;
       };
     };
 

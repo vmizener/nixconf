@@ -21,6 +21,12 @@ in {
     ...
   }: let
     selfCfg = config.mod.${moduleName};
+    mkSecretFileOption = secretKey: summary:
+      lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        description = "${summary} (defaults to `config.sops.secrets.\"${secretKey}\".path`; for custom `sops.secrets.<key>`, use `\"\${config.sops.defaultSymlinkPath}/<key>\"`)";
+      };
   in {
     options.mod.${moduleName} = {
       domainTag = lib.mkOption {
@@ -52,6 +58,27 @@ in {
         defaultText = lib.literalExpression ''config.mod."common/net".oidc.requested'';
         description = "Enable Authelia's OpenID Connect 1.0 provider (`group:devs`)";
       };
+      jwtSecretFile =
+        mkSecretFileOption "services/authelia/jwt_secret"
+        "Runtime secret file for Authelia identity validation JWT signing";
+      storageEncryptionKeyFile =
+        mkSecretFileOption "services/authelia/storage_encryption_key"
+        "Runtime secret file for Authelia SQLite storage encryption";
+      sessionSecretFile =
+        mkSecretFileOption "services/authelia/session_secret"
+        "Runtime secret file for Authelia session cookie encryption";
+      usersFile =
+        mkSecretFileOption "services/authelia/users_yml"
+        "Runtime YAML user database file loaded into Authelia";
+      oidcHmacSecretFile =
+        mkSecretFileOption "services/authelia/oidc_hmac_secret"
+        "Runtime secret file for Authelia OIDC HMAC signing when `enableOidc` is enabled";
+      oidcIssuerPrivateKeyFile =
+        mkSecretFileOption "services/authelia/oidc_issuer_key"
+        "Runtime PEM private key file for Authelia OIDC token signing when `enableOidc` is enabled";
+      headscaleClientSecretHashFile =
+        mkSecretFileOption "services/authelia/headscale_client_secret_hash"
+        "Runtime file containing the hashed OIDC client secret for Headscale when `enableOidc` is enabled";
     };
   };
 
@@ -63,6 +90,10 @@ in {
   }: let
     cfg = config.mod.${moduleName};
     package = pkgs.authelia;
+    secretPathOr = optVal: secretKey:
+      if optVal != null
+      then optVal
+      else config.sops.secrets.${secretKey}.path;
     flakeNet = flake.config.inventory.net;
     tagMatches =
       if cfg.domainTag != null
@@ -285,15 +316,25 @@ in {
     };
 
     sops.secrets =
-      {
+      lib.optionalAttrs (cfg.jwtSecretFile == null) {
         "services/authelia/jwt_secret" = {};
+      }
+      // lib.optionalAttrs (cfg.storageEncryptionKeyFile == null) {
         "services/authelia/storage_encryption_key" = {};
+      }
+      // lib.optionalAttrs (cfg.sessionSecretFile == null) {
         "services/authelia/session_secret" = {};
+      }
+      // lib.optionalAttrs (cfg.usersFile == null) {
         "services/authelia/users_yml" = {};
       }
-      // lib.optionalAttrs cfg.enableOidc {
+      // lib.optionalAttrs (cfg.enableOidc && cfg.oidcHmacSecretFile == null) {
         "services/authelia/oidc_hmac_secret" = {};
+      }
+      // lib.optionalAttrs (cfg.enableOidc && cfg.oidcIssuerPrivateKeyFile == null) {
         "services/authelia/oidc_issuer_key" = {};
+      }
+      // lib.optionalAttrs (cfg.enableOidc && cfg.headscaleClientSecretHashFile == null) {
         "services/authelia/headscale_client_secret_hash" = {};
       };
 
@@ -307,16 +348,16 @@ in {
       enable = true;
       inherit package;
       secrets = {
-        jwtSecretFile = config.sops.secrets."services/authelia/jwt_secret".path;
-        storageEncryptionKeyFile = config.sops.secrets."services/authelia/storage_encryption_key".path;
-        sessionSecretFile = config.sops.secrets."services/authelia/session_secret".path;
+        jwtSecretFile = secretPathOr cfg.jwtSecretFile "services/authelia/jwt_secret";
+        storageEncryptionKeyFile = secretPathOr cfg.storageEncryptionKeyFile "services/authelia/storage_encryption_key";
+        sessionSecretFile = secretPathOr cfg.sessionSecretFile "services/authelia/session_secret";
         oidcHmacSecretFile =
           if cfg.enableOidc
-          then config.sops.secrets."services/authelia/oidc_hmac_secret".path
+          then secretPathOr cfg.oidcHmacSecretFile "services/authelia/oidc_hmac_secret"
           else null;
         oidcIssuerPrivateKeyFile =
           if cfg.enableOidc
-          then config.sops.secrets."services/authelia/oidc_issuer_key".path
+          then secretPathOr cfg.oidcIssuerPrivateKeyFile "services/authelia/oidc_issuer_key"
           else null;
       };
       settings = autheliaSettings;
@@ -325,8 +366,8 @@ in {
     systemd.services.authelia-main = {
       environment.X_AUTHELIA_CONFIG_FILTERS = lib.mkIf cfg.enableOidc "template";
       serviceConfig.LoadCredential =
-        ["users.yml:${config.sops.secrets."services/authelia/users_yml".path}"]
-        ++ lib.optional cfg.enableOidc "headscaleClientSecretHash:${config.sops.secrets."services/authelia/headscale_client_secret_hash".path}";
+        ["users.yml:${toString (secretPathOr cfg.usersFile "services/authelia/users_yml")}"]
+        ++ lib.optional cfg.enableOidc "headscaleClientSecretHash:${toString (secretPathOr cfg.headscaleClientSecretHashFile "services/authelia/headscale_client_secret_hash")}";
     };
 
     system.checks = lib.mkIf (cfg.domain != null) [
