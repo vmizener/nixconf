@@ -28,10 +28,20 @@
       default = [];
       description = "Admin identities (`user@domain`) granted VPN route/tag ownership (populated from `[net].admin_emails` in `config.toml`)";
     };
-    dnsProvider = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Default ACME DNS-01 provider name configured across proxy hosts (populated from `[net].dns_provider` in `config.toml`)";
+    dns = lib.mkOption {
+      default = {};
+      description = "Named DNS provider accounts mapped 1:1 to `net/dns/<account>/` in `secrets.yaml` (populated from `[net.dns.<account>]` in `config.toml`)";
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            provider = lib.mkOption {
+              type = lib.types.str;
+              example = "porkbun";
+              description = "Lego DNS-01 provider name for this account";
+            };
+          };
+        }
+      );
     };
     domains = lib.mkOption {
       default = {};
@@ -67,6 +77,12 @@
                 - `"internal"`: Self-signed certificate from Caddy's local CA (`tls internal`).
                 - `"acme"`: Public wildcard certificate (`<domain>` + `*.<domain>`) via `security.acme` DNS-01.
               '';
+            };
+            dnsAccount = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              example = "work";
+              description = "Optional key in `inventory.net.dns` overriding the default ACME DNS-01 account for this domain";
             };
             defaultAuth = lib.mkOption {
               type = lib.types.enum ["sso" "none"];

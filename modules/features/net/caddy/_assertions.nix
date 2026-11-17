@@ -58,15 +58,22 @@ in
     }
   ]
   ++ lib.optionals cfg.acme.enable (
-    map (d: let
+    lib.concatMap (d: let
       resolved = resolveAcmeFor d;
-    in {
-      assertion =
-        resolved.dnsProvider
-        != null
-        && (resolved.environmentFile != null || resolved.credentialFiles != {});
-      message = "mod.\"${moduleName}\".acme: domain '${d}' requires dnsProvider and either environmentFile or credentialFiles.";
-    })
+    in [
+      {
+        assertion = resolved.dnsProvider != null;
+        message = "mod.\"${moduleName}\".acme: domain '${d}' references undeclared DNS account '${resolved.dnsAccount}' (declare [net.dns.${resolved.dnsAccount}] in config.toml / inventory.net.dns).";
+      }
+      {
+        assertion =
+          resolved.dnsProvider
+          == null
+          || resolved.environmentFile != null
+          || resolved.credentialFiles != {};
+        message = "mod.\"${moduleName}\".acme: domain '${d}' (provider '${toString resolved.dnsProvider}') has no built-in sops mapping and requires either environmentFile or credentialFiles.";
+      }
+    ])
     managedAcmeDomains
   )
   ++ lib.mapAttrsToList (key: entries: {

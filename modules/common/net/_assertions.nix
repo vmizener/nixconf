@@ -100,6 +100,11 @@ in
     message = "inventory.net.domains.${dName}: tls = \"acme\" requires a public multi-label domain name (contains '.'), got '${dName}'.";
   })
   flakeNet.domains
+  ++ lib.mapAttrsToList (dName: dCfg: {
+    assertion = dCfg.dnsAccount == null || flakeNet.dns ? ${dCfg.dnsAccount};
+    message = "inventory.net.domains.${dName}: dnsAccount '${toString dCfg.dnsAccount}' is not declared in inventory.net.dns (available: ${lib.concatStringsSep ", " (builtins.attrNames flakeNet.dns)}).";
+  })
+  flakeNet.domains
   ++ lib.optional (hostCfg != null && hostCfg.ipv4 != null && !isVm) {
     assertion = hostCfg.interface != null;
     message = "inventory.net.hosts.${hostName}.interface must be set when ipv4 is specified.";

@@ -79,14 +79,18 @@ in {
     allowedNetKeys = [
       "admin_emails"
       "default_domain"
-      "dns_provider"
+      "dns"
       "domains"
       "proxy_host"
       "vpn_url"
     ];
+    allowedDnsKeys = [
+      "provider"
+    ];
     allowedDomainKeys = [
       "access"
       "default_auth"
+      "dns_account"
       "publish_hosts"
       "split_dns"
       "tags"
@@ -99,6 +103,14 @@ in {
     unknownNetKeys =
       lib.unique (lib.concatMap (t: builtins.attrNames (t.net or {})) tomlConfigs)
       |> builtins.filter (k: !(builtins.elem k allowedNetKeys));
+    unknownDnsKeys =
+      lib.unique (
+        lib.concatMap (
+          t: lib.concatMap builtins.attrNames (builtins.attrValues (t.net.dns or {}))
+        )
+        tomlConfigs
+      )
+      |> builtins.filter (k: !(builtins.elem k allowedDnsKeys));
     unknownDomainKeys =
       lib.unique (
         lib.concatMap (
@@ -118,6 +130,10 @@ in {
         message = "inventory.siteConfig.configFiles: unexpected [net] key(s): ${lib.concatStringsSep ", " unknownNetKeys} (allowed: ${lib.concatStringsSep ", " allowedNetKeys})";
       }
       {
+        assertion = unknownDnsKeys == [];
+        message = "inventory.siteConfig.configFiles: unexpected [net.dns.*] key(s): ${lib.concatStringsSep ", " unknownDnsKeys} (allowed: ${lib.concatStringsSep ", " allowedDnsKeys})";
+      }
+      {
         assertion = unknownDomainKeys == [];
         message = "inventory.siteConfig.configFiles: unexpected [net.domains.*] key(s): ${lib.concatStringsSep ", " unknownDomainKeys} (allowed: ${lib.concatStringsSep ", " allowedDomainKeys})";
       }
@@ -132,10 +148,14 @@ in {
         then null
         else lib.last vals);
 
+    mapDnsToml = d:
+      lib.optionalAttrs (d ? provider) {inherit (d) provider;};
+
     mapDomainToml = d:
       lib.optionalAttrs (d ? tags) {inherit (d) tags;}
       // lib.optionalAttrs (d ? access) {inherit (d) access;}
       // lib.optionalAttrs (d ? tls) {inherit (d) tls;}
+      // lib.optionalAttrs (d ? dns_account) {dnsAccount = d.dns_account;}
       // lib.optionalAttrs (d ? default_auth) {defaultAuth = d.default_auth;}
       // lib.optionalAttrs (d ? publish_hosts) {publishHosts = d.publish_hosts;}
       // lib.optionalAttrs (d ? split_dns) {splitDns = d.split_dns;};
@@ -143,12 +163,10 @@ in {
     explicitProxyHost = pickLast ["net" "proxy_host"];
     explicitDefaultDomain = pickLast ["net" "default_domain"];
     explicitVpnUrl = pickLast ["net" "vpn_url"];
-    explicitDnsProvider = pickLast ["net" "dns_provider"];
     vpnDomain = flakeNet.lib.resolveTag "vpn";
   in {
     inventory.net = {
       adminEmails = lib.concatMap (t: t.net.admin_emails or []) tomlConfigs;
-      dnsProvider = lib.mkIf (explicitDnsProvider != null) (lib.mkDefault explicitDnsProvider);
       defaultDomain = lib.mkIf (explicitDefaultDomain != null) (lib.mkDefault explicitDefaultDomain);
       proxyHost = lib.mkIf (explicitProxyHost != null) (lib.mkDefault explicitProxyHost);
       vpnUrl = lib.mkDefault (
@@ -157,6 +175,9 @@ in {
         else if vpnDomain != null
         then "https://vpn.${vpnDomain}"
         else null
+      );
+      dns = lib.mkMerge (
+        map (t: builtins.mapAttrs (_: mapDnsToml) (t.net.dns or {})) tomlConfigs
       );
       domains = lib.mkMerge (
         map (t: builtins.mapAttrs (_: mapDomainToml) (t.net.domains or {})) tomlConfigs

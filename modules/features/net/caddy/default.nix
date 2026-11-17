@@ -16,11 +16,11 @@ Exposes:
 in {
   flake.nixosModules."common/options" = {lib, ...}: let
     acmeProviderOpts = {
-      dnsProvider = lib.mkOption {
+      dnsAccount = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
-        example = "porkbun";
-        description = "Lego DNS-01 provider name passed to `security.acme`";
+        example = "default";
+        description = "Account key in `inventory.net.dns` and `net/dns/<account>/` in `sops.secrets`";
       };
       environmentFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
@@ -49,12 +49,11 @@ in {
       acme =
         acmeProviderOpts
         // {
-          dnsProvider = lib.mkOption {
-            type = lib.types.nullOr lib.types.str;
-            default = flake.config.inventory.net.dnsProvider;
-            defaultText = lib.literalExpression "inventory.net.dnsProvider";
-            example = "porkbun";
-            description = "Lego DNS-01 provider name passed to `security.acme`";
+          dnsAccount = lib.mkOption {
+            type = lib.types.str;
+            default = "default";
+            example = "personal";
+            description = "Default account key in `inventory.net.dns` and `net/dns/<account>/` in `sops.secrets`";
           };
           enable = lib.mkOption {
             type = lib.types.bool;
@@ -129,10 +128,12 @@ in {
     currentHost = config.networking.hostName;
     hostIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
 
-    usePorkbunSecrets =
-      cfg.acme.enable
-      && cfg.acme.dnsProvider == "porkbun"
-      && cfg.acme.environmentFile == null;
+    providerSecretSpecs = {
+      porkbun = {
+        PORKBUN_API_KEY_FILE = "api_key";
+        PORKBUN_SECRET_API_KEY_FILE = "secret_key";
+      };
+    };
 
     managedAcmeDomains =
       flakeNet.domains
@@ -141,20 +142,54 @@ in {
 
     resolveAcmeFor = d: let
       ovr = cfg.acme.domains.${d} or {};
-    in {
+      domainAccount = (flakeNet.domains.${d} or {}).dnsAccount or null;
+      dnsAccount =
+        if (ovr.dnsAccount or null) != null
+        then ovr.dnsAccount
+        else if domainAccount != null
+        then domainAccount
+        else cfg.acme.dnsAccount;
       dnsProvider =
-        if (ovr.dnsProvider or null) != null
-        then ovr.dnsProvider
-        else cfg.acme.dnsProvider;
+        if flakeNet.dns ? ${dnsAccount}
+        then flakeNet.dns.${dnsAccount}.provider
+        else null;
       environmentFile =
         if (ovr.environmentFile or null) != null
         then ovr.environmentFile
         else cfg.acme.environmentFile;
-      credentialFiles =
+      explicitCreds =
         if (ovr.credentialFiles or {}) != {}
         then ovr.credentialFiles
         else cfg.acme.credentialFiles;
+      spec =
+        if dnsProvider != null && environmentFile == null && explicitCreds == {}
+        then providerSecretSpecs.${dnsProvider} or null
+        else null;
+      sopsSecretKeys =
+        if spec != null
+        then map (field: "net/dns/${dnsAccount}/${field}") (builtins.attrValues spec)
+        else [];
+      credentialFiles =
+        if explicitCreds != {}
+        then explicitCreds
+        else if spec != null
+        then builtins.mapAttrs (_: field: config.sops.secrets."net/dns/${dnsAccount}/${field}".path) spec
+        else {};
+    in {
+      inherit
+        credentialFiles
+        dnsAccount
+        dnsProvider
+        environmentFile
+        sopsSecretKeys
+        ;
     };
+
+    defaultAcmeSopsSecrets =
+      managedAcmeDomains
+      |> lib.concatMap (d: (resolveAcmeFor d).sopsSecretKeys)
+      |> lib.unique
+      |> (keys: lib.genAttrs keys (_: {}));
 
     vhosts = import ./_vhosts.nix {
       inherit
@@ -208,10 +243,6 @@ in {
 
         mod = {
           meta.imported = [moduleName];
-          ${moduleName}.acme.credentialFiles = lib.mkIf usePorkbunSecrets {
-            PORKBUN_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/api_key".path;
-            PORKBUN_SECRET_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/secret_key".path;
-          };
           "common/net" = {
             dnsRecords = lib.mkIf (hostIpv4 != null) (
               lib.mapAttrs' (
@@ -224,10 +255,7 @@ in {
           };
         };
 
-        sops.secrets = lib.mkIf usePorkbunSecrets {
-          "net/porkbun/0/api_key" = {};
-          "net/porkbun/0/secret_key" = {};
-        };
+        sops.secrets = lib.mkIf cfg.acme.enable defaultAcmeSopsSecrets;
 
         security.acme = lib.mkIf (cfg.acme.enable && managedAcmeDomains != []) {
           acceptTerms = true;
