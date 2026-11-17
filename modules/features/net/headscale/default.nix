@@ -12,6 +12,8 @@ Exposes:
 {...} @ flake: let
   moduleName = "feat/net/headscale";
   port = 8085;
+  webUiPort = 3000;
+  webUiCookieSecretPath = "/var/lib/headplane/cookie_secret";
   ipv4Prefix = "100.64.0.0/10";
   ipv6Prefix = "fd7a:115c:a1e0::/48";
 in {
@@ -64,6 +66,27 @@ in {
         defaultText = lib.literalExpression ''config.mod."common/net".oidc.available'';
         description = "Enable OpenID Connect node authentication via `mod.\"common/net\".oidc`";
       };
+      webUi = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+          description = "Enable the Headplane web UI for Headscale behind the local reverse proxy";
+        };
+        domain = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default =
+            if selfCfg.domain != null
+            then selfCfg.domain
+            else flake.config.inventory.net.defaultDomain;
+          defaultText = lib.literalExpression ''config.mod."feat/net/headscale".domain or inventory.net.defaultDomain'';
+          description = "Target domain key in `inventory.net.domains` hosting the Headplane web UI";
+        };
+        subdomain = lib.mkOption {
+          type = lib.types.str;
+          default = "headplane";
+          description = "Subdomain label under `webUi.domain` for the Headplane web UI";
+        };
+      };
     };
   };
 
@@ -91,6 +114,10 @@ in {
     magicDnsDomain =
       if cfg.domain != null
       then "tail.${cfg.domain}"
+      else null;
+    webUiFqdn =
+      if cfg.webUi.domain != null
+      then flakeNet.lib.qualifyKeyFor cfg.webUi.domain cfg.webUi.subdomain
       else null;
 
     oidcIssuerUrl = netCfg.oidc.issuerUrl;
@@ -137,6 +164,11 @@ in {
       CONFIG_FILE = config.services.headscale.configFile;
       OIDC_SECRET_PATH = oidcSecretPath;
     };
+
+    ensureCookieSecretScript = pkgs.replaceVars ./ensure-cookie-secret.sh {
+      COOKIE_SECRET_PATH = webUiCookieSecretPath;
+      OPENSSL_BIN = lib.getExe pkgs.openssl;
+    };
   in {
     assertions = [
       {
@@ -169,6 +201,10 @@ in {
         assertion = !cfg.enableOidc || oidcIssuerUrl != null;
         message = "mod.\"${moduleName}\".enableOidc requires mod.\"common/net\".oidc.issuerUrl to be set (e.g. via `feat/net/authelia` with a configured domain on this host).";
       }
+      {
+        assertion = !cfg.webUi.enable || (cfg.webUi.domain != null && flakeNet.domains ? ${cfg.webUi.domain});
+        message = "mod.\"${moduleName}\".webUi.domain ('${toString cfg.webUi.domain}') must reference a declared domain in inventory.net.domains.";
+      }
     ];
 
     mod = {
@@ -180,6 +216,19 @@ in {
           ipv6Prefix
         ];
         oidc.requested = lib.mkIf cfg.enableOidc true;
+        services = lib.mkIf cfg.webUi.enable {
+          headplane = {
+            port = webUiPort;
+            domain = cfg.webUi.domain;
+            subdomain = cfg.webUi.subdomain;
+            rootRedirect = "/admin";
+            access = "lan";
+            auth =
+              if netCfg.forwardAuth.enable
+              then "sso"
+              else "none";
+          };
+        };
       };
     };
 
@@ -189,54 +238,80 @@ in {
       };
     };
 
-    services.headscale = {
-      enable = true;
-      inherit package port;
-      address = "127.0.0.1";
-      settings =
-        {
-          server_url = "https://${toString serverDomain}";
-          prefixes = {
-            v4 = ipv4Prefix;
-            v6 = ipv6Prefix;
-          };
-          dns = {
-            magic_dns = true;
-            base_domain = toString magicDnsDomain;
-            override_local_dns = false;
-            nameservers.split = lib.optionalAttrs (hostIpv4 != null) (
-              lib.genAttrs splitDnsDomains (_: [hostIpv4])
-            );
-          };
-          policy = {
-            mode = "file";
-            path = policyFile;
-          };
-        }
-        // lib.optionalAttrs cfg.enableOidc {
-          oidc = {
-            only_start_if_oidc_is_available = false;
-            issuer = toString oidcIssuerUrl;
-            client_id = "headscale";
-            client_secret_path = oidcSecretPath;
-            scope = [
-              "openid"
-              "profile"
-              "email"
-              "groups"
-            ];
-            allowed_groups = ["devs"];
-            pkce = {
-              enabled = true;
-              method = "S256";
+    services = {
+      headscale = {
+        enable = true;
+        inherit package port;
+        address = "127.0.0.1";
+        settings =
+          {
+            server_url = "https://${toString serverDomain}";
+            prefixes = {
+              v4 = ipv4Prefix;
+              v6 = ipv6Prefix;
+            };
+            dns = {
+              magic_dns = true;
+              base_domain = toString magicDnsDomain;
+              override_local_dns = false;
+              nameservers.split = lib.optionalAttrs (hostIpv4 != null) (
+                lib.genAttrs splitDnsDomains (_: [hostIpv4])
+              );
+            };
+            policy = {
+              mode = "file";
+              path = policyFile;
+            };
+          }
+          // lib.optionalAttrs cfg.enableOidc {
+            oidc = {
+              only_start_if_oidc_is_available = false;
+              issuer = toString oidcIssuerUrl;
+              client_id = "headscale";
+              client_secret_path = oidcSecretPath;
+              scope = [
+                "openid"
+                "profile"
+                "email"
+                "groups"
+              ];
+              allowed_groups = ["devs"];
+              pkce = {
+                enabled = true;
+                method = "S256";
+              };
             };
           };
+      };
+
+      headplane = lib.mkIf cfg.webUi.enable {
+        enable = true;
+        settings = {
+          server = {
+            host = "127.0.0.1";
+            port = webUiPort;
+            base_url = lib.mkIf (webUiFqdn != null) "https://${webUiFqdn}";
+            cookie_secret_path = webUiCookieSecretPath;
+            cookie_secure = true;
+            cookie_max_age = 30 * 24 * 3600;
+          };
+          headscale = {
+            url = "http://127.0.0.1:${toString port}";
+            public_url = "https://${toString serverDomain}";
+            config_path = config.services.headscale.configFile;
+          };
         };
+      };
     };
 
-    systemd.services.headscale = lib.mkIf (cfg.enableOidc && netCfg.oidc.systemdUnits != []) {
-      after = netCfg.oidc.systemdUnits;
-      wants = netCfg.oidc.systemdUnits;
+    systemd.services = {
+      headscale = lib.mkIf (cfg.enableOidc && netCfg.oidc.systemdUnits != []) {
+        after = netCfg.oidc.systemdUnits;
+        wants = netCfg.oidc.systemdUnits;
+      };
+      headplane = lib.mkIf cfg.webUi.enable {
+        serviceConfig.ExecStartPre = ["${pkgs.runtimeShell} ${ensureCookieSecretScript}"];
+      };
     };
 
     system.checks = lib.mkIf (serverDomain != null && magicDnsDomain != null) [

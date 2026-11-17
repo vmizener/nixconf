@@ -78,17 +78,48 @@ in {
       then "${lib.removeSuffix "/" flakeNet.vpnUrl}/oidc/callback"
       else null;
 
-    # Protect `cookieDomain` plus any domains tagged `"sso"` or using `defaultAuth = "sso"`
+    # Enable Authelia `forward_auth` cookies across `cookieDomain` plus every
+    # multi-label domain in `inventory.net.domains` (individual services still
+    # opt in/out via `auth = "sso" | "none"`).
     ssoDomains =
       (
         flakeNet.domains
         |> lib.filterAttrs (
-          _: dCfg: dCfg.defaultAuth == "sso" || builtins.elem "sso" dCfg.tags
+          d: dCfg:
+            lib.hasInfix "." d
+            && (dCfg.tls == "acme" || dCfg.defaultAuth == "sso" || builtins.elem "sso" dCfg.tags)
         )
         |> builtins.attrNames
       )
       ++ [cookieDomain]
       |> lib.unique;
+
+    authFqdnFor = d: flakeNet.lib.qualifyKeyFor d cfg.subdomain;
+
+    declaredInventoryFqdns =
+      lib.concatMap (
+        h:
+          builtins.attrValues h.services
+          |> map (svc: flakeNet.lib.extractHostname (flakeNet.lib.qualifyService svc))
+      )
+      (builtins.attrValues flakeNet.hosts);
+
+    publicSsoInventoryDomains =
+      lib.concatMap (
+        h:
+          builtins.attrValues h.services
+          |> builtins.filter (svc: svc.access == "public" && svc.auth == "sso" && svc.domain != null)
+          |> map (svc: svc.domain)
+      )
+      (builtins.attrValues flakeNet.hosts);
+
+    autoAuthDomains =
+      ssoDomains
+      |> builtins.filter (
+        d:
+          flakeNet.domains ? ${d}
+          && !(builtins.elem (authFqdnFor d) declaredInventoryFqdns)
+      );
 
     autheliaSettings =
       {
@@ -128,16 +159,16 @@ in {
           disable_startup_check = false;
           filesystem.filename = "${stateDir}/notification.txt";
         };
-        session.cookies = [
-          {
+        session.cookies =
+          map (d: {
             name = "authelia_session";
-            domain = cookieDomain;
-            authelia_url = "https://${authFqdn}";
+            domain = d;
+            authelia_url = "https://${authFqdnFor d}";
             expiration = "1h";
             inactivity = "5m";
             remember_me = "1M";
-          }
-        ];
+          })
+          ssoDomains;
         access_control = {
           default_policy = "deny";
           rules =
@@ -239,6 +270,23 @@ in {
           );
           systemdUnits = lib.mkIf cfg.enableOidc ["authelia-main.service"];
         };
+        services = builtins.listToAttrs (
+          map (
+            d:
+              lib.nameValuePair "auth-${d}" (
+                {
+                  inherit port;
+                  domain = d;
+                  inherit (cfg) subdomain;
+                  auth = "none";
+                }
+                // lib.optionalAttrs (builtins.elem d publicSsoInventoryDomains) {
+                  access = "public";
+                }
+              )
+          )
+          autoAuthDomains
+        );
       };
     };
 
@@ -257,7 +305,9 @@ in {
 
     # Ensure local daemons (e.g. Headscale OIDC discovery) resolve auth.<domain>
     # via loopback Caddy even before public DNS or the external relay is live.
-    networking.hosts."127.0.0.1" = lib.mkIf (cfg.domain != null) [authFqdn];
+    networking.hosts."127.0.0.1" = lib.mkIf (cfg.domain != null) (
+      map authFqdnFor (builtins.filter (d: lib.hasInfix "." d) ssoDomains)
+    );
 
     services.authelia.instances.main = {
       enable = true;

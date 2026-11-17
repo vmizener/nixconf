@@ -53,14 +53,26 @@ in {
     in {
       mod = {
         meta.imported = [moduleName];
-        ${moduleName}.trustedCidrs = [
-          "127.0.0.0/8"
-          "::1/128"
-          "10.0.0.0/8"
-          "172.16.0.0/12"
-          "192.168.0.0/16"
-          "fd00::/8"
-        ];
+        ${moduleName} = {
+          trustedCidrs = [
+            "127.0.0.0/8"
+            "::1/128"
+            "10.0.0.0/8"
+            "172.16.0.0/12"
+            "192.168.0.0/16"
+            "fd00::/8"
+          ];
+          dnsRecords = lib.mkIf (hostCfg != null && hostCfg.ipv4 != null) (
+            netCfg.services
+            |> lib.filterAttrs (
+              _: svc: svc.domain != null && lib.hasInfix "." (dns.netLib.extractHostname (dns.netLib.qualifyService svc))
+            )
+            |> lib.mapAttrs' (
+              _: svc:
+                lib.nameValuePair (dns.netLib.extractHostname (dns.netLib.qualifyService svc)) (lib.mkDefault hostCfg.ipv4)
+            )
+          );
+        };
       };
 
       networking = lib.mkIf (hostCfg != null && hostCfg.ipv4 != null && !isVm) {

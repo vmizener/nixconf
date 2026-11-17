@@ -25,28 +25,34 @@
     |> builtins.filter (e: e.ipv4 != null)
     |> duplicatesBy (e: e.ipv4);
 
-  serviceEntries =
+  mkServiceEntry = sourcePrefix: svcName: svc: let
+    key = qualifyService svc;
+    fqdn = extractHostname key;
+    tagMatches =
+      if svc.domainTag != null
+      then domainsWithTag svc.domainTag
+      else [];
+  in {
+    inherit fqdn key svc tagMatches;
+    domainCfg =
+      if svc.domain != null
+      then flakeNet.domains.${svc.domain} or null
+      else null;
+    source = "${sourcePrefix}.${svcName}";
+  };
+
+  inventoryServiceEntries =
     lib.mapAttrsToList (
       host: h:
-        lib.mapAttrsToList (svcName: svc: let
-          key = qualifyService svc;
-          fqdn = extractHostname key;
-          tagMatches =
-            if svc.domainTag != null
-            then domainsWithTag svc.domainTag
-            else [];
-        in {
-          inherit fqdn key svc tagMatches;
-          domainCfg =
-            if svc.domain != null
-            then flakeNet.domains.${svc.domain} or null
-            else null;
-          source = "${host}.${svcName}";
-        })
-        h.services
+        lib.mapAttrsToList (mkServiceEntry "inventory.net.hosts.${host}.services") h.services
     )
     flakeNet.hosts
     |> lib.concatLists;
+
+  localServiceEntries =
+    lib.mapAttrsToList (mkServiceEntry "mod.\"common/net\".services") netCfg.services;
+
+  serviceEntries = inventoryServiceEntries ++ localServiceEntries;
 
   resolvedServiceEntries = builtins.filter (e: e.domainCfg != null) serviceEntries;
   serviceCollisions = duplicatesBy (e: e.key) resolvedServiceEntries;
@@ -88,7 +94,11 @@ in
     }
     {
       assertion = serviceEntries == [] || flakeNet.proxyHost != null;
-      message = "inventory.net.hosts defines services, but inventory.net.proxyHost is not set.";
+      message = "Proxied services are declared, but inventory.net.proxyHost is not set.";
+    }
+    {
+      assertion = netCfg.services == {} || flakeNet.proxyHost == hostName;
+      message = "mod.\"common/net\".services is non-empty on '${hostName}', which is not inventory.net.proxyHost ('${toString flakeNet.proxyHost}'); declare remote host services under inventory.net.hosts.${hostName}.services instead.";
     }
     {
       assertion = !netCfg.forwardAuth.enable || netCfg.forwardAuth.address != null;
@@ -117,22 +127,22 @@ in
           assertion = false;
           message =
             if e.tagMatches == []
-            then "inventory.net.hosts.${e.source}: domainTag '${e.svc.domainTag}' matched no domains in inventory.net.domains."
-            else "inventory.net.hosts.${e.source}: domainTag '${e.svc.domainTag}' is ambiguous (matched multiple domains: ${lib.concatStringsSep ", " e.tagMatches}); set `domain` explicitly or make the tag unique.";
+            then "${e.source}: domainTag '${e.svc.domainTag}' matched no domains in inventory.net.domains."
+            else "${e.source}: domainTag '${e.svc.domainTag}' is ambiguous (matched multiple domains: ${lib.concatStringsSep ", " e.tagMatches}); set `domain` explicitly or make the tag unique.";
         }
       ]
       else [
         {
           assertion = e.domainCfg != null;
-          message = "inventory.net.hosts.${e.source}: references undeclared domain '${toString e.svc.domain}' (declared in inventory.net.domains: ${lib.concatStringsSep ", " declaredDomainNames}).";
+          message = "${e.source}: references undeclared domain '${toString e.svc.domain}' (declared in inventory.net.domains: ${lib.concatStringsSep ", " declaredDomainNames}).";
         }
         {
           assertion = e.svc.domainTag == null || builtins.elem e.svc.domain e.tagMatches;
-          message = "inventory.net.hosts.${e.source}: explicit domain '${toString e.svc.domain}' does not carry domainTag '${toString e.svc.domainTag}'.";
+          message = "${e.source}: explicit domain '${toString e.svc.domain}' does not carry domainTag '${toString e.svc.domainTag}'.";
         }
         {
           assertion = e.svc.access != "public" || (e.domainCfg != null && e.domainCfg.tls == "acme");
-          message = "inventory.net.hosts.${e.source}: access = \"public\" requires domain '${toString e.svc.domain}' to use tls = \"acme\".";
+          message = "${e.source}: access = \"public\" requires domain '${toString e.svc.domain}' to use tls = \"acme\".";
         }
       ]
     )

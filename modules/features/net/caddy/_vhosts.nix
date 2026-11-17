@@ -50,50 +50,83 @@
     }
   '';
 
-  # Auto-discover services declared across inventory.net.hosts
-  discoveredServices = lib.concatLists (
-    lib.mapAttrsToList (
-      targetHostName: h: let
-        isLocal = targetHostName == currentHost;
-        upstreamHost =
-          if isLocal
-          then "127.0.0.1"
-          else if h.ipv4 != null
-          then h.ipv4
-          else "${targetHostName}.local";
-      in
-        lib.mapAttrsToList (svcName: svc: let
-          key = flakeNet.lib.qualifyService svc;
-          fqdn = flakeNet.lib.extractHostname key;
-          isHttpOnly = lib.hasPrefix "http://" key;
-          domainCfg =
-            if svc.domain != null
-            then flakeNet.domains.${svc.domain} or null
-            else null;
-          wantsAcme = domainCfg != null && domainCfg.tls == "acme";
-          useAcme = cfg.acme.enable && wantsAcme && !isHttpOnly;
-          useInternalTls = !isHttpOnly && !useAcme && svc.access == "lan";
-          restrictToLan = svc.access == "lan";
-          vhost =
-            {
-              extraConfig =
-                lib.optionalString useInternalTls "tls internal\n"
-                + lib.optionalString restrictToLan lanGuardConfig
-                + lib.optionalString (svc.auth == "sso") forwardAuthConfig
-                + "reverse_proxy ${svc.protocol}://${upstreamHost}:${toString svc.port}\n";
-            }
-            // lib.optionalAttrs useAcme {
-              useACMEHost = svc.domain;
-            };
-        in {
-          inherit fqdn isLocal key svc svcName targetHostName upstreamHost vhost;
-          targetIpv4 = h.ipv4;
-          source = "${targetHostName}.${svcName}";
-        })
-        h.services
+  mkDiscoveredService = {
+    isLocal,
+    sourcePrefix,
+    svc,
+    svcName,
+    targetHostName,
+    targetIpv4,
+    upstreamHost,
+  }: let
+    key = flakeNet.lib.qualifyService svc;
+    fqdn = flakeNet.lib.extractHostname key;
+    isHttpOnly = lib.hasPrefix "http://" key;
+    domainCfg =
+      if svc.domain != null
+      then flakeNet.domains.${svc.domain} or null
+      else null;
+    wantsAcme = domainCfg != null && domainCfg.tls == "acme";
+    useAcme = cfg.acme.enable && wantsAcme && !isHttpOnly;
+    useInternalTls = !isHttpOnly && !useAcme && svc.access == "lan";
+    restrictToLan = svc.access == "lan";
+    vhost =
+      {
+        extraConfig =
+          lib.optionalString useInternalTls "tls internal\n"
+          + lib.optionalString restrictToLan lanGuardConfig
+          + lib.optionalString (svc.auth == "sso") forwardAuthConfig
+          + lib.optionalString (svc.rootRedirect != null) ''
+            @root path /
+            redir @root ${svc.rootRedirect} 302
+          ''
+          + "reverse_proxy ${svc.protocol}://${upstreamHost}:${toString svc.port}\n";
+      }
+      // lib.optionalAttrs useAcme {
+        useACMEHost = svc.domain;
+      };
+  in {
+    inherit fqdn isLocal key svc svcName targetHostName targetIpv4 upstreamHost vhost;
+    source = "${sourcePrefix}.${svcName}";
+  };
+
+  # Auto-discover services declared across inventory.net.hosts and local mod."common/net".services
+  discoveredServices =
+    lib.concatLists (
+      lib.mapAttrsToList (
+        targetHostName: h: let
+          isLocal = targetHostName == currentHost;
+          upstreamHost =
+            if isLocal
+            then "127.0.0.1"
+            else if h.ipv4 != null
+            then h.ipv4
+            else "${targetHostName}.local";
+        in
+          lib.mapAttrsToList (
+            svcName: svc:
+              mkDiscoveredService {
+                inherit isLocal svc svcName targetHostName upstreamHost;
+                sourcePrefix = targetHostName;
+                targetIpv4 = h.ipv4;
+              }
+          )
+          h.services
+      )
+      flakeNet.hosts
     )
-    flakeNet.hosts
-  );
+    ++ lib.mapAttrsToList (
+      svcName: svc:
+        mkDiscoveredService {
+          inherit svc svcName;
+          isLocal = true;
+          sourcePrefix = "${currentHost}.local";
+          targetHostName = currentHost;
+          targetIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
+          upstreamHost = "127.0.0.1";
+        }
+    )
+    netCfg.services;
 
   discoveredVHosts = builtins.listToAttrs (
     map (d: lib.nameValuePair d.key d.vhost) discoveredServices

@@ -3,7 +3,84 @@
 {
   flakeNet,
   lib,
-}: {
+}: let
+  serviceSubmodule = lib.types.submodule ({
+    config,
+    name,
+    ...
+  }: let
+    domainCfg =
+      if config.domain != null
+      then flakeNet.domains.${config.domain} or null
+      else null;
+  in {
+    options = {
+      port = lib.mkOption {
+        type = lib.types.port;
+        description = "Port the service listens on";
+      };
+      domainTag = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "dev";
+        description = "Select the unique domain in `inventory.net.domains` carrying this tag";
+      };
+      domain = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default =
+          if config.domainTag != null
+          then flakeNet.lib.resolveTag config.domainTag
+          else flakeNet.defaultDomain;
+        defaultText = lib.literalExpression ''
+          if config.domainTag != null
+          then config.inventory.net.lib.resolveTag config.domainTag
+          else config.inventory.net.defaultDomain
+        '';
+        description = "Target domain key in `inventory.net.domains` (resolved from `domainTag` or `defaultDomain` unless set explicitly)";
+      };
+      subdomain = lib.mkOption {
+        type = lib.types.str;
+        default = name;
+        description = "Subdomain label under `domain` (e.g. `\"vpn\"` -> `\"vpn.<domain>\"`, or `\"@\"` for the zone apex)";
+      };
+      protocol = lib.mkOption {
+        type = lib.types.enum ["http" "https"];
+        default = "http";
+        description = "Upstream protocol used by the service";
+      };
+      rootRedirect = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "/admin";
+        description = "Optional path target for HTTP 302 redirects from `/` before `reverse_proxy`";
+      };
+      access = lib.mkOption {
+        type = lib.types.enum ["lan" "public"];
+        default =
+          if domainCfg != null
+          then domainCfg.access
+          else "lan";
+        defaultText = lib.literalExpression "config.inventory.net.domains.<domain>.access";
+        description = "Client reachability policy for this service (inherits from `domain` by default)";
+      };
+      auth = lib.mkOption {
+        type = lib.types.enum ["sso" "none"];
+        default =
+          if config.access == "public" && (domainCfg == null || domainCfg.access != "public")
+          then "sso"
+          else if domainCfg != null
+          then domainCfg.defaultAuth
+          else "none";
+        defaultText = lib.literalExpression ''
+          if config.access == "public" && domain.access != "public"
+          then "sso"
+          else config.inventory.net.domains.<domain>.defaultAuth
+        '';
+        description = "Proxy authentication policy enforced before `reverse_proxy`";
+      };
+    };
+  });
+in {
   # Cross-host topology & domain registry (`options.inventory.net`)
   inventory = {
     defaultDomain = lib.mkOption {
@@ -145,79 +222,8 @@
             };
             services = lib.mkOption {
               default = {};
+              type = lib.types.attrsOf serviceSubmodule;
               description = "Network services exposed by this host for reverse proxying";
-              type = lib.types.attrsOf (
-                lib.types.submodule ({
-                  config,
-                  name,
-                  ...
-                }: let
-                  domainCfg =
-                    if config.domain != null
-                    then flakeNet.domains.${config.domain} or null
-                    else null;
-                in {
-                  options = {
-                    port = lib.mkOption {
-                      type = lib.types.port;
-                      description = "Port the service listens on";
-                    };
-                    domainTag = lib.mkOption {
-                      type = lib.types.nullOr lib.types.str;
-                      default = null;
-                      example = "dev";
-                      description = "Select the unique domain in `inventory.net.domains` carrying this tag";
-                    };
-                    domain = lib.mkOption {
-                      type = lib.types.nullOr lib.types.str;
-                      default =
-                        if config.domainTag != null
-                        then flakeNet.lib.resolveTag config.domainTag
-                        else flakeNet.defaultDomain;
-                      defaultText = lib.literalExpression ''
-                        if config.domainTag != null
-                        then config.inventory.net.lib.resolveTag config.domainTag
-                        else config.inventory.net.defaultDomain
-                      '';
-                      description = "Target domain key in `inventory.net.domains` (resolved from `domainTag` or `defaultDomain` unless set explicitly)";
-                    };
-                    subdomain = lib.mkOption {
-                      type = lib.types.str;
-                      default = name;
-                      description = "Subdomain label under `domain` (e.g. `\"vpn\"` -> `\"vpn.<domain>\"`, or `\"@\"` for the zone apex)";
-                    };
-                    protocol = lib.mkOption {
-                      type = lib.types.enum ["http" "https"];
-                      default = "http";
-                      description = "Upstream protocol used by the service";
-                    };
-                    access = lib.mkOption {
-                      type = lib.types.enum ["lan" "public"];
-                      default =
-                        if domainCfg != null
-                        then domainCfg.access
-                        else "lan";
-                      defaultText = lib.literalExpression "config.inventory.net.domains.<domain>.access";
-                      description = "Client reachability policy for this service (inherits from `domain` by default)";
-                    };
-                    auth = lib.mkOption {
-                      type = lib.types.enum ["sso" "none"];
-                      default =
-                        if config.access == "public" && (domainCfg == null || domainCfg.access != "public")
-                        then "sso"
-                        else if domainCfg != null
-                        then domainCfg.defaultAuth
-                        else "none";
-                      defaultText = lib.literalExpression ''
-                        if config.access == "public" && domain.access != "public"
-                        then "sso"
-                        else config.inventory.net.domains.<domain>.defaultAuth
-                      '';
-                      description = "Proxy authentication policy enforced before `reverse_proxy`";
-                    };
-                  };
-                })
-              );
             };
           };
         }
@@ -251,6 +257,12 @@
       type = lib.types.attrsOf lib.types.str;
       default = {};
       description = "Host-local DNS hostname-to-IPv4 mappings (e.g. explicit reverse-proxy virtual hosts) merged by local DNS resolvers.";
+    };
+
+    services = lib.mkOption {
+      default = {};
+      type = lib.types.attrsOf serviceSubmodule;
+      description = "Host-local network services registered by feature modules for local reverse proxying and DNS synthesis.";
     };
 
     forwardAuth = {
