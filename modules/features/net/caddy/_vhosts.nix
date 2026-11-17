@@ -5,6 +5,7 @@
   flakeNet,
   lib,
   managedAcmeDomains,
+  netCfg,
 }: let
   parseEndpoint = raw: let
     stripped =
@@ -35,15 +36,15 @@
   isIpv6Literal = h: lib.hasInfix ":" h;
 
   lanGuardConfig =
-    if cfg.lanCidrs == []
+    if netCfg.trustedCidrs == []
     then "abort\n"
     else ''
-      @not_lan not remote_ip ${lib.concatStringsSep " " cfg.lanCidrs}
+      @not_lan not remote_ip ${lib.concatStringsSep " " netCfg.trustedCidrs}
       abort @not_lan
     '';
 
   forwardAuthConfig = ''
-    forward_auth ${toString cfg.forwardAuth.address} {
+    forward_auth ${toString netCfg.forwardAuth.address} {
       uri /api/authz/forward-auth
       copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
     }

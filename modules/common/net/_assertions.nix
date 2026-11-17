@@ -6,6 +6,7 @@
   hostName,
   isVm,
   lib,
+  netCfg,
 }: let
   inherit (dns) hostRecordsFor netLib proxyIpv4;
   inherit (netLib) domainsWithTag extractHostname qualifyService;
@@ -88,6 +89,10 @@ in
     {
       assertion = serviceEntries == [] || flakeNet.proxyHost != null;
       message = "inventory.net.hosts defines services, but inventory.net.proxyHost is not set.";
+    }
+    {
+      assertion = !netCfg.forwardAuth.enable || netCfg.forwardAuth.address != null;
+      message = "mod.\"common/net\".forwardAuth.address must be set when forwardAuth.enable is true.";
     }
   ]
   ++ lib.mapAttrsToList (dName: dCfg: {

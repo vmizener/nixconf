@@ -2,9 +2,8 @@
   common/config
 
 Loads site-wide deployment settings from TOML configuration files
-(`inventory.siteConfig.configFiles`) into `inventory.net` and wires shared
-NixOS module defaults without hardcoding hosts, users, or domains in Nix
-modules.
+(`inventory.siteConfig.configFiles`) into `inventory.net` and validates their
+schema without hardcoding hosts, users, or domains in Nix modules.
 
 Exposes:
 
@@ -164,38 +163,9 @@ in {
       );
     };
 
-    flake.nixosModules.${moduleName} = {
-      config,
-      lib,
-      ...
-    }: let
-      hasCaddy = config.mod.meta.has "feat/net/caddy";
-      caddyCfg = config.mod."feat/net/caddy";
-      usePorkbunSecrets =
-        hasCaddy
-        && caddyCfg.acme.enable
-        && caddyCfg.acme.dnsProvider == "porkbun";
-    in {
+    flake.nixosModules.${moduleName} = {...}: {
       assertions = tomlSchemaAssertions;
-
-      mod = {
-        meta.imported = [moduleName];
-        "feat/net/headscale".adminUsers =
-          lib.mkIf (flakeNet.adminEmails != []) (lib.mkDefault flakeNet.adminEmails);
-        "feat/net/caddy".acme = {
-          dnsProvider =
-            lib.mkIf (flakeNet.dnsProvider != null) (lib.mkDefault flakeNet.dnsProvider);
-          credentialFiles = lib.mkIf usePorkbunSecrets {
-            PORKBUN_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/api_key".path;
-            PORKBUN_SECRET_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/secret_key".path;
-          };
-        };
-      };
-
-      sops.secrets = lib.mkIf usePorkbunSecrets {
-        "net/porkbun/0/api_key" = {};
-        "net/porkbun/0/secret_key" = {};
-      };
+      mod.meta.imported = [moduleName];
     };
   };
 }

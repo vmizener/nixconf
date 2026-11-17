@@ -5,6 +5,7 @@
   httpPort,
   httpsPort,
   lib,
+  netCfg,
   pkgs,
   vhosts,
 }: let
@@ -24,8 +25,8 @@
     then cfg.openPublicFirewall
     else hasPublicVHosts;
 
-  ipv4LanCidrs = builtins.filter (c: !(lib.hasInfix ":" c)) cfg.lanCidrs;
-  ipv6LanCidrs = builtins.filter (c: lib.hasInfix ":" c) cfg.lanCidrs;
+  ipv4LanCidrs = builtins.filter (c: !(lib.hasInfix ":" c)) netCfg.trustedCidrs;
+  ipv6LanCidrs = builtins.filter (c: lib.hasInfix ":" c) netCfg.trustedCidrs;
 
   mkLanAcceptRules = proto: port:
     (map (cidr: "ip saddr ${cidr} ${proto} dport ${toString port} accept") ipv4LanCidrs)
@@ -40,8 +41,8 @@
   );
 
   forwardAuthEp =
-    if cfg.forwardAuth.enable && cfg.forwardAuth.address != null
-    then parseEndpoint cfg.forwardAuth.address
+    if netCfg.forwardAuth.enable && netCfg.forwardAuth.address != null
+    then parseEndpoint netCfg.forwardAuth.address
     else null;
 
   allowedTargets =

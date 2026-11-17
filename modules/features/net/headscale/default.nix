@@ -48,7 +48,8 @@ in {
       };
       adminUsers = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = [];
+        default = flake.config.inventory.net.adminEmails;
+        defaultText = lib.literalExpression "inventory.net.adminEmails";
         example = ["user@example.net"];
         description = "User email identifiers (`user@domain`) placed in `group:devs` for `tag:router` ownership and route auto-approval";
       };
@@ -59,9 +60,9 @@ in {
       };
       enableOidc = lib.mkOption {
         type = lib.types.bool;
-        default = config.mod.meta.has "feat/net/authelia";
-        defaultText = lib.literalExpression ''config.mod.meta.has "feat/net/authelia"'';
-        description = "Enable OpenID Connect node authentication via local Authelia";
+        default = config.mod."common/net".oidc.available;
+        defaultText = lib.literalExpression ''config.mod."common/net".oidc.available'';
+        description = "Enable OpenID Connect node authentication via `mod.\"common/net\".oidc`";
       };
     };
   };
@@ -73,6 +74,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    netCfg = config.mod."common/net";
     package = pkgs.headscale;
     flakeNet = flake.config.inventory.net;
     currentHost = config.networking.hostName;
@@ -91,13 +93,7 @@ in {
       then "tail.${cfg.domain}"
       else null;
 
-    localAuthelia = config.mod.meta.has "feat/net/authelia";
-    localCaddy = config.mod.meta.has "feat/net/caddy";
-    autheliaCfg = config.mod."feat/net/authelia";
-    oidcIssuerUrl =
-      if localAuthelia && autheliaCfg.domain != null
-      then "https://${flakeNet.lib.qualifyKeyFor autheliaCfg.domain autheliaCfg.subdomain}"
-      else null;
+    oidcIssuerUrl = netCfg.oidc.issuerUrl;
     oidcSecretPath =
       if cfg.enableOidc
       then config.sops.secrets."services/headscale/oidc_client_secret".path
@@ -171,17 +167,20 @@ in {
       }
       {
         assertion = !cfg.enableOidc || oidcIssuerUrl != null;
-        message = "mod.\"${moduleName}\".enableOidc requires `feat/net/authelia` with a configured domain on this host.";
+        message = "mod.\"${moduleName}\".enableOidc requires mod.\"common/net\".oidc.issuerUrl to be set (e.g. via `feat/net/authelia` with a configured domain on this host).";
       }
     ];
 
     mod = {
       meta.imported = [moduleName];
-      # Allow authenticated tailnet nodes to pass Caddy's @not_lan CIDR guard for `access = "lan"` services
-      "feat/net/caddy".lanCidrs = lib.mkIf localCaddy [
-        ipv4Prefix
-        ipv6Prefix
-      ];
+      "common/net" = {
+        # Allow authenticated tailnet nodes to pass LAN CIDR guards for `access = "lan"` services
+        trustedCidrs = [
+          ipv4Prefix
+          ipv6Prefix
+        ];
+        oidc.requested = lib.mkIf cfg.enableOidc true;
+      };
     };
 
     sops.secrets = lib.mkIf cfg.enableOidc {
@@ -235,13 +234,9 @@ in {
         };
     };
 
-    systemd.services.headscale = lib.mkIf (cfg.enableOidc && (localAuthelia || localCaddy)) {
-      after =
-        lib.optional localCaddy "caddy.service"
-        ++ lib.optional localAuthelia "authelia-main.service";
-      wants =
-        lib.optional localCaddy "caddy.service"
-        ++ lib.optional localAuthelia "authelia-main.service";
+    systemd.services.headscale = lib.mkIf (cfg.enableOidc && netCfg.oidc.systemdUnits != []) {
+      after = netCfg.oidc.systemdUnits;
+      wants = netCfg.oidc.systemdUnits;
     };
 
     system.checks = lib.mkIf (serverDomain != null && magicDnsDomain != null) [

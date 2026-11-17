@@ -48,9 +48,9 @@ in {
       };
       enableOidc = lib.mkOption {
         type = lib.types.bool;
-        default = config.mod.meta.has "feat/net/headscale";
-        defaultText = lib.literalExpression ''config.mod.meta.has "feat/net/headscale"'';
-        description = "Enable Authelia's OpenID Connect 1.0 provider for Headscale (`group:devs`)";
+        default = config.mod."common/net".oidc.requested;
+        defaultText = lib.literalExpression ''config.mod."common/net".oidc.requested'';
+        description = "Enable Authelia's OpenID Connect 1.0 provider (`group:devs`)";
       };
     };
   };
@@ -227,9 +227,18 @@ in {
 
     mod = {
       meta.imported = [moduleName];
-      "feat/net/caddy".forwardAuth = lib.mkIf (config.mod.meta.has "feat/net/caddy") {
-        enable = lib.mkDefault true;
-        address = lib.mkDefault "127.0.0.1:${toString port}";
+      "common/net" = {
+        forwardAuth = {
+          enable = lib.mkDefault true;
+          address = lib.mkDefault "127.0.0.1:${toString port}";
+        };
+        oidc = {
+          available = lib.mkDefault true;
+          issuerUrl = lib.mkIf (cfg.enableOidc && cfg.domain != null) (
+            lib.mkDefault "https://${authFqdn}"
+          );
+          systemdUnits = lib.mkIf cfg.enableOidc ["authelia-main.service"];
+        };
       };
     };
 

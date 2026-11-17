@@ -47,8 +47,9 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    netCfg = config.mod."common/net";
     package = pkgs.blocky;
-    allCustomDNS = flake.config.inventory.net.allDnsRecords // cfg.customDNS;
+    allCustomDNS = flake.config.inventory.net.allDnsRecords // netCfg.dnsRecords // cfg.customDNS;
 
     customDnsBlock =
       if allCustomDNS == {}

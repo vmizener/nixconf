@@ -6,6 +6,7 @@
   lib,
   managedAcmeDomains,
   moduleName,
+  netCfg,
   resolveAcmeFor,
   vhosts,
 }: let
@@ -22,8 +23,8 @@
   isValidSandboxHost = h: isLoopbackHost h || isIpv4Literal h || isIpv6Literal h;
 
   forwardAuthEp =
-    if cfg.forwardAuth.address != null
-    then parseEndpoint cfg.forwardAuth.address
+    if netCfg.forwardAuth.address != null
+    then parseEndpoint netCfg.forwardAuth.address
     else null;
 
   ssoServices =
@@ -46,10 +47,6 @@ in
     {
       assertion = flakeNet.proxyHost == currentHost;
       message = "Host '${currentHost}' imports ${moduleName}; set inventory.net.proxyHost = \"${currentHost}\" so service DNS records point to this proxy.";
-    }
-    {
-      assertion = !cfg.forwardAuth.enable || cfg.forwardAuth.address != null;
-      message = "mod.\"${moduleName}\".forwardAuth.address must be set when forwardAuth.enable is true.";
     }
     {
       assertion = !cfg.acme.enable || managedAcmeDomains != [];
@@ -80,8 +77,8 @@ in
   })
   explicitCollisions
   ++ map (d: {
-    assertion = cfg.forwardAuth.enable && cfg.forwardAuth.address != null;
-    message = "inventory.net.hosts.${d.source}: service requires auth = \"sso\", but mod.\"${moduleName}\".forwardAuth is not enabled.";
+    assertion = netCfg.forwardAuth.enable && netCfg.forwardAuth.address != null;
+    message = "inventory.net.hosts.${d.source}: service requires auth = \"sso\", but mod.\"common/net\".forwardAuth is not enabled.";
   })
   ssoServices
   ++ lib.optionals cfg.egressSandbox.enable (
@@ -90,9 +87,9 @@ in
         message = "inventory.net.hosts.${host}: static ipv4 must be set when exposing proxied services with mod.\"${moduleName}\".egressSandbox.enable = true.";
       })
       remoteDiscoveredHostsWithoutIpv4)
-    ++ lib.optional (cfg.forwardAuth.enable && cfg.forwardAuth.address != null) {
+    ++ lib.optional (netCfg.forwardAuth.enable && netCfg.forwardAuth.address != null) {
       assertion = forwardAuthEp != null && isValidSandboxHost forwardAuthEp.host;
-      message = "mod.\"${moduleName}\".forwardAuth.address '${toString cfg.forwardAuth.address}' must be a literal IP:port or localhost:port when egressSandbox is enabled.";
+      message = "mod.\"common/net\".forwardAuth.address '${toString netCfg.forwardAuth.address}' must be a literal IP:port or localhost:port when egressSandbox is enabled.";
     }
     ++ map (t: {
       assertion = false;

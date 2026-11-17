@@ -35,18 +35,6 @@ in {
     };
   in {
     options.mod.${moduleName} = {
-      lanCidrs = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [
-          "127.0.0.0/8"
-          "::1/128"
-          "10.0.0.0/8"
-          "172.16.0.0/12"
-          "192.168.0.0/16"
-          "fd00::/8"
-        ];
-        description = "Trusted client CIDRs allowed to access `access = \"lan\"` virtual hosts and HTTP port 80";
-      };
       virtualHosts = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.either lib.types.str (lib.types.attrsOf lib.types.anything)
@@ -61,6 +49,13 @@ in {
       acme =
         acmeProviderOpts
         // {
+          dnsProvider = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = flake.config.inventory.net.dnsProvider;
+            defaultText = lib.literalExpression "inventory.net.dnsProvider";
+            example = "porkbun";
+            description = "Lego DNS-01 provider name passed to `security.acme`";
+          };
           enable = lib.mkOption {
             type = lib.types.bool;
             default = false;
@@ -77,19 +72,6 @@ in {
             description = "Optional per-domain DNS-01 provider/credential overrides (keyed by domain name in `inventory.net.domains`)";
           };
         };
-      forwardAuth = {
-        enable = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-          description = "Enable Caddy `forward_auth` delegation for services with `auth = \"sso\"`";
-        };
-        address = lib.mkOption {
-          type = lib.types.nullOr lib.types.str;
-          default = null;
-          example = "127.0.0.1:9091";
-          description = "Upstream authentication server `host:port` passed to Caddy `forward_auth`";
-        };
-      };
       egressSandbox = {
         enable = lib.mkOption {
           type = lib.types.bool;
@@ -124,7 +106,7 @@ in {
       openLanFirewall = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Whether to open HTTP/HTTPS ports to `lanCidrs`";
+        description = "Whether to open HTTP/HTTPS ports to `mod.\"common/net\".trustedCidrs`";
       };
       openPublicFirewall = lib.mkOption {
         type = lib.types.nullOr lib.types.bool;
@@ -141,10 +123,16 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
+    netCfg = config.mod."common/net";
     package = pkgs.caddy;
     flakeNet = flake.config.inventory.net;
     currentHost = config.networking.hostName;
     hostIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
+
+    usePorkbunSecrets =
+      cfg.acme.enable
+      && cfg.acme.dnsProvider == "porkbun"
+      && cfg.acme.environmentFile == null;
 
     managedAcmeDomains =
       flakeNet.domains
@@ -169,7 +157,14 @@ in {
     };
 
     vhosts = import ./_vhosts.nix {
-      inherit cfg currentHost flakeNet lib managedAcmeDomains;
+      inherit
+        cfg
+        currentHost
+        flakeNet
+        lib
+        managedAcmeDomains
+        netCfg
+        ;
     };
     firewallCfg = import ./_firewall.nix {
       inherit
@@ -178,6 +173,7 @@ in {
         httpPort
         httpsPort
         lib
+        netCfg
         pkgs
         vhosts
         ;
@@ -204,6 +200,7 @@ in {
             lib
             managedAcmeDomains
             moduleName
+            netCfg
             resolveAcmeFor
             vhosts
             ;
@@ -211,13 +208,25 @@ in {
 
         mod = {
           meta.imported = [moduleName];
-          "feat/net/blocky".customDNS = lib.mkIf (hostIpv4 != null) (
-            lib.mapAttrs' (
-              key: _:
-                lib.nameValuePair (flakeNet.lib.extractHostname key) (lib.mkDefault hostIpv4)
-            )
-            vhosts.explicitDnsVHosts
-          );
+          ${moduleName}.acme.credentialFiles = lib.mkIf usePorkbunSecrets {
+            PORKBUN_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/api_key".path;
+            PORKBUN_SECRET_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/secret_key".path;
+          };
+          "common/net" = {
+            dnsRecords = lib.mkIf (hostIpv4 != null) (
+              lib.mapAttrs' (
+                key: _:
+                  lib.nameValuePair (flakeNet.lib.extractHostname key) (lib.mkDefault hostIpv4)
+              )
+              vhosts.explicitDnsVHosts
+            );
+            oidc.systemdUnits = lib.mkIf netCfg.oidc.available ["caddy.service"];
+          };
+        };
+
+        sops.secrets = lib.mkIf usePorkbunSecrets {
+          "net/porkbun/0/api_key" = {};
+          "net/porkbun/0/secret_key" = {};
         };
 
         security.acme = lib.mkIf (cfg.acme.enable && managedAcmeDomains != []) {
@@ -238,7 +247,7 @@ in {
         services.caddy = {
           enable = true;
           inherit httpPort httpsPort package;
-          # Managed via `_firewall.nix` so port 80 stays restricted to `lanCidrs`
+          # Managed via `_firewall.nix` so port 80 stays restricted to `trustedCidrs`
           openFirewall = false;
           globalConfig = lib.optionalString vhosts.hasHttpsVHosts ''
             servers :${toString httpsPort} {
