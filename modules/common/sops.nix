@@ -5,7 +5,7 @@
   ...
 }: let
   moduleName = "common/sops";
-  siteCfg = config.inventory.siteConfig;
+  inherit (config.inventory.siteConfig) secretsFile;
 in {
   flake.nixosModules.${moduleName} = {...}: {
     imports = [
@@ -13,7 +13,7 @@ in {
     ];
     mod.meta.imported = [moduleName];
     sops = {
-      defaultSopsFile = lib.mkIf (siteCfg != null) (lib.mkDefault "${siteCfg}/secrets.yaml");
+      defaultSopsFile = lib.mkIf (secretsFile != null) (lib.mkDefault secretsFile);
       # Derive host age key from OpenSSH ed25519 key (matches `&host_<hostname>` in .sops.yaml)
       age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
       # Disable sops-nix's default RSA host key -> GPG import (repo only uses age)
@@ -26,7 +26,7 @@ in {
     ];
     mod.meta.imported = [moduleName];
     sops = {
-      defaultSopsFile = lib.mkIf (siteCfg != null) (lib.mkDefault "${siteCfg}/secrets.yaml");
+      defaultSopsFile = lib.mkIf (secretsFile != null) (lib.mkDefault secretsFile);
       # User services can't read /etc/ssh host keys; use per-user key (`&<user>_<hostname>`)
       age = {
         keyFile = "${config.xdg.configHome}/sops/age/keys.txt";

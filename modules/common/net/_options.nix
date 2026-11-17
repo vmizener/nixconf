@@ -19,6 +19,17 @@
     example = "https://vpn.example.dev";
     description = "VPN coordination server URL used as the default `loginServer` across `feat/net/tailscale` hosts";
   };
+  # Populated from `[net]` in `config.toml` (`inventory.siteConfig.configFiles`) by `common/config`
+  adminEmails = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [];
+    description = "Admin identities (`user@domain`) granted VPN route/tag ownership (populated from `[net].admin_emails` in `config.toml`)";
+  };
+  dnsProvider = lib.mkOption {
+    type = lib.types.nullOr lib.types.str;
+    default = null;
+    description = "Default ACME DNS-01 provider name configured across proxy hosts (populated from `[net].dns_provider` in `config.toml`)";
+  };
   domains = lib.mkOption {
     default = {};
     description = "Named network domains and their role tags, reachability, TLS, authentication, and DNS policies";

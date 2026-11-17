@@ -14,11 +14,6 @@
 in {
   # Cross-host SSH public key inventory and target user/host authorization mappings
   options.inventory.ssh = {
-    keysFiles = lib.mkOption {
-      type = lib.types.listOf lib.types.path;
-      default = [];
-      description = "TOML files merged into inventory.ssh.{keys,authorize} (use lib.mkForce to replace defaults).";
-    };
     keys = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = {};
@@ -39,7 +34,7 @@ in {
   };
 
   config = let
-    tomlConfigs = map lib.importTOML flakeSsh.keysFiles;
+    tomlConfigs = map lib.importTOML siteCfg.keysFiles;
     allowedSections = ["keys" "authorize"];
     allowedAuthorizeSections = ["all_hosts" "hosts"];
     unknownSections =
@@ -51,21 +46,15 @@ in {
     tomlSchemaAssertions = [
       {
         assertion = unknownSections == [];
-        message = "inventory.ssh.keysFiles: unexpected top-level section(s): ${lib.concatStringsSep ", " unknownSections} (allowed: ${lib.concatStringsSep ", " allowedSections})";
+        message = "inventory.siteConfig.keysFiles: unexpected top-level section(s): ${lib.concatStringsSep ", " unknownSections} (allowed: ${lib.concatStringsSep ", " allowedSections})";
       }
       {
         assertion = unknownAuthorizeSections == [];
-        message = "inventory.ssh.keysFiles: unexpected [authorize] subsection(s): ${lib.concatStringsSep ", " unknownAuthorizeSections} (allowed: ${lib.concatStringsSep ", " allowedAuthorizeSections})";
+        message = "inventory.siteConfig.keysFiles: unexpected [authorize] subsection(s): ${lib.concatStringsSep ", " unknownAuthorizeSections} (allowed: ${lib.concatStringsSep ", " allowedAuthorizeSections})";
       }
     ];
   in {
     inventory.ssh = {
-      keysFiles = let
-        defaultFile = "${siteCfg}/keys.toml";
-      in
-        lib.optional
-        (siteCfg != null && builtins.pathExists defaultFile)
-        defaultFile;
       keys = lib.mkMerge (map (t: t.keys or {}) tomlConfigs);
       authorize = {
         allHosts = lib.mkMerge (map (t: t.authorize.all_hosts or {}) tomlConfigs);

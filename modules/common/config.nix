@@ -2,57 +2,79 @@
   common/config
 
 Loads site-wide deployment settings from TOML configuration files
-(`${inventory.siteConfig}/config.toml`) into `inventory.{config,net}` and wires
-shared NixOS module defaults without hardcoding hosts, users, or domains in Nix
+(`inventory.siteConfig.configFiles`) into `inventory.net` and wires shared
+NixOS module defaults without hardcoding hosts, users, or domains in Nix
 modules.
 
 Exposes:
 
 - options.inventory.siteConfig
-- options.inventory.config
 - flake.nixosModules."common/config"
 */
 {
   config,
-  inputs,
   lib,
   self,
   ...
 }: let
   moduleName = "common/config";
   siteCfg = config.inventory.siteConfig;
-  flakeCfg = config.inventory.config;
   flakeNet = config.inventory.net;
 in {
-  options.inventory = {
-    siteConfig = lib.mkOption {
+  options.inventory.siteConfig = {
+    path = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
-      default = inputs.nixconf-config or self;
-      defaultText = lib.literalExpression "inputs.nixconf-config or self";
-      description = "Directory or flake input containing site `config.toml`, `keys.toml`, and `secrets.yaml`.";
+      default = self;
+      defaultText = lib.literalExpression "self";
+      description = "Base directory or flake input containing default site files (`config.toml`, `keys.toml`, `secrets.yaml`).";
     };
-
-    config = {
-      files = lib.mkOption {
-        type = lib.types.listOf lib.types.path;
-        default = [];
-        description = "TOML files merged into `inventory.config` and `inventory.net` (use `lib.mkForce` to replace defaults).";
-      };
-      adminEmails = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [];
-        description = "Admin identities (`user@domain`) granted VPN route/tag ownership.";
-      };
-      dnsProvider = lib.mkOption {
-        type = lib.types.nullOr lib.types.str;
-        default = null;
-        description = "Default ACME DNS-01 provider name configured across proxy hosts.";
-      };
+    configFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
+      default = let
+        defaultFile = "${siteCfg.path}/config.toml";
+      in
+        lib.optional
+        (siteCfg.path != null && builtins.pathExists defaultFile)
+        defaultFile;
+      defaultText = lib.literalExpression ''
+        lib.optional
+          (config.inventory.siteConfig.path != null && builtins.pathExists "''${config.inventory.siteConfig.path}/config.toml")
+          "''${config.inventory.siteConfig.path}/config.toml"
+      '';
+      description = "TOML files merged into `inventory.net`.";
+    };
+    keysFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
+      default = let
+        defaultFile = "${siteCfg.path}/keys.toml";
+      in
+        lib.optional
+        (siteCfg.path != null && builtins.pathExists defaultFile)
+        defaultFile;
+      defaultText = lib.literalExpression ''
+        lib.optional
+          (config.inventory.siteConfig.path != null && builtins.pathExists "''${config.inventory.siteConfig.path}/keys.toml")
+          "''${config.inventory.siteConfig.path}/keys.toml"
+      '';
+      description = "TOML files merged into `inventory.ssh.{keys,authorize}`.";
+    };
+    secretsFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default =
+        if siteCfg.path != null
+        then "${siteCfg.path}/secrets.yaml"
+        else null;
+      defaultText = lib.literalExpression ''
+        if config.inventory.siteConfig.path != null
+        then "''${config.inventory.siteConfig.path}/secrets.yaml"
+        else null
+      '';
+      description = "Default `sops-nix` secrets file wired to `sops.defaultSopsFile`.";
     };
   };
 
   config = let
-    tomlConfigs = map lib.importTOML flakeCfg.files;
+    tomlConfigs = map lib.importTOML siteCfg.configFiles;
 
     allowedSections = ["net"];
     allowedNetKeys = [
@@ -90,15 +112,15 @@ in {
     tomlSchemaAssertions = [
       {
         assertion = unknownSections == [];
-        message = "inventory.config.files: unexpected top-level section(s): ${lib.concatStringsSep ", " unknownSections} (allowed: ${lib.concatStringsSep ", " allowedSections})";
+        message = "inventory.siteConfig.configFiles: unexpected top-level section(s): ${lib.concatStringsSep ", " unknownSections} (allowed: ${lib.concatStringsSep ", " allowedSections})";
       }
       {
         assertion = unknownNetKeys == [];
-        message = "inventory.config.files: unexpected [net] key(s): ${lib.concatStringsSep ", " unknownNetKeys} (allowed: ${lib.concatStringsSep ", " allowedNetKeys})";
+        message = "inventory.siteConfig.configFiles: unexpected [net] key(s): ${lib.concatStringsSep ", " unknownNetKeys} (allowed: ${lib.concatStringsSep ", " allowedNetKeys})";
       }
       {
         assertion = unknownDomainKeys == [];
-        message = "inventory.config.files: unexpected [net.domains.*] key(s): ${lib.concatStringsSep ", " unknownDomainKeys} (allowed: ${lib.concatStringsSep ", " allowedDomainKeys})";
+        message = "inventory.siteConfig.configFiles: unexpected [net.domains.*] key(s): ${lib.concatStringsSep ", " unknownDomainKeys} (allowed: ${lib.concatStringsSep ", " allowedDomainKeys})";
       }
     ];
 
@@ -125,32 +147,21 @@ in {
     explicitDnsProvider = pickLast ["net" "dns_provider"];
     vpnDomain = flakeNet.lib.resolveTag "vpn";
   in {
-    inventory = {
-      config = {
-        files = let
-          defaultFile = "${siteCfg}/config.toml";
-        in
-          lib.optional
-          (siteCfg != null && builtins.pathExists defaultFile)
-          defaultFile;
-        adminEmails = lib.concatMap (t: t.net.admin_emails or []) tomlConfigs;
-        dnsProvider = lib.mkIf (explicitDnsProvider != null) (lib.mkDefault explicitDnsProvider);
-      };
-
-      net = {
-        defaultDomain = lib.mkIf (explicitDefaultDomain != null) (lib.mkDefault explicitDefaultDomain);
-        proxyHost = lib.mkIf (explicitProxyHost != null) (lib.mkDefault explicitProxyHost);
-        vpnUrl = lib.mkDefault (
-          if explicitVpnUrl != null
-          then explicitVpnUrl
-          else if vpnDomain != null
-          then "https://vpn.${vpnDomain}"
-          else null
-        );
-        domains = lib.mkMerge (
-          map (t: builtins.mapAttrs (_: mapDomainToml) (t.net.domains or {})) tomlConfigs
-        );
-      };
+    inventory.net = {
+      adminEmails = lib.concatMap (t: t.net.admin_emails or []) tomlConfigs;
+      dnsProvider = lib.mkIf (explicitDnsProvider != null) (lib.mkDefault explicitDnsProvider);
+      defaultDomain = lib.mkIf (explicitDefaultDomain != null) (lib.mkDefault explicitDefaultDomain);
+      proxyHost = lib.mkIf (explicitProxyHost != null) (lib.mkDefault explicitProxyHost);
+      vpnUrl = lib.mkDefault (
+        if explicitVpnUrl != null
+        then explicitVpnUrl
+        else if vpnDomain != null
+        then "https://vpn.${vpnDomain}"
+        else null
+      );
+      domains = lib.mkMerge (
+        map (t: builtins.mapAttrs (_: mapDomainToml) (t.net.domains or {})) tomlConfigs
+      );
     };
 
     flake.nixosModules.${moduleName} = {
@@ -170,10 +181,10 @@ in {
       mod = {
         meta.imported = [moduleName];
         "feat/net/headscale".adminUsers =
-          lib.mkIf (flakeCfg.adminEmails != []) (lib.mkDefault flakeCfg.adminEmails);
+          lib.mkIf (flakeNet.adminEmails != []) (lib.mkDefault flakeNet.adminEmails);
         "feat/net/caddy".acme = {
           dnsProvider =
-            lib.mkIf (flakeCfg.dnsProvider != null) (lib.mkDefault flakeCfg.dnsProvider);
+            lib.mkIf (flakeNet.dnsProvider != null) (lib.mkDefault flakeNet.dnsProvider);
           credentialFiles = lib.mkIf usePorkbunSecrets {
             PORKBUN_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/api_key".path;
             PORKBUN_SECRET_API_KEY_FILE = lib.mkDefault config.sops.secrets."net/porkbun/0/secret_key".path;
