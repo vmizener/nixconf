@@ -33,7 +33,7 @@
         in {
           label = "common/${relPath}";
           expectedMod =
-            if relPath == "default.nix" || modSuffix == ""
+            if builtins.elem relPath ["default.nix" "assertions.nix"] || modSuffix == ""
             then "common"
             else "common/${modSuffix}";
         }

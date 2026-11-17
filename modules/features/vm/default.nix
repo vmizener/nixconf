@@ -182,6 +182,12 @@ in {
     config = lib.mkMerge [
       {
         mod.meta.imported = [moduleName];
+        assertions = [
+          {
+            assertion = cfg.autologinUser == null || config.users.users ? ${cfg.autologinUser};
+            message = "mod.\"${moduleName}\".autologinUser '${toString cfg.autologinUser}' is not declared in users.users.";
+          }
+        ];
         virtualisation.vmVariant =
           {
             mod.meta = {

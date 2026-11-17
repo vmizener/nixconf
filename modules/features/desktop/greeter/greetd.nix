@@ -62,6 +62,10 @@ in {
             assertion = (cfg.autologinUser != null) -> (cfg.autologinCommand != null);
             message = ''mod."${moduleName}".autologinUser requires mod."${moduleName}".autologinCommand to be set.'';
           }
+          {
+            assertion = cfg.autologinUser == null || config.users.users ? ${cfg.autologinUser};
+            message = ''mod."${moduleName}".autologinUser '${toString cfg.autologinUser}' is not declared in users.users.'';
+          }
         ];
 
         services.xserver.displayManager.startx.enable = lib.mkIf hasX11 (lib.mkDefault true);
