@@ -104,7 +104,7 @@ in {
         ExecStart = "${lib.getExe pkgs.maestral} start --foreground";
         ExecStop = "${lib.getExe pkgs.maestral} stop";
         ExecStopPost = pkgs.writeShellScript "maestral-stop-post.sh" ''
-          if [ $SERVICE_RESULT != success ]; then
+          if [ "$SERVICE_RESULT" != "success" ]; then
             ${pkgs.libnotify}/bin/notify-send 'Maestral daemon failed'
           fi
         '';
@@ -114,15 +114,19 @@ in {
     };
     systemd.user.services.maestral-gui = {
       Install = {
-        WantedBy = [
-          "default.target"
-          "maestral.service"
-        ];
+        WantedBy = ["graphical-session.target"];
       };
       Unit = {
+        Description = "Maestral GUI";
         Requires = ["maestral.service"];
-        After = ["maestral.service"];
-        PartOf = ["maestral.service"];
+        After = [
+          "graphical-session.target"
+          "maestral.service"
+        ];
+        PartOf = [
+          "graphical-session.target"
+          "maestral.service"
+        ];
       };
       Service = {
         Type = "simple";
