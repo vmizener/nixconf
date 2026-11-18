@@ -90,6 +90,8 @@ in {
     config = lib.mkMerge [
       (lib.optionalAttrs useFlakeNiri {
         nixpkgs.overlays = [inputs.niri.overlays.niri];
+        home.packages = [pkgs.xwayland-satellite-unstable];
+        targets.genericLinux.nixGL.packages = lib.mkDefault inputs.nixgl.packages;
         programs.niri = {
           enable = true;
           package = config.lib.nixGL.wrap pkgs.niri-unstable;
@@ -123,12 +125,8 @@ in {
           "niri/local.kdl".source = pkgs.writeText "local.kdl" cfg.extraConfig;
           "niri/generated.kdl".source = generatedKdl;
         };
-        home.packages = with pkgs; [
-          brightnessctl
-          xwayland-satellite-unstable
-        ];
+        home.packages = [pkgs.brightnessctl];
         home.sessionVariables.NIXOS_OZONE_WL = lib.mkIf isNixOs "1";
-        targets.genericLinux.nixGL.packages = inputs.nixgl.packages;
       }
     ];
   };
