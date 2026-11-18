@@ -13,7 +13,7 @@ let
   moduleName = "feat/media/playback/ani-cli";
 
   pkgName = "ani-cli-rs";
-  version = "0.11.0";
+  version = "0.11.3";
 
   mkPkg = {
     fetchFromGitHub,
@@ -26,9 +26,9 @@ let
         owner = "vorlie";
         repo = pkgName;
         tag = version;
-        hash = "sha256-zLo1hk+iU9mRx40QDlVklJYXugbnOKFgGg1dx254Rew=";
+        hash = "sha256-qbfOrYzMo4Ow2v+QeZMjSvN6iaVgpIoSFb0rZlNygZM=";
       };
-      cargoHash = "sha256-A1MBAy9mQ5OafAspUi2Y1zpVtXd/VBUoiZnODeiRsLM=";
+      cargoHash = "sha256-ql/ohwsxOOFfbiQ4hLvbrTU8X9qIsc+Ju9l7DYOJiHU=";
       doCheck = false; # package fails its own checks for some reason?
     };
 in {

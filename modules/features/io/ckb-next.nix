@@ -13,8 +13,8 @@ let
 
   pkgName = "ckb-next";
   # Track master for Scimitar RGB Elite support (unreleased after v0.6.2)
-  version = "0.6.2-unstable-2026-06-02";
-  rev = "5edd3c14810c1aa93be5adde471071b97ef108b4";
+  version = "0.6.2-unstable-2026-10-21";
+  rev = "e22eaf2fba7f93764b4c6d4413bb83eeca75d10a";
 
   mkPkg = {
     ckb-next,
@@ -26,7 +26,7 @@ let
         owner = "ckb-next";
         repo = pkgName;
         inherit rev;
-        hash = "sha256-h5jZqiK4hYqlLFPY9jmJEniarSHE4ZcoIX4Qv3QdELc=";
+        hash = "sha256-v/qazMy25SETYJcYMGW91ZuLL1YoPdCwwkPn899TDyM=";
       };
       passthru =
         (old.passthru or {})
