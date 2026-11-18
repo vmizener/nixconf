@@ -2,8 +2,9 @@
   common/config
 
 Loads site-wide deployment settings from TOML configuration files
-(`inventory.siteConfig.configFiles`) into `inventory.net` and validates their
-schema without hardcoding hosts, users, or domains in Nix modules.
+(`inventory.siteConfig.configFiles`) into `inventory.siteConfig.locale` and
+`inventory.net`, validating their schema without hardcoding hosts, users, or
+domains in Nix modules.
 
 Exposes:
 
@@ -40,7 +41,7 @@ in {
           (config.inventory.siteConfig.path != null && builtins.pathExists "''${config.inventory.siteConfig.path}/config.toml")
           "''${config.inventory.siteConfig.path}/config.toml"
       '';
-      description = "TOML files merged into `inventory.net`.";
+      description = "TOML files merged into `inventory.siteConfig.locale` and `inventory.net`.";
     };
     keysFiles = lib.mkOption {
       type = lib.types.listOf lib.types.path;
@@ -70,12 +71,28 @@ in {
       '';
       description = "Default `sops-nix` secrets file wired to `sops.defaultSopsFile`.";
     };
+    locale = {
+      timeZone = lib.mkOption {
+        type = lib.types.str;
+        default = "UTC";
+        description = "Default site-wide IANA time zone (populated from `[locale].time_zone` in `configFiles`).";
+      };
+      defaultLocale = lib.mkOption {
+        type = lib.types.str;
+        default = "en_US.UTF-8";
+        description = "Default site-wide POSIX locale (populated from `[locale].default_locale` in `configFiles`).";
+      };
+    };
   };
 
   config = let
     tomlConfigs = map lib.importTOML siteCfg.configFiles;
 
-    allowedSections = ["net"];
+    allowedSections = ["locale" "net"];
+    allowedLocaleKeys = [
+      "default_locale"
+      "time_zone"
+    ];
     allowedNetKeys = [
       "admin_emails"
       "default_domain"
@@ -100,6 +117,9 @@ in {
     unknownSections =
       lib.unique (lib.concatMap builtins.attrNames tomlConfigs)
       |> builtins.filter (s: !(builtins.elem s allowedSections));
+    unknownLocaleKeys =
+      lib.unique (lib.concatMap (t: builtins.attrNames (t.locale or {})) tomlConfigs)
+      |> builtins.filter (k: !(builtins.elem k allowedLocaleKeys));
     unknownNetKeys =
       lib.unique (lib.concatMap (t: builtins.attrNames (t.net or {})) tomlConfigs)
       |> builtins.filter (k: !(builtins.elem k allowedNetKeys));
@@ -124,6 +144,10 @@ in {
       {
         assertion = unknownSections == [];
         message = "inventory.siteConfig.configFiles: unexpected top-level section(s): ${lib.concatStringsSep ", " unknownSections} (allowed: ${lib.concatStringsSep ", " allowedSections})";
+      }
+      {
+        assertion = unknownLocaleKeys == [];
+        message = "inventory.siteConfig.configFiles: unexpected [locale] key(s): ${lib.concatStringsSep ", " unknownLocaleKeys} (allowed: ${lib.concatStringsSep ", " allowedLocaleKeys})";
       }
       {
         assertion = unknownNetKeys == [];
@@ -160,28 +184,37 @@ in {
       // lib.optionalAttrs (d ? publish_hosts) {publishHosts = d.publish_hosts;}
       // lib.optionalAttrs (d ? split_dns) {splitDns = d.split_dns;};
 
+    explicitTimeZone = pickLast ["locale" "time_zone"];
+    explicitDefaultLocale = pickLast ["locale" "default_locale"];
     explicitProxyHost = pickLast ["net" "proxy_host"];
     explicitDefaultDomain = pickLast ["net" "default_domain"];
     explicitVpnUrl = pickLast ["net" "vpn_url"];
     vpnDomain = flakeNet.lib.resolveTag "vpn";
   in {
-    inventory.net = {
-      adminEmails = lib.concatMap (t: t.net.admin_emails or []) tomlConfigs;
-      defaultDomain = lib.mkIf (explicitDefaultDomain != null) (lib.mkDefault explicitDefaultDomain);
-      proxyHost = lib.mkIf (explicitProxyHost != null) (lib.mkDefault explicitProxyHost);
-      vpnUrl = lib.mkDefault (
-        if explicitVpnUrl != null
-        then explicitVpnUrl
-        else if vpnDomain != null
-        then "https://vpn.${vpnDomain}"
-        else null
-      );
-      dns = lib.mkMerge (
-        map (t: builtins.mapAttrs (_: mapDnsToml) (t.net.dns or {})) tomlConfigs
-      );
-      domains = lib.mkMerge (
-        map (t: builtins.mapAttrs (_: mapDomainToml) (t.net.domains or {})) tomlConfigs
-      );
+    inventory = {
+      siteConfig.locale = {
+        timeZone = lib.mkIf (explicitTimeZone != null) (lib.mkDefault explicitTimeZone);
+        defaultLocale = lib.mkIf (explicitDefaultLocale != null) (lib.mkDefault explicitDefaultLocale);
+      };
+
+      net = {
+        adminEmails = lib.concatMap (t: t.net.admin_emails or []) tomlConfigs;
+        defaultDomain = lib.mkIf (explicitDefaultDomain != null) (lib.mkDefault explicitDefaultDomain);
+        proxyHost = lib.mkIf (explicitProxyHost != null) (lib.mkDefault explicitProxyHost);
+        vpnUrl = lib.mkDefault (
+          if explicitVpnUrl != null
+          then explicitVpnUrl
+          else if vpnDomain != null
+          then "https://vpn.${vpnDomain}"
+          else null
+        );
+        dns = lib.mkMerge (
+          map (t: builtins.mapAttrs (_: mapDnsToml) (t.net.dns or {})) tomlConfigs
+        );
+        domains = lib.mkMerge (
+          map (t: builtins.mapAttrs (_: mapDomainToml) (t.net.domains or {})) tomlConfigs
+        );
+      };
     };
 
     flake.nixosModules.${moduleName} = {...}: {

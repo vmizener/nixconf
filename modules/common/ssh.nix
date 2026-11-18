@@ -159,11 +159,11 @@ in {
           ];
 
         services.openssh = {
-          enable = true;
+          enable = lib.mkDefault true;
           settings = {
-            KbdInteractiveAuthentication = false;
-            PasswordAuthentication = false;
-            PermitRootLogin = "prohibit-password";
+            KbdInteractiveAuthentication = lib.mkDefault false;
+            PasswordAuthentication = lib.mkDefault false;
+            PermitRootLogin = lib.mkDefault "prohibit-password";
           };
         };
       };

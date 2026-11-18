@@ -57,7 +57,8 @@ in {
       };
       autoApproveRoutes = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = ["192.168.86.0/24"];
+        default = [];
+        example = ["192.168.1.0/24"];
         description = "Subnet CIDRs automatically approved in Headscale's ACL policy when advertised by `adminUsers` or `tag:router`";
       };
       enableOidc = lib.mkOption {
