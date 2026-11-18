@@ -20,7 +20,7 @@
       modSuffixFor = relPath:
         if lib.hasPrefix "_" (baseNameOf relPath)
         then let
-          dir = builtins.dirOf relPath;
+          dir = dirOf relPath;
         in
           if dir == "."
           then ""

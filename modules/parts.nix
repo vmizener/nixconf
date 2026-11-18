@@ -61,6 +61,7 @@
       pre-commit = {
         check.enable = true;
         settings.hooks = {
+          nixf-diagnose.enable = true;
           shellcheck = {
             enable = true;
             exclude_types = ["zsh"];

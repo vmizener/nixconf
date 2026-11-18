@@ -10,11 +10,7 @@ Exposes:
 let
   moduleName = "feat/terminal/mux/tmux";
 in {
-  flake.homeModules.${moduleName} = {
-    config,
-    pkgs,
-    ...
-  }: {
+  flake.homeModules.${moduleName} = {pkgs, ...}: {
     mod.meta.imported = [moduleName];
     programs.tmux = {
       enable = true;

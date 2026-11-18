@@ -76,7 +76,7 @@
       HOME_DIR = hmCfg.home.homeDirectory;
       NIX_DIR =
         if useUserChroot
-        then builtins.dirOf hmCfg.home.homeDirectory
+        then dirOf hmCfg.home.homeDirectory
         else "";
       CHROOT_BIN_STORE_REL =
         if useUserChroot
