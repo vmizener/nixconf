@@ -15,14 +15,14 @@ in {
     options.mod.${moduleName} = {
       timeZone = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
-        default = flake.config.inventory.siteConfig.locale.timeZone;
-        defaultText = lib.literalExpression "inventory.siteConfig.locale.timeZone";
+        default = flake.config.site.locale.timeZone;
+        defaultText = lib.literalExpression "site.locale.timeZone";
         description = "System IANA time zone configured as `time.timeZone` (`null` leaves `time.timeZone` unset).";
       };
       defaultLocale = lib.mkOption {
         type = lib.types.str;
-        default = flake.config.inventory.siteConfig.locale.defaultLocale;
-        defaultText = lib.literalExpression "inventory.siteConfig.locale.defaultLocale";
+        default = flake.config.site.locale.defaultLocale;
+        defaultText = lib.literalExpression "site.locale.defaultLocale";
         description = "Default system locale applied to `i18n.defaultLocale` and `i18n.extraLocaleSettings`.";
       };
     };

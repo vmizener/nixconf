@@ -1,8 +1,8 @@
-# Flake-level (`options.inventory.net`) and host-local (`options.mod."common/net"`)
-# option schemas for `common/net`.
+# Flake-level (`options.site.net`) and host-local (`options.mod."common/site/net"`)
+# option schemas for `common/site/net`.
 {
-  flakeNet,
   lib,
+  siteNet,
 }: let
   serviceSubmodule = lib.types.submodule ({
     config,
@@ -11,7 +11,7 @@
   }: let
     domainCfg =
       if config.domain != null
-      then flakeNet.domains.${config.domain} or null
+      then siteNet.domains.${config.domain} or null
       else null;
   in {
     options = {
@@ -23,20 +23,20 @@
         type = lib.types.nullOr lib.types.str;
         default = null;
         example = "dev";
-        description = "Select the unique domain in `inventory.net.domains` carrying this tag";
+        description = "Select the unique domain in `site.net.domains` carrying this tag";
       };
       domain = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default =
           if config.domainTag != null
-          then flakeNet.lib.resolveTag config.domainTag
-          else flakeNet.defaultDomain;
+          then siteNet.lib.resolveTag config.domainTag
+          else siteNet.defaultDomain;
         defaultText = lib.literalExpression ''
           if config.domainTag != null
-          then config.inventory.net.lib.resolveTag config.domainTag
-          else config.inventory.net.defaultDomain
+          then config.site.net.lib.resolveTag config.domainTag
+          else config.site.net.defaultDomain
         '';
-        description = "Target domain key in `inventory.net.domains` (resolved from `domainTag` or `defaultDomain` unless set explicitly)";
+        description = "Target domain key in `site.net.domains` (resolved from `domainTag` or `defaultDomain` unless set explicitly)";
       };
       subdomain = lib.mkOption {
         type = lib.types.str;
@@ -60,7 +60,7 @@
           if domainCfg != null
           then domainCfg.access
           else "lan";
-        defaultText = lib.literalExpression "config.inventory.net.domains.<domain>.access";
+        defaultText = lib.literalExpression "config.site.net.domains.<domain>.access";
         description = "Client reachability policy for this service (inherits from `domain` by default)";
       };
       auth = lib.mkOption {
@@ -74,40 +74,48 @@
         defaultText = lib.literalExpression ''
           if config.access == "public" && domain.access != "public"
           then "sso"
-          else config.inventory.net.domains.<domain>.defaultAuth
+          else config.site.net.domains.<domain>.defaultAuth
         '';
         description = "Proxy authentication policy enforced before `reverse_proxy`";
       };
     };
   });
 in {
-  # Cross-host topology & domain registry (`options.inventory.net`)
-  inventory = {
+  # Cross-host topology & domain registry (`options.site.net`)
+  site = {
     defaultDomain = lib.mkOption {
       type = lib.types.str;
       default = "lan";
-      description = "Default key in `inventory.net.domains` used when a service omits both `domain` and `domainTag`";
+      description = "Default key in `site.net.domains` used when a service omits both `domain` and `domainTag`";
     };
     proxyHost = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
-      description = "Hostname running the reverse proxy (Caddy) for inventory.net.hosts.*.services";
+      description = "Hostname running the reverse proxy (Caddy) for `site.net.hosts.*.services`";
     };
     vpnUrl = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
-      default = null;
+      default = let
+        vpnDomain = siteNet.lib.resolveTag "vpn";
+      in
+        if vpnDomain != null
+        then "https://vpn.${vpnDomain}"
+        else null;
+      defaultText = lib.literalExpression ''
+        let vpnDomain = config.site.net.lib.resolveTag "vpn";
+        in if vpnDomain != null then "https://vpn.''${vpnDomain}" else null
+      '';
       example = "https://vpn.example.dev";
       description = "VPN coordination server URL used as the default `loginServer` across `feat/net/tailscale` hosts";
     };
-    # Populated from `[net]` in `config.toml` (`inventory.siteConfig.configFiles`) by `common/config`
     adminEmails = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [];
-      description = "Admin identities (`user@domain`) granted VPN route/tag ownership (populated from `[net].admin_emails` in `config.toml`)";
+      description = "Admin identities (`user@domain`) granted VPN route/tag ownership (populated from `[net].admin_emails` in `site.meta.configFiles`)";
     };
     dns = lib.mkOption {
       default = {};
-      description = "Named DNS provider accounts mapped 1:1 to `net/dns/<account>/` in `secrets.yaml` (populated from `[net.dns.<account>]` in `config.toml`)";
+      description = "Named DNS provider accounts mapped 1:1 to `net/dns/<account>/` in `secrets.yaml` (populated from `[net.dns.<account>]` in `site.meta.configFiles`)";
       type = lib.types.attrsOf (
         lib.types.submodule {
           options = {
@@ -138,7 +146,7 @@ in {
               default = "lan";
               description = ''
                 Default client reachability policy for virtual hosts in this domain:
-                - `"lan"`: Restricted to `mod."common/net".trustedCidrs` (LAN + VPN).
+                - `"lan"`: Restricted to `mod."common/site/net".trustedCidrs` (LAN + VPN).
                 - `"public"`: Reachable from the public internet (opens WAN `httpsPort`).
               '';
             };
@@ -159,7 +167,7 @@ in {
               type = lib.types.nullOr lib.types.str;
               default = null;
               example = "work";
-              description = "Optional key in `inventory.net.dns` overriding the default ACME DNS-01 account for this domain";
+              description = "Optional key in `site.net.dns` overriding the default ACME DNS-01 account for this domain";
             };
             defaultAuth = lib.mkOption {
               type = lib.types.enum ["sso" "none"];
@@ -230,21 +238,20 @@ in {
       );
     };
 
-    # Readonly options
     allDnsRecords = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       readOnly = true;
-      description = "Merged DNS records across inventory.net.hosts and proxied services";
+      description = "Merged DNS records across `site.net.hosts` and proxied services";
     };
     lib = lib.mkOption {
       type = lib.types.attrsOf lib.types.raw;
       readOnly = true;
       internal = true;
-      description = "Helper functions for resolving domain tags and qualifying inventory.net hostnames";
+      description = "Helper functions for resolving domain tags and qualifying `site.net` hostnames";
     };
   };
 
-  # Host-local service broker (`options.mod."common/net"`)
+  # Host-local service broker (`options.mod."common/site/net"`)
   mod = {
     trustedCidrs = lib.mkOption {
       type = lib.types.listOf lib.types.str;

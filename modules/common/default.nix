@@ -26,7 +26,7 @@ in {
       self.homeModules."common/handlers"
       self.homeModules."common/options"
       self.homeModules."common/sops"
-      self.homeModules."common/ssh"
+      self.homeModules."common/site/ssh"
     ];
     mod.meta.imported = [moduleName];
     home = {
@@ -82,12 +82,11 @@ in {
   }: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
-      self.nixosModules."common/config"
       self.nixosModules."common/handlers"
-      self.nixosModules."common/net"
       self.nixosModules."common/options"
+      self.nixosModules."common/site/net"
+      self.nixosModules."common/site/ssh"
       self.nixosModules."common/sops"
-      self.nixosModules."common/ssh"
     ];
     mod.meta.imported = [moduleName];
     home-manager = {

@@ -1,7 +1,7 @@
-# Domain tag resolution, hostname qualification, and merged DNS synthesis for `common/net`.
+# Domain tag resolution, hostname qualification, and merged DNS synthesis for `site.net`.
 {
-  flakeNet,
   lib,
+  siteNet,
 }: let
   netLib = rec {
     extractHostname = key: let
@@ -13,7 +13,7 @@
       fqdn == domain || lib.hasSuffix ".${domain}" fqdn;
 
     domainsWithTag = tag:
-      flakeNet.domains
+      siteNet.domains
       |> lib.filterAttrs (_: dCfg: builtins.elem tag dCfg.tags)
       |> builtins.attrNames;
 
@@ -26,7 +26,7 @@
 
     findDomainName = fqdn: let
       matching =
-        builtins.attrNames flakeNet.domains
+        builtins.attrNames siteNet.domains
         |> builtins.filter (d: matchesDomain d fqdn)
         |> builtins.sort (a: b: builtins.stringLength a > builtins.stringLength b);
     in
@@ -47,7 +47,7 @@
       then key
       else builtins.replaceStrings [hostPart] ["${hostPart}.${baseDomain}"] key;
 
-    qualifyKey = qualifyKeyFor flakeNet.defaultDomain;
+    qualifyKey = qualifyKeyFor siteNet.defaultDomain;
 
     qualifyService = svc: let
       hostPart = extractHostname svc.subdomain;
@@ -68,12 +68,12 @@
   };
 
   proxyIpv4 =
-    if flakeNet.proxyHost != null
-    then (flakeNet.hosts.${flakeNet.proxyHost} or {}).ipv4 or null
+    if siteNet.proxyHost != null
+    then (siteNet.hosts.${siteNet.proxyHost} or {}).ipv4 or null
     else null;
 
   publishedHostDomains =
-    flakeNet.domains
+    siteNet.domains
     |> lib.filterAttrs (_: dCfg: dCfg.publishHosts)
     |> builtins.attrNames;
 
@@ -90,7 +90,7 @@
       acc: host: h:
         acc // hostRecordsFor host h
     ) {}
-    flakeNet.hosts;
+    siteNet.hosts;
 
   serviceRecords = lib.optionalAttrs (proxyIpv4 != null) (
     lib.foldlAttrs (
@@ -107,9 +107,9 @@
           )
         )
     ) {}
-    flakeNet.hosts
+    siteNet.hosts
   );
 in {
-  inherit hostRecordsFor netLib proxyIpv4;
+  netLib = netLib // {inherit hostRecordsFor proxyIpv4;};
   allDnsRecords = hostRecords // serviceRecords;
 }

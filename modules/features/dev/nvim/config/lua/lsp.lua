@@ -131,7 +131,7 @@ M.CONFIGS = {
         options = {
           home_manager = { expr = nixd_expr("home") },
           nixos = { expr = nixd_expr("nixos") },
-          -- Top-level flake-parts options (`flake.*`, `systems`, `inventory.*`),
+          -- Top-level flake-parts options (`flake.*`, `systems`, `site.*`),
           -- exposed when `debug = true` in `modules/parts.nix`.
           flake_parts = {
             expr = pick_expr("flake: flake.debug.options or flake.inputs.nixconf.debug.options or null"),

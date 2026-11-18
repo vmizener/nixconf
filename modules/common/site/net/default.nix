@@ -1,37 +1,38 @@
 /*
-  common/net
+  common/site/net
 
 Cross-host network topology, domain policy & tag registry, static IPv4
-assignment, merged DNS record synthesis, and host-local proxy/SSO/VPN/DNS
-brokering (`options.mod."common/net"`).
+assignment, merged DNS record synthesis (`options.site.net`), and host-local
+proxy/SSO/VPN/DNS brokering (`options.mod."common/site/net"`).
 
 Exposes:
 
-- options.inventory.net
-- flake.nixosModules."common/options" (options.mod."common/net")
-- flake.nixosModules."common/net"
+- options.site.net
+- flake.nixosModules."common/options" (options.mod."common/site/net")
+- flake.nixosModules."common/site/net"
 */
 {
   config,
   lib,
   ...
 }: let
-  moduleName = "common/net";
-  flakeNet = config.inventory.net;
-  netOptions = import ./_options.nix {inherit flakeNet lib;};
-  dns = import ./_dns.nix {inherit flakeNet lib;};
+  moduleName = "common/site/net";
+  siteNet = config.site.net;
+  netOptions = import ./_options.nix {inherit lib siteNet;};
+  dns = import ./_dns.nix {inherit lib siteNet;};
+  mkPreset = lib.mkOverride 1100;
 in {
-  options.inventory.net = netOptions.inventory;
+  options.site.net = netOptions.site;
 
   config = {
-    inventory.net = {
+    site.net = {
       domains.lan = {
-        tags = lib.mkDefault ["lan"];
-        access = lib.mkDefault "lan";
-        tls = lib.mkDefault "internal";
-        defaultAuth = lib.mkDefault "none";
-        publishHosts = lib.mkDefault true;
-        splitDns = lib.mkDefault true;
+        tags = mkPreset ["lan"];
+        access = mkPreset "lan";
+        tls = mkPreset "internal";
+        defaultAuth = mkPreset "none";
+        publishHosts = mkPreset true;
+        splitDns = mkPreset true;
       };
       lib = dns.netLib;
       inherit (dns) allDnsRecords;
@@ -48,7 +49,7 @@ in {
     }: let
       netCfg = config.mod.${moduleName};
       hostName = config.networking.hostName;
-      hostCfg = flakeNet.hosts.${hostName} or null;
+      hostCfg = siteNet.hosts.${hostName} or null;
       inherit (config.mod.meta) isVm;
     in {
       mod = {
@@ -65,11 +66,11 @@ in {
           dnsRecords = lib.mkIf (hostCfg != null && hostCfg.ipv4 != null) (
             netCfg.services
             |> lib.filterAttrs (
-              _: svc: svc.domain != null && lib.hasInfix "." (dns.netLib.extractHostname (dns.netLib.qualifyService svc))
+              _: svc: svc.domain != null && lib.hasInfix "." (siteNet.lib.extractHostname (siteNet.lib.qualifyService svc))
             )
             |> lib.mapAttrs' (
               _: svc:
-                lib.nameValuePair (dns.netLib.extractHostname (dns.netLib.qualifyService svc)) (lib.mkDefault hostCfg.ipv4)
+                lib.nameValuePair (siteNet.lib.extractHostname (siteNet.lib.qualifyService svc)) (lib.mkDefault hostCfg.ipv4)
             )
           );
         };
@@ -92,7 +93,7 @@ in {
       };
 
       assertions = import ./_assertions.nix {
-        inherit dns flakeNet hostCfg hostName isVm lib netCfg;
+        inherit hostCfg hostName isVm lib netCfg siteNet;
       };
     };
   };

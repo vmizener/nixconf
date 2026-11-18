@@ -2,7 +2,7 @@
   feat/net/caddy
 
 Enables Caddy web server and multi-domain reverse proxy driven by
-`inventory.net.domains`, with per-domain internal/ACME TLS, client CIDR
+`site.net.domains`, with per-domain internal/ACME TLS, client CIDR
 isolation, `forward_auth` SSO hooks, and kernel `nftables` sandboxing.
 
 Exposes:
@@ -20,7 +20,7 @@ in {
         type = lib.types.nullOr lib.types.str;
         default = null;
         example = "default";
-        description = "Account key in `inventory.net.dns` and `net/dns/<account>/` in `sops.secrets`";
+        description = "Account key in `site.net.dns` and `net/dns/<account>/` in `sops.secrets`";
       };
       environmentFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
@@ -41,7 +41,7 @@ in {
         );
         default = {};
         description = ''
-          Declarative virtual hosts. Keys without a dot automatically get `.${flake.config.inventory.net.defaultDomain}` appended.
+          Declarative virtual hosts. Keys without a dot automatically get `.${flake.config.site.net.defaultDomain}` appended.
           Values can be either an upstream URL/address string (shorthand for `reverse_proxy <upstream>`)
           or a `services.caddy.virtualHosts` submodule attrset.
         '';
@@ -53,12 +53,12 @@ in {
             type = lib.types.str;
             default = "default";
             example = "personal";
-            description = "Default account key in `inventory.net.dns` and `net/dns/<account>/` in `sops.secrets`";
+            description = "Default account key in `site.net.dns` and `net/dns/<account>/` in `sops.secrets`";
           };
           enable = lib.mkOption {
             type = lib.types.bool;
             default = false;
-            description = "Issue wildcard ACME DNS-01 certificates via `security.acme` for every domain in `inventory.net.domains` with `tls = \"acme\"`";
+            description = "Issue wildcard ACME DNS-01 certificates via `security.acme` for every domain in `site.net.domains` with `tls = \"acme\"`";
           };
           email = lib.mkOption {
             type = lib.types.nullOr lib.types.str;
@@ -68,7 +68,7 @@ in {
           domains = lib.mkOption {
             default = {};
             type = lib.types.attrsOf (lib.types.submodule {options = acmeProviderOpts;});
-            description = "Optional per-domain DNS-01 provider/credential overrides (keyed by domain name in `inventory.net.domains`)";
+            description = "Optional per-domain DNS-01 provider/credential overrides (keyed by domain name in `site.net.domains`)";
           };
         };
       egressSandbox = {
@@ -105,7 +105,7 @@ in {
       openLanFirewall = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Whether to open HTTP/HTTPS ports to `mod.\"common/net\".trustedCidrs`";
+        description = "Whether to open HTTP/HTTPS ports to `mod.\"common/site/net\".trustedCidrs`";
       };
       openPublicFirewall = lib.mkOption {
         type = lib.types.nullOr lib.types.bool;
@@ -122,9 +122,9 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    netCfg = config.mod."common/net";
+    netCfg = config.mod."common/site/net";
     package = pkgs.caddy;
-    flakeNet = flake.config.inventory.net;
+    flakeNet = flake.config.site.net;
     currentHost = config.networking.hostName;
     hostIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
 
@@ -243,7 +243,7 @@ in {
 
         mod = {
           meta.imported = [moduleName];
-          "common/net" = {
+          "common/site/net" = {
             dnsRecords = lib.mkIf (hostIpv4 != null) (
               lib.mapAttrs' (
                 key: _:

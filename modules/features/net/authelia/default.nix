@@ -32,20 +32,20 @@ in {
       domainTag = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = "sso";
-        description = "Select the unique domain in `inventory.net.domains` carrying this tag";
+        description = "Select the unique domain in `site.net.domains` carrying this tag";
       };
       domain = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default =
           if selfCfg.domainTag != null
-          then flake.config.inventory.net.lib.resolveTag selfCfg.domainTag
+          then flake.config.site.net.lib.resolveTag selfCfg.domainTag
           else null;
         defaultText = lib.literalExpression ''
           if config.mod."feat/net/authelia".domainTag != null
-          then inventory.net.lib.resolveTag config.mod."feat/net/authelia".domainTag
+          then site.net.lib.resolveTag config.mod."feat/net/authelia".domainTag
           else null
         '';
-        description = "Target domain key in `inventory.net.domains` hosting the Authelia portal and session cookie scope";
+        description = "Target domain key in `site.net.domains` hosting the Authelia portal and session cookie scope";
       };
       subdomain = lib.mkOption {
         type = lib.types.str;
@@ -54,8 +54,8 @@ in {
       };
       enableOidc = lib.mkOption {
         type = lib.types.bool;
-        default = config.mod."common/net".oidc.requested;
-        defaultText = lib.literalExpression ''config.mod."common/net".oidc.requested'';
+        default = config.mod."common/site/net".oidc.requested;
+        defaultText = lib.literalExpression ''config.mod."common/site/net".oidc.requested'';
         description = "Enable Authelia's OpenID Connect 1.0 provider (`group:devs`)";
       };
       jwtSecretFile =
@@ -94,7 +94,7 @@ in {
       if optVal != null
       then optVal
       else config.sops.secrets.${secretKey}.path;
-    flakeNet = flake.config.inventory.net;
+    flakeNet = flake.config.site.net;
     tagMatches =
       if cfg.domainTag != null
       then flakeNet.lib.domainsWithTag cfg.domainTag
@@ -110,7 +110,7 @@ in {
       else null;
 
     # Enable Authelia `forward_auth` cookies across `cookieDomain` plus every
-    # multi-label domain in `inventory.net.domains` (individual services still
+    # multi-label domain in `site.net.domains` (individual services still
     # opt in/out via `auth = "sso" | "none"`).
     ssoDomains =
       (
@@ -283,7 +283,7 @@ in {
 
     mod = {
       meta.imported = [moduleName];
-      "common/net" = {
+      "common/site/net" = {
         forwardAuth = {
           enable = lib.mkDefault true;
           address = lib.mkDefault "127.0.0.1:${toString port}";

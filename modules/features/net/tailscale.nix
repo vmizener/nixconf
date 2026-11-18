@@ -1,7 +1,7 @@
 /*
   feat/net/tailscale
 
-Enables the Tailscale client/router daemon using `inventory.net.vpnUrl` and
+Enables the Tailscale client/router daemon using `site.net.vpnUrl` and
 strict `nftables` forward-chain isolation on subnet routers.
 
 Exposes:
@@ -49,7 +49,7 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    loginServer = flake.config.inventory.net.vpnUrl;
+    loginServer = flake.config.site.net.vpnUrl;
     isRouter = cfg.role == "router" || cfg.role == "both";
     acceptRoutes = cfg.role != "router";
     routingFeatures =

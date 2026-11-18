@@ -90,7 +90,7 @@
     source = "${sourcePrefix}.${svcName}";
   };
 
-  # Auto-discover services declared across inventory.net.hosts and local mod."common/net".services
+  # Auto-discover services declared across site.net.hosts and local mod."common/site/net".services
   discoveredServices =
     lib.concatLists (
       lib.mapAttrsToList (

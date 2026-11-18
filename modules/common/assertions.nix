@@ -1,8 +1,11 @@
 {
+  config,
   lib,
   self,
   ...
 }: let
+  siteAssertions = config.site.meta.assertions;
+
   importedAssertions = modAttr: validModules: config:
     map (name: {
       assertion = validModules ? ${name};
@@ -67,7 +70,8 @@ in {
     ...
   }: {
     config.assertions =
-      importedAssertions "nixosModules" self.nixosModules config
+      siteAssertions
+      ++ importedAssertions "nixosModules" self.nixosModules config
       ++ metaPathAssertions {
         inherit (config.mod.meta) flakePath nixconfPath;
       }
@@ -171,7 +175,8 @@ in {
         vals);
   in {
     config.assertions =
-      importedAssertions "homeModules" self.homeModules config
+      lib.optionals (osConfig == null) siteAssertions
+      ++ importedAssertions "homeModules" self.homeModules config
       ++ metaPathAssertions {
         inherit (config.mod.meta) flakePath nixconfPath;
       }

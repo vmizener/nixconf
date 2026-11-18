@@ -13,9 +13,9 @@
       if cfg.domainTag != null && cfg.domain == null
       then
         if tagMatches == []
-        then "mod.\"${moduleName}\": domainTag '${cfg.domainTag}' matched no domains in inventory.net.domains."
+        then "mod.\"${moduleName}\": domainTag '${cfg.domainTag}' matched no domains in site.net.domains."
         else "mod.\"${moduleName}\": domainTag '${cfg.domainTag}' is ambiguous (matched: ${lib.concatStringsSep ", " tagMatches}); set `domain` explicitly."
-      else "mod.\"${moduleName}\".domain ('${toString cfg.domain}') must reference a declared domain in inventory.net.domains.";
+      else "mod.\"${moduleName}\".domain ('${toString cfg.domain}') must reference a declared domain in site.net.domains.";
   }
   {
     assertion = cfg.domain == null || lib.hasInfix "." cfg.domain;
@@ -23,6 +23,6 @@
   }
   {
     assertion = !cfg.enableOidc || headscaleRedirectUri != null;
-    message = "mod.\"${moduleName}\".enableOidc requires inventory.net.vpnUrl to be set for Headscale's callback URI.";
+    message = "mod.\"${moduleName}\".enableOidc requires site.net.vpnUrl to be set for Headscale's callback URI.";
   }
 ]

@@ -2,7 +2,7 @@
   feat/net/headscale
 
 Configures a self-hosted Headscale coordination server behind Caddy with
-automatic Split-DNS integration across `inventory.net.domains` and Authelia OIDC
+automatic Split-DNS integration across `site.net.domains` and Authelia OIDC
 authentication.
 
 Exposes:
@@ -28,20 +28,20 @@ in {
       domainTag = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = "vpn";
-        description = "Select the unique domain in `inventory.net.domains` carrying this tag";
+        description = "Select the unique domain in `site.net.domains` carrying this tag";
       };
       domain = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default =
           if selfCfg.domainTag != null
-          then flake.config.inventory.net.lib.resolveTag selfCfg.domainTag
+          then flake.config.site.net.lib.resolveTag selfCfg.domainTag
           else null;
         defaultText = lib.literalExpression ''
           if config.mod."feat/net/headscale".domainTag != null
-          then inventory.net.lib.resolveTag config.mod."feat/net/headscale".domainTag
+          then site.net.lib.resolveTag config.mod."feat/net/headscale".domainTag
           else null
         '';
-        description = "Base domain key in `inventory.net.domains` hosting Headscale (`<subdomain>.<domain>`) and MagicDNS (`tail.<domain>`)";
+        description = "Base domain key in `site.net.domains` hosting Headscale (`<subdomain>.<domain>`) and MagicDNS (`tail.<domain>`)";
       };
       subdomain = lib.mkOption {
         type = lib.types.str;
@@ -50,8 +50,8 @@ in {
       };
       adminUsers = lib.mkOption {
         type = lib.types.listOf lib.types.str;
-        default = flake.config.inventory.net.adminEmails;
-        defaultText = lib.literalExpression "inventory.net.adminEmails";
+        default = flake.config.site.net.adminEmails;
+        defaultText = lib.literalExpression "site.net.adminEmails";
         example = ["user@example.net"];
         description = "User email identifiers (`user@domain`) placed in `group:devs` for `tag:router` ownership and route auto-approval";
       };
@@ -63,9 +63,9 @@ in {
       };
       enableOidc = lib.mkOption {
         type = lib.types.bool;
-        default = config.mod."common/net".oidc.available;
-        defaultText = lib.literalExpression ''config.mod."common/net".oidc.available'';
-        description = "Enable OpenID Connect node authentication via `mod.\"common/net\".oidc`";
+        default = config.mod."common/site/net".oidc.available;
+        defaultText = lib.literalExpression ''config.mod."common/site/net".oidc.available'';
+        description = "Enable OpenID Connect node authentication via `mod.\"common/site/net\".oidc`";
       };
       oidcClientSecretFile = lib.mkOption {
         type = lib.types.nullOr lib.types.path;
@@ -83,9 +83,9 @@ in {
           default =
             if selfCfg.domain != null
             then selfCfg.domain
-            else flake.config.inventory.net.defaultDomain;
-          defaultText = lib.literalExpression ''config.mod."feat/net/headscale".domain or inventory.net.defaultDomain'';
-          description = "Target domain key in `inventory.net.domains` hosting the Headplane web UI";
+            else flake.config.site.net.defaultDomain;
+          defaultText = lib.literalExpression ''config.mod."feat/net/headscale".domain or site.net.defaultDomain'';
+          description = "Target domain key in `site.net.domains` hosting the Headplane web UI";
         };
         subdomain = lib.mkOption {
           type = lib.types.str;
@@ -103,9 +103,9 @@ in {
     ...
   }: let
     cfg = config.mod.${moduleName};
-    netCfg = config.mod."common/net";
+    netCfg = config.mod."common/site/net";
     package = pkgs.headscale;
-    flakeNet = flake.config.inventory.net;
+    flakeNet = flake.config.site.net;
     currentHost = config.networking.hostName;
     hostIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
     tagMatches =
@@ -193,7 +193,7 @@ in {
 
     mod = {
       meta.imported = [moduleName];
-      "common/net" = {
+      "common/site/net" = {
         # Allow authenticated tailnet nodes to pass LAN CIDR guards for `access = "lan"` services
         trustedCidrs = [
           ipv4Prefix

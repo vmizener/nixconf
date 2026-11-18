@@ -1,4 +1,5 @@
 {
+  config,
   inputs,
   lib,
   options,
@@ -8,9 +9,12 @@
   # Module & option contract checks evaluated by `nix flake check`
   perSystem = {pkgs, ...}: {
     checks."lint:modules" = let
+      repoPrefix = "${toString ../.}/";
       commonPrefix = "${toString ../common}/";
+      sitePrefix = "${toString ../common/site}/";
       featuresPrefix = "${toString ../features}/";
       commonOptionsFile = toString ../common/options.nix;
+      siteMetaFile = toString ../common/site/default.nix;
       stripVia = s: builtins.head (lib.splitString ", via option " s);
 
       modSuffixFor = relPath:
@@ -24,6 +28,20 @@
         else if lib.hasSuffix "/default.nix" relPath
         then lib.removeSuffix "/default.nix" relPath
         else lib.removeSuffix ".nix" relPath;
+
+      expectedSiteFor = file:
+        if !(lib.hasPrefix sitePrefix file)
+        then null
+        else let
+          relPath = lib.removePrefix sitePrefix file;
+          modSuffix = modSuffixFor relPath;
+        in {
+          label = "common/site/${relPath}";
+          expectedSite =
+            if relPath == "default.nix" || modSuffix == ""
+            then "meta"
+            else modSuffix;
+        };
 
       expectedModFor = file:
         if lib.hasPrefix commonPrefix file
@@ -92,10 +110,69 @@
           ++ builtins.attrValues featHm;
       };
 
-      # 1. Disallow `options.mod` at the top-level flake-parts scope
-      flakeModOptionErrors =
-        lib.optional (options ? mod)
-        "Top-level flake options.mod is disallowed; use options.inventory.* for cross-host data and common/options for NixOS/HM options.mod.*";
+      # 1. Enforce top-level flake option namespaces (`options.site.*` under `modules/common/site/`)
+      allowedRepoFlakeTopOpts = ["flake" "perSystem" "site"];
+      flakeTopOptionErrors =
+        options
+        |> lib.filterAttrs (k: _: !(lib.hasPrefix "_" k) && !(builtins.elem k allowedRepoFlakeTopOpts))
+        |> lib.mapAttrsToList (
+          k: v: let
+            repoDecls =
+              lib.unique (collectOptionDecls {${k} = v;})
+              |> builtins.filter (lib.hasPrefix repoPrefix);
+          in
+            lib.optional (repoDecls != [])
+            "Unexpected top-level flake option 'options.${k}' (declared in ${lib.concatStringsSep ", " repoDecls}); use options.site.* under modules/common/site/ for flake-wide data and common/options for NixOS/HM options.mod.*"
+        )
+        |> lib.concatLists;
+
+      siteNamespaceErrors = let
+        siteOpts = lib.filterAttrs (k: _: !(lib.hasPrefix "_" k)) (options.site or {});
+        siteDeclFiles = lib.unique (collectOptionDecls siteOpts);
+        nsErrors = lib.concatLists (
+          lib.mapAttrsToList (
+            ns: subOpts: let
+              declFiles = lib.unique (collectOptionDecls {${ns} = subOpts;});
+            in
+              if ns == "meta"
+              then
+                declFiles
+                |> builtins.filter (f: f != siteMetaFile)
+                |> map (f: "${f}: declares options under options.site.meta (only modules/common/site/default.nix may declare options.site.meta.*)")
+              else
+                declFiles
+                |> lib.concatMap (
+                  file:
+                    if expectedSiteFor file == null
+                    then ["${file}: declares options under options.site.\"${ns}\" outside modules/common/site/"]
+                    else let
+                      inherit (expectedSiteFor file) label expectedSite;
+                    in
+                      lib.optional (expectedSite != ns)
+                      "${label}: declares options under options.site.\"${ns}\" (expected options.site.\"${expectedSite}\")"
+                )
+          )
+          siteOpts
+        );
+        siteFileErrors =
+          lib.filesystem.listFilesRecursive ../common/site
+          |> map toString
+          |> builtins.filter (f: lib.hasSuffix ".nix" f && !(lib.hasPrefix "_" (baseNameOf f)))
+          |> lib.concatMap (
+            f: let
+              inherit (expectedSiteFor f) label expectedSite;
+            in
+              lib.optional (lib.hasInfix "/" expectedSite)
+              "${label}: nested site namespace '${expectedSite}' is disallowed; use modules/common/site/<name>.nix or <name>/default.nix"
+              ++ lib.optional (!(builtins.elem f siteDeclFiles))
+              "${label}: does not declare any options under options.site.${expectedSite}"
+          );
+        siteSchemaErrors =
+          config.site.meta.assertions
+          |> builtins.filter (a: !a.assertion)
+          |> map (a: a.message);
+      in
+        nsErrors ++ siteFileErrors ++ siteSchemaErrors;
 
       # 2. Verify module export keys and non-empty `common/options` blocks per file
       fileExportErrors = let
@@ -116,19 +193,24 @@
               allowedKeys = lib.unique [expectedMod "common/options"];
               exportsMod = expectedMod != "common/options" && builtins.elem expectedMod allKeys;
             in
-              (
-                lib.unique allKeys
-                |> builtins.filter (k: !(builtins.elem k allowedKeys))
-                |> map (k: "${label}: exports unexpected module '${k}' (expected '${expectedMod}')")
-              )
-              ++ lib.optional (exportsMod && builtins.elem "common/options" nixosKeys && !(builtins.elem expectedMod nixosKeys))
-              "${label}: defines flake.nixosModules.\"common/options\" without flake.nixosModules.\"${expectedMod}\""
-              ++ lib.optional (exportsMod && builtins.elem "common/options" hmKeys && !(builtins.elem expectedMod hmKeys))
-              "${label}: defines flake.homeModules.\"common/options\" without flake.homeModules.\"${expectedMod}\""
-              ++ lib.optional (builtins.elem "common/options" nixosKeys && !(builtins.elem file nixosOptFiles))
-              "${label}: defines flake.nixosModules.\"common/options\" without declaring any options under options.mod"
-              ++ lib.optional (builtins.elem "common/options" hmKeys && !(builtins.elem file hmOptFiles))
-              "${label}: defines flake.homeModules.\"common/options\" without declaring any options under options.mod"
+              if file == siteMetaFile
+              then [
+                "${label}: owns options.site.meta.* and may not export flake.{nixosModules,homeModules} (exported: ${lib.concatStringsSep ", " (lib.unique allKeys)})"
+              ]
+              else
+                (
+                  lib.unique allKeys
+                  |> builtins.filter (k: !(builtins.elem k allowedKeys))
+                  |> map (k: "${label}: exports unexpected module '${k}' (expected '${expectedMod}')")
+                )
+                ++ lib.optional (exportsMod && builtins.elem "common/options" nixosKeys && !(builtins.elem expectedMod nixosKeys))
+                "${label}: defines flake.nixosModules.\"common/options\" without flake.nixosModules.\"${expectedMod}\""
+                ++ lib.optional (exportsMod && builtins.elem "common/options" hmKeys && !(builtins.elem expectedMod hmKeys))
+                "${label}: defines flake.homeModules.\"common/options\" without flake.homeModules.\"${expectedMod}\""
+                ++ lib.optional (builtins.elem "common/options" nixosKeys && !(builtins.elem file nixosOptFiles))
+                "${label}: defines flake.nixosModules.\"common/options\" without declaring any options under options.mod"
+                ++ lib.optional (builtins.elem "common/options" hmKeys && !(builtins.elem file hmOptFiles))
+                "${label}: defines flake.homeModules.\"common/options\" without declaring any options under options.mod"
           )
           managedDefs
         );
@@ -145,6 +227,8 @@
                   file:
                     if !(lib.hasPrefix dirPrefix file)
                     then ["${file}: declares ${kind} options under options.mod.\"${ns}\" outside modules/${dirName}/"]
+                    else if file == siteMetaFile
+                    then ["${file}: declares ${kind} options under options.mod.\"${ns}\" (modules/common/site/default.nix may only declare options.site.meta.*)"]
                     else let
                       inherit (expectedModFor file) label expectedMod;
                     in
@@ -290,7 +374,8 @@
         );
 
       errors = builtins.seq allHmEval.config.mod.meta.asserts (
-        flakeModOptionErrors
+        flakeTopOptionErrors
+        ++ siteNamespaceErrors
         ++ fileExportErrors
         ++ checkOptNamespaces "NixOS" self.nixdOptions.nixos.options.mod
         ++ checkOptNamespaces "Home-Manager" self.nixdOptions.home.options.mod

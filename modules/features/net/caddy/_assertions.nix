@@ -46,15 +46,15 @@ in
   [
     {
       assertion = flakeNet.proxyHost == currentHost;
-      message = "Host '${currentHost}' imports ${moduleName}; set inventory.net.proxyHost = \"${currentHost}\" so service DNS records point to this proxy.";
+      message = "Host '${currentHost}' imports ${moduleName}; set site.net.proxyHost = \"${currentHost}\" so service DNS records point to this proxy.";
     }
     {
       assertion = !cfg.acme.enable || managedAcmeDomains != [];
-      message = "mod.\"${moduleName}\".acme.enable = true requires at least one domain in inventory.net.domains with tls = \"acme\".";
+      message = "mod.\"${moduleName}\".acme.enable = true requires at least one domain in site.net.domains with tls = \"acme\".";
     }
     {
       assertion = unknownAcmeOverrideDomains == [];
-      message = "mod.\"${moduleName}\".acme.domains references domain(s) without tls = \"acme\" in inventory.net.domains: ${lib.concatStringsSep ", " unknownAcmeOverrideDomains}";
+      message = "mod.\"${moduleName}\".acme.domains references domain(s) without tls = \"acme\" in site.net.domains: ${lib.concatStringsSep ", " unknownAcmeOverrideDomains}";
     }
   ]
   ++ lib.optionals cfg.acme.enable (
@@ -63,7 +63,7 @@ in
     in [
       {
         assertion = resolved.dnsProvider != null;
-        message = "mod.\"${moduleName}\".acme: domain '${d}' references undeclared DNS account '${resolved.dnsAccount}' (declare [net.dns.${resolved.dnsAccount}] in config.toml / inventory.net.dns).";
+        message = "mod.\"${moduleName}\".acme: domain '${d}' references undeclared DNS account '${resolved.dnsAccount}' (declare [net.dns.${resolved.dnsAccount}] in config.toml / site.net.dns).";
       }
       {
         assertion =
@@ -85,18 +85,18 @@ in
   explicitCollisions
   ++ map (d: {
     assertion = netCfg.forwardAuth.enable && netCfg.forwardAuth.address != null;
-    message = "inventory.net.hosts.${d.source}: service requires auth = \"sso\", but mod.\"common/net\".forwardAuth is not enabled.";
+    message = "site.net.hosts.${d.source}: service requires auth = \"sso\", but mod.\"common/site/net\".forwardAuth is not enabled.";
   })
   ssoServices
   ++ lib.optionals cfg.egressSandbox.enable (
     (map (host: {
         assertion = false;
-        message = "inventory.net.hosts.${host}: static ipv4 must be set when exposing proxied services with mod.\"${moduleName}\".egressSandbox.enable = true.";
+        message = "site.net.hosts.${host}: static ipv4 must be set when exposing proxied services with mod.\"${moduleName}\".egressSandbox.enable = true.";
       })
       remoteDiscoveredHostsWithoutIpv4)
     ++ lib.optional (netCfg.forwardAuth.enable && netCfg.forwardAuth.address != null) {
       assertion = forwardAuthEp != null && isValidSandboxHost forwardAuthEp.host;
-      message = "mod.\"common/net\".forwardAuth.address '${toString netCfg.forwardAuth.address}' must be a literal IP:port or localhost:port when egressSandbox is enabled.";
+      message = "mod.\"common/site/net\".forwardAuth.address '${toString netCfg.forwardAuth.address}' must be a literal IP:port or localhost:port when egressSandbox is enabled.";
     }
     ++ map (t: {
       assertion = false;
