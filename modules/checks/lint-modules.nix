@@ -7,7 +7,11 @@
   ...
 }: {
   # Module & option contract checks evaluated by `nix flake check`
-  perSystem = {pkgs, ...}: {
+  perSystem = {
+    pkgs,
+    system,
+    ...
+  }: {
     checks."lint:modules" = let
       repoPrefix = "${toString ../.}/";
       commonPrefix = "${toString ../common}/";
@@ -83,20 +87,21 @@
 
       featNixos = lib.filterAttrs (k: _: lib.hasPrefix "feat/" k) self.nixosModules;
       featHm = lib.filterAttrs (k: _: lib.hasPrefix "feat/" k) self.homeModules;
+      nixdOpts = self.nixdOptions.${system};
 
       allNixosEval = inputs.nixpkgs.lib.nixosSystem {
         modules =
           [
             {
               system.stateVersion = "25.11";
-              nixpkgs.hostPlatform = "x86_64-linux";
+              nixpkgs.hostPlatform = system;
             }
             self.nixosModules."common"
           ]
           ++ builtins.attrValues featNixos;
       };
       allHmEval = inputs.home-manager.lib.homeManagerConfiguration {
-        pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
+        inherit pkgs;
         modules =
           [
             {
@@ -176,8 +181,8 @@
 
       # 2. Verify module export keys and non-empty `common/options` blocks per file
       fileExportErrors = let
-        nixosOptFiles = collectOptionDecls self.nixdOptions.nixos.options.mod;
-        hmOptFiles = collectOptionDecls self.nixdOptions.home.options.mod;
+        nixosOptFiles = collectOptionDecls nixdOpts.nixos.options.mod;
+        hmOptFiles = collectOptionDecls nixdOpts.home.options.mod;
         managedDefs =
           options.flake.definitionsWithLocations
           |> builtins.filter (d: expectedModFor d.file != null)
@@ -377,8 +382,8 @@
         flakeTopOptionErrors
         ++ siteNamespaceErrors
         ++ fileExportErrors
-        ++ checkOptNamespaces "NixOS" self.nixdOptions.nixos.options.mod
-        ++ checkOptNamespaces "Home-Manager" self.nixdOptions.home.options.mod
+        ++ checkOptNamespaces "NixOS" nixdOpts.nixos.options.mod
+        ++ checkOptNamespaces "Home-Manager" nixdOpts.home.options.mod
         ++ checkModImported "nixosModules" trackedNixos allNixosEval.options.mod.meta.imported.definitionsWithLocations
         ++ checkModImported "homeModules" trackedHm allHmEval.options.mod.meta.imported.definitionsWithLocations
         ++ assertErrors

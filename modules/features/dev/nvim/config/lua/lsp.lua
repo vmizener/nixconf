@@ -99,9 +99,12 @@ M.CONFIGS = {
       -- order (`map builtins.getFlake` creates thunks; `foldl'` stops forcing
       -- candidates once `selector` returns a non-null option set).
       local flake_paths = "[ " .. table.concat(candidates, " ") .. " ]"
+      local arch = vim.uv.os_uname().machine
+      local host_system = vim.json.encode((arch == "aarch64" or arch == "arm64") and "aarch64-linux" or "x86_64-linux")
       local function pick_expr(selector)
         return table.concat({
           "let",
+          "  sys = builtins.currentSystem or " .. host_system .. ";",
           "  flakes = map builtins.getFlake " .. flake_paths .. ";",
           "  pick = f: builtins.foldl' (acc: flake: if acc != null then acc else f flake) null flakes;",
           "  res = pick (" .. selector .. ");",
@@ -114,9 +117,9 @@ M.CONFIGS = {
       -- flake, or via `inputs.nixconf` for downstream flakes that consume `nixconf`.
       local function nixd_expr(type)
         return pick_expr(
-          "flake: let target = flake.nixdOptions."
+          "flake: let target = flake.nixdOptions.${sys}."
             .. type
-            .. " or flake.inputs.nixconf.nixdOptions."
+            .. " or flake.inputs.nixconf.nixdOptions.${sys}."
             .. type
             .. " or null; in if target != null then target.options else null"
         )
@@ -141,8 +144,7 @@ M.CONFIGS = {
           -- `allSystems.${sys}` as a pure-eval fallback.
           per_system = {
             expr = pick_expr(
-              'flake: let sys = builtins.currentSystem or "x86_64-linux"; in '
-                .. "flake.currentSystem.options or flake.allSystems.${sys}.options "
+              "flake: flake.currentSystem.options or flake.allSystems.${sys}.options "
                 .. "or flake.inputs.nixconf.currentSystem.options or flake.inputs.nixconf.allSystems.${sys}.options or null"
             ),
           },
