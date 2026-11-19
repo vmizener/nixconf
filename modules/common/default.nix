@@ -40,15 +40,15 @@ in {
     };
     nix =
       {
+        nixPath = ["nixpkgs=${inputs.nixpkgs}"]; # Pin <nixpkgs> lookups (e.g. nixd) to flake input
+        registry.nixpkgs.flake = inputs.nixpkgs; # Pin nixpkgs# flake refs (nix run, comma) to flake input
+      }
+      // lib.optionalAttrs (osConfig == null) {
         gc = {
           automatic = true;
           dates = "weekly";
           options = "--delete-older-than 10d";
         };
-        nixPath = ["nixpkgs=${inputs.nixpkgs}"]; # Pin <nixpkgs> lookups (e.g. nixd) to flake input
-        registry.nixpkgs.flake = inputs.nixpkgs; # Pin nixpkgs# flake refs (nix run, comma) to flake input
-      }
-      // lib.optionalAttrs (osConfig == null) {
         package = lib.mkDefault pkgs.nix;
         settings = {
           experimental-features = [
