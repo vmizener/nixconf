@@ -16,7 +16,7 @@
     then [modSet.default]
     else if modSet ? ${name} # check for <module>.<inputname>
     then [modSet.${name}]
-    else [];
+    else builtins.attrValues modSet; # fall back to all <module>.*
   collectModules = getModSet:
     lib.concatLists (
       lib.mapAttrsToList (
