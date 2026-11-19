@@ -1,97 +1,86 @@
-# Virtual host synthesis and upstream endpoint helpers for `feat/net/caddy`.
+# Virtual host synthesis across discovered services, explicit hosts, and ACME fallbacks.
 {
   cfg,
   currentHost,
+  endpoints,
   flakeNet,
   lib,
   managedAcmeDomains,
   netCfg,
 }: let
-  parseEndpoint = raw: let
-    stripped =
-      raw
-      |> lib.removePrefix "http://"
-      |> lib.removePrefix "https://";
-    hostAndPort = builtins.head (lib.splitString "/" stripped);
-    ipv6Parts = lib.splitString "]:" (lib.removePrefix "[" hostAndPort);
-    ipv4Match = builtins.match "^([^:]+):([0-9]+)$" hostAndPort;
-  in
-    if
-      lib.hasPrefix "[" hostAndPort
-      && builtins.length ipv6Parts == 2
-      && builtins.match "^[0-9]+$" (builtins.elemAt ipv6Parts 1) != null
-    then {
-      host = builtins.elemAt ipv6Parts 0;
-      port = lib.toInt (builtins.elemAt ipv6Parts 1);
-    }
-    else if ipv4Match != null
-    then {
-      host = builtins.elemAt ipv4Match 0;
-      port = lib.toInt (builtins.elemAt ipv4Match 1);
-    }
-    else null;
+  inherit (endpoints) parseEndpoint;
 
-  isLoopbackHost = h: builtins.elem h ["localhost" "127.0.0.1" "::1"];
-  isIpv4Literal = h: builtins.match "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$" h != null;
-  isIpv6Literal = h: lib.hasInfix ":" h;
-
-  lanGuardConfig =
-    if netCfg.trustedCidrs == []
-    then "abort\n"
-    else ''
-      @not_lan not remote_ip ${lib.concatStringsSep " " netCfg.trustedCidrs}
-      abort @not_lan
-    '';
-
-  forwardAuthConfig = ''
-    forward_auth ${toString netCfg.forwardAuth.address} {
-      uri /api/authz/forward-auth
-      copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-    }
-  '';
-
-  mkDiscoveredService = {
-    isLocal,
-    sourcePrefix,
-    svc,
-    svcName,
-    targetHostName,
-    targetIpv4,
-    upstreamHost,
+  mkProxyVhost = {
+    access,
+    acmeDomain,
+    domainCfg,
+    isHttpOnly,
+    rootRedirect ? null,
+    upstreamUrl,
+    useSso,
   }: let
-    key = flakeNet.lib.qualifyService svc;
-    fqdn = flakeNet.lib.extractHostname key;
-    isHttpOnly = lib.hasPrefix "http://" key;
-    domainCfg =
-      if svc.domain != null
-      then flakeNet.domains.${svc.domain} or null
-      else null;
     wantsAcme = domainCfg != null && domainCfg.tls == "acme";
     useAcme = cfg.acme.enable && wantsAcme && !isHttpOnly;
-    useInternalTls = !isHttpOnly && !useAcme && svc.access == "lan";
-    restrictToLan = svc.access == "lan";
-    vhost =
-      {
-        extraConfig =
-          lib.optionalString useInternalTls "tls internal\n"
-          + lib.optionalString restrictToLan lanGuardConfig
-          + lib.optionalString (svc.auth == "sso") forwardAuthConfig
-          + lib.optionalString (svc.rootRedirect != null) ''
-            @root path /
-            redir @root ${svc.rootRedirect} 302
-          ''
-          + "reverse_proxy ${svc.protocol}://${upstreamHost}:${toString svc.port}\n";
+    useInternalTls = !isHttpOnly && !useAcme && access == "lan";
+    lanGuardConfig =
+      if netCfg.trustedCidrs == []
+      then "abort\n"
+      else ''
+        @not_lan not remote_ip ${lib.concatStringsSep " " netCfg.trustedCidrs}
+        abort @not_lan
+      '';
+    forwardAuthConfig = ''
+      forward_auth ${toString netCfg.forwardAuth.address} {
+        uri /api/authz/forward-auth
+        copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
       }
-      // lib.optionalAttrs useAcme {
-        useACMEHost = svc.domain;
-      };
-  in {
-    inherit fqdn isLocal key svc svcName targetHostName targetIpv4 upstreamHost vhost;
-    source = "${sourcePrefix}.${svcName}";
-  };
+    '';
+  in
+    {
+      extraConfig =
+        lib.optionalString useInternalTls "tls internal\n"
+        + lib.optionalString (access == "lan") lanGuardConfig
+        + lib.optionalString useSso forwardAuthConfig
+        + lib.optionalString (rootRedirect != null) ''
+          @root path /
+          redir @root ${rootRedirect} 302
+        ''
+        + "reverse_proxy ${upstreamUrl}\n";
+    }
+    // lib.optionalAttrs useAcme {
+      useACMEHost = acmeDomain;
+    };
 
   # Auto-discover services declared across site.net.hosts and local mod."common/site/net".services
-  discoveredServices =
+  discoveredServices = let
+    mkDiscoveredService = {
+      isLocal,
+      sourcePrefix,
+      svc,
+      svcName,
+      targetHostName,
+      targetIpv4,
+      upstreamHost,
+    }: let
+      key = flakeNet.lib.qualifyService svc;
+      domainCfg =
+        if svc.domain != null
+        then flakeNet.domains.${svc.domain} or null
+        else null;
+    in {
+      inherit isLocal key svc svcName targetHostName targetIpv4 upstreamHost;
+      fqdn = flakeNet.lib.extractHostname key;
+      source = "${sourcePrefix}.${svcName}";
+      vhost = mkProxyVhost {
+        inherit domainCfg;
+        inherit (svc) access rootRedirect;
+        acmeDomain = svc.domain;
+        isHttpOnly = lib.hasPrefix "http://" key;
+        upstreamUrl = "${svc.protocol}://${upstreamHost}:${toString svc.port}";
+        useSso = svc.auth == "sso";
+      };
+    };
+  in
     lib.concatLists (
       lib.mapAttrsToList (
         targetHostName: h: let
@@ -133,10 +122,9 @@
   );
 
   explicitEntries =
-    lib.mapAttrsToList (rawKey: vhost: let
+    lib.mapAttrsToList (rawKey: vhostVal: let
       key = flakeNet.lib.qualifyKey rawKey;
       fqdn = flakeNet.lib.extractHostname key;
-      isHttpOnly = lib.hasPrefix "http://" key;
       matchedDomain = flakeNet.lib.findDomainName fqdn;
       domainCfg =
         if matchedDomain != null
@@ -146,42 +134,28 @@
         if domainCfg != null
         then domainCfg.access
         else "public";
-      wantsAcme = domainCfg != null && domainCfg.tls == "acme";
-      useAcme = cfg.acme.enable && wantsAcme && !isHttpOnly;
-      useInternalTls = !isHttpOnly && !useAcme && access == "lan";
-      upstream =
-        if builtins.isString vhost
-        then parseEndpoint vhost
-        else null;
-      normalizedVhost =
-        if builtins.isString vhost
-        then
-          {
-            extraConfig =
-              lib.optionalString useInternalTls "tls internal\n"
-              + lib.optionalString (access == "lan") lanGuardConfig
-              + lib.optionalString (domainCfg != null && domainCfg.defaultAuth == "sso") forwardAuthConfig
-              + "reverse_proxy ${vhost}\n";
-          }
-          // lib.optionalAttrs useAcme {
-            useACMEHost = matchedDomain;
-          }
-        else vhost;
     in {
-      inherit access fqdn key matchedDomain rawKey upstream;
-      vhost = normalizedVhost;
+      inherit access fqdn key matchedDomain rawKey;
+      upstream =
+        if builtins.isString vhostVal
+        then parseEndpoint vhostVal
+        else null;
+      vhost =
+        if builtins.isString vhostVal
+        then
+          mkProxyVhost {
+            inherit access domainCfg;
+            acmeDomain = matchedDomain;
+            isHttpOnly = lib.hasPrefix "http://" key;
+            upstreamUrl = vhostVal;
+            useSso = domainCfg != null && domainCfg.defaultAuth == "sso";
+          }
+        else vhostVal;
     })
     cfg.virtualHosts;
 
   groupedExplicit = builtins.groupBy (e: e.key) explicitEntries;
-  explicitCollisions = lib.filterAttrs (_: entries: builtins.length entries > 1) groupedExplicit;
   explicitVHosts = lib.mapAttrs (_: entries: (builtins.head entries).vhost) groupedExplicit;
-
-  explicitDnsVHosts =
-    lib.filterAttrs (
-      key: _: !(lib.hasPrefix "*." (flakeNet.lib.extractHostname key))
-    )
-    explicitVHosts;
 
   wildcardFallbackVHosts = lib.optionalAttrs cfg.acme.enable (
     managedAcmeDomains
@@ -201,6 +175,16 @@
   );
 
   allVHosts = wildcardFallbackVHosts // discoveredVHosts // explicitVHosts;
+in {
+  inherit allVHosts discoveredServices explicitEntries;
+
+  explicitCollisions = lib.filterAttrs (_: entries: builtins.length entries > 1) groupedExplicit;
+
+  explicitDnsVHosts =
+    lib.filterAttrs (
+      key: _: !(lib.hasPrefix "*." (flakeNet.lib.extractHostname key))
+    )
+    explicitVHosts;
 
   hasPublicVHosts =
     builtins.any (d: d.svc.access == "public") discoveredServices
@@ -211,19 +195,4 @@
 
   usesRuntimeAcmeCerts =
     builtins.any (v: (v.useACMEHost or null) != null) (builtins.attrValues allVHosts);
-in {
-  inherit
-    allVHosts
-    discoveredServices
-    explicitCollisions
-    explicitDnsVHosts
-    explicitEntries
-    hasHttpsVHosts
-    hasPublicVHosts
-    isIpv4Literal
-    isIpv6Literal
-    isLoopbackHost
-    parseEndpoint
-    usesRuntimeAcmeCerts
-    ;
 }

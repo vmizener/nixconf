@@ -24,6 +24,7 @@ Exposes:
 }: let
   moduleName = "feat/vm";
   defaultHmImages = lib.importTOML ./images.toml;
+  qemu = import ./_qemu.nix {inherit lib;};
 
   sharedVmOptions = {
     storageDir = lib.mkOption {
@@ -205,25 +206,9 @@ in {
                 hashedPasswordFile = lib.mkVMOverride null;
                 initialPassword = lib.mkVMOverride "vm";
               });
-            virtualisation = let
-              vgaDevice =
-                if cfg.gl
-                then "virtio-vga-gl"
-                else "virtio-vga";
-              resOpts =
-                lib.optionalString (cfg.resolution != null)
-                ",edid=on,xres=${toString cfg.resolution.width},yres=${toString cfg.resolution.height}";
-              sdlOpts =
-                if cfg.gl
-                then "sdl,gl=on"
-                else "sdl";
-            in {
+            virtualisation = {
               inherit (cfg) memorySize diskSize cores graphics;
-              qemu.options = lib.optionals cfg.graphics [
-                "-vga none"
-                "-device ${vgaDevice}${resOpts}"
-                "-display ${sdlOpts}"
-              ];
+              qemu.options = qemu.mkDisplayArgs {inherit cfg;};
             };
           }
           // lib.optionalAttrs (options ? sops) {
@@ -263,7 +248,7 @@ in {
     ...
   }: {
     apps = import ./_apps.nix {
-      inherit inputs lib moduleName pkgs self system;
+      inherit inputs lib moduleName pkgs qemu self system;
     };
   };
 }

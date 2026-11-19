@@ -1,6 +1,7 @@
 # Generate VM runner (`vm:run-<host>`) and reset (`vm:reset-<host>`) packages
 # for `nixosConfigurations` matching `system` that import `feat/vm`.
 {
+  boolToStr,
   lib,
   mkBinScript,
   mkResetPkg,
@@ -9,11 +10,6 @@
   self,
   system,
 }: let
-  boolToStr = b:
-    if b
-    then "1"
-    else "0";
-
   mkNixosVmRunner = hostname: hostconf: let
     cfg = hostconf.config.mod.${moduleName};
     hostName = hostconf.config.networking.hostName;

@@ -2,6 +2,7 @@
 {
   cfg,
   currentHost,
+  endpoints,
   flakeNet,
   lib,
   managedAcmeDomains,
@@ -10,17 +11,8 @@
   resolveAcmeFor,
   vhosts,
 }: let
-  inherit
-    (vhosts)
-    discoveredServices
-    explicitCollisions
-    isIpv4Literal
-    isIpv6Literal
-    isLoopbackHost
-    parseEndpoint
-    ;
-
-  isValidSandboxHost = h: isLoopbackHost h || isIpv4Literal h || isIpv6Literal h;
+  inherit (endpoints) isValidSandboxHost parseEndpoint;
+  inherit (vhosts) discoveredServices explicitCollisions;
 
   forwardAuthEp =
     if netCfg.forwardAuth.address != null

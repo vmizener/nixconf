@@ -5,8 +5,12 @@
   headscaleRedirectUri,
   lib,
   moduleName,
-  tagMatches,
-}: [
+}: let
+  tagMatches =
+    if cfg.domainTag != null
+    then flakeNet.lib.domainsWithTag cfg.domainTag
+    else [];
+in [
   {
     assertion = cfg.domain != null && flakeNet.domains ? ${cfg.domain};
     message =

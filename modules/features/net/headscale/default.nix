@@ -108,10 +108,6 @@ in {
     flakeNet = flake.config.site.net;
     currentHost = config.networking.hostName;
     hostIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
-    tagMatches =
-      if cfg.domainTag != null
-      then flakeNet.lib.domainsWithTag cfg.domainTag
-      else [];
 
     serverDomain =
       if cfg.domain != null
@@ -139,33 +135,9 @@ in {
       |> lib.filterAttrs (_: dCfg: dCfg.splitDns)
       |> builtins.attrNames;
 
-    policyFile = (pkgs.formats.json {}).generate "headscale-policy.json" (
-      {
-        acls = [
-          {
-            action = "accept";
-            src = ["*"];
-            dst = ["*:*"];
-          }
-        ];
-      }
-      // lib.optionalAttrs (cfg.adminUsers != []) {
-        groups = {
-          "group:devs" = cfg.adminUsers;
-        };
-        tagOwners = {
-          "tag:router" = ["group:devs"];
-        };
-      }
-      // lib.optionalAttrs (cfg.autoApproveRoutes != [] && cfg.adminUsers != []) {
-        autoApprovers = {
-          routes = lib.genAttrs cfg.autoApproveRoutes (_: [
-            "group:devs"
-            "tag:router"
-          ]);
-        };
-      }
-    );
+    policyFile = import ./_policy.nix {
+      inherit cfg lib pkgs;
+    };
 
     checkScript = pkgs.replaceVars ./check-config.sh {
       HEADSCALE_BIN = lib.getExe package;
@@ -187,7 +159,6 @@ in {
         moduleName
         oidcIssuerUrl
         serverDomain
-        tagMatches
         ;
     };
 

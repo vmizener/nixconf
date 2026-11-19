@@ -1,0 +1,4 @@
+identity_providers:
+  oidc:
+    jwks:
+      - key: {{ mustEnv "CREDENTIALS_DIRECTORY" | printf "%s/oidcIssuerPrivateKeyFile" | secret | mindent 10 "|" | msquote }}

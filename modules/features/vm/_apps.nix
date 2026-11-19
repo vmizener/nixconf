@@ -5,6 +5,7 @@
   lib,
   moduleName,
   pkgs,
+  qemu,
   self,
   system,
 }: let
@@ -36,11 +37,12 @@
     };
 
   nixosVmPackages = import ./_nixos-vm.nix {
+    inherit (qemu) boolToStr;
     inherit lib mkBinScript mkResetPkg moduleName nixglBin self system;
   };
 
   hmVmPackages = import ./_hm-vm.nix {
-    inherit lib mkBinScript mkResetPkg moduleName nixglBin pkgs self system;
+    inherit lib mkBinScript mkResetPkg moduleName nixglBin pkgs qemu self system;
     nixconfSrc = "${inputs.nixconf}";
   };
 

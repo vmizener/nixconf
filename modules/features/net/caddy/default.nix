@@ -127,13 +127,7 @@ in {
     flakeNet = flake.config.site.net;
     currentHost = config.networking.hostName;
     hostIpv4 = (flakeNet.hosts.${currentHost} or {}).ipv4 or null;
-
-    providerSecretSpecs = {
-      porkbun = {
-        PORKBUN_API_KEY_FILE = "api_key";
-        PORKBUN_SECRET_API_KEY_FILE = "secret_key";
-      };
-    };
+    endpoints = import ./_endpoints.nix {inherit lib;};
 
     managedAcmeDomains =
       flakeNet.domains
@@ -141,6 +135,12 @@ in {
       |> builtins.attrNames;
 
     resolveAcmeFor = d: let
+      providerSecretSpecs = {
+        porkbun = {
+          PORKBUN_API_KEY_FILE = "api_key";
+          PORKBUN_SECRET_API_KEY_FILE = "secret_key";
+        };
+      };
       ovr = cfg.acme.domains.${d} or {};
       domainAccount = (flakeNet.domains.${d} or {}).dnsAccount or null;
       dnsAccount =
@@ -165,6 +165,8 @@ in {
         if dnsProvider != null && environmentFile == null && explicitCreds == {}
         then providerSecretSpecs.${dnsProvider} or null
         else null;
+    in {
+      inherit dnsAccount dnsProvider environmentFile;
       sopsSecretKeys =
         if spec != null
         then map (field: "net/dns/${dnsAccount}/${field}") (builtins.attrValues spec)
@@ -175,42 +177,17 @@ in {
         else if spec != null
         then builtins.mapAttrs (_: field: config.sops.secrets."net/dns/${dnsAccount}/${field}".path) spec
         else {};
-    in {
-      inherit
-        credentialFiles
-        dnsAccount
-        dnsProvider
-        environmentFile
-        sopsSecretKeys
-        ;
     };
-
-    defaultAcmeSopsSecrets =
-      managedAcmeDomains
-      |> lib.concatMap (d: (resolveAcmeFor d).sopsSecretKeys)
-      |> lib.unique
-      |> (keys: lib.genAttrs keys (_: {}));
 
     vhosts = import ./_vhosts.nix {
       inherit
         cfg
         currentHost
+        endpoints
         flakeNet
         lib
         managedAcmeDomains
         netCfg
-        ;
-    };
-    firewallCfg = import ./_firewall.nix {
-      inherit
-        cfg
-        config
-        httpPort
-        httpsPort
-        lib
-        netCfg
-        pkgs
-        vhosts
         ;
     };
 
@@ -225,12 +202,25 @@ in {
     };
   in
     lib.mkMerge [
-      firewallCfg
+      (import ./_firewall.nix {
+        inherit
+          cfg
+          config
+          endpoints
+          httpPort
+          httpsPort
+          lib
+          netCfg
+          pkgs
+          vhosts
+          ;
+      })
       {
         assertions = import ./_assertions.nix {
           inherit
             cfg
             currentHost
+            endpoints
             flakeNet
             lib
             managedAcmeDomains
@@ -255,7 +245,12 @@ in {
           };
         };
 
-        sops.secrets = lib.mkIf cfg.acme.enable defaultAcmeSopsSecrets;
+        sops.secrets = lib.mkIf cfg.acme.enable (
+          managedAcmeDomains
+          |> lib.concatMap (d: (resolveAcmeFor d).sopsSecretKeys)
+          |> lib.unique
+          |> (keys: lib.genAttrs keys (_: {}))
+        );
 
         security.acme = lib.mkIf (cfg.acme.enable && managedAcmeDomains != []) {
           acceptTerms = true;
