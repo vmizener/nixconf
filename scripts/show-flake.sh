@@ -7,17 +7,20 @@ nix eval --impure --json --expr "
   let
     flake = builtins.getFlake \"git+file://${repo_root}\";
     unique = list: builtins.attrNames (builtins.groupBy (x: x) list);
+    perSystemNames = attr:
+      unique (
+        builtins.concatLists (
+          builtins.attrValues (
+            builtins.mapAttrs (_: s: builtins.attrNames s) (flake.\${attr} or {})
+          )
+        )
+      );
   in {
+    apps = perSystemNames \"apps\";
     homeModules = builtins.attrNames (flake.homeModules or {});
     homeConfigurations = builtins.attrNames (flake.homeConfigurations or {});
     nixosModules = builtins.attrNames (flake.nixosModules or {});
     nixosConfigurations = builtins.attrNames (flake.nixosConfigurations or {});
-    packages = unique (
-      builtins.concatLists (
-        builtins.attrValues (
-          builtins.mapAttrs (_: p: builtins.attrNames p) (flake.packages or {})
-        )
-      )
-    );
+    packages = perSystemNames \"packages\";
   }
 "

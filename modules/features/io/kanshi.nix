@@ -24,13 +24,11 @@ in {
   flake.homeModules.${moduleName} = {
     config,
     lib,
-    pkgs,
     ...
   }: let
     cfg = config.mod.${moduleName};
   in {
     mod.meta.imported = [moduleName];
-    home.packages = with pkgs; [kanshi];
     services.kanshi = {
       enable = true;
       settings = lib.mkIf (cfg.configFile != null) (

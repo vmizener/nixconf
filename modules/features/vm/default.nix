@@ -12,9 +12,9 @@ Exposes:
 - flake.homeModules."feat/vm":
   - Enables standalone Home-Manager non-NixOS guest VM configuration.
 
-- perSystem.packages:
-  - Generates `vm-run-<hostname>` package (to run the <hostname> VM).
-  - Generates `vm-reset-<hostname>` package (to reset the <hostname> VM).
+- perSystem.apps:
+  - Generates `vm-run-<hostname>` app (to run the <hostname> VM).
+  - Generates `vm-reset-<hostname>` app (to reset the <hostname> VM).
 */
 {
   inputs,
@@ -262,7 +262,7 @@ in {
     system,
     ...
   }: {
-    packages = import ./_packages.nix {
+    apps = import ./_apps.nix {
       inherit inputs lib moduleName pkgs self system;
     };
   };

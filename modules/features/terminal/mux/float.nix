@@ -32,9 +32,16 @@ let
       meta.mainProgram = "float-mux";
     };
 in {
-  flake.homeModules.${moduleName} = {pkgs, ...}: {
+  flake.homeModules.${moduleName} = {
+    lib,
+    osConfig ? null,
+    pkgs,
+    ...
+  }: {
     mod.meta.imported = [moduleName];
-    home.packages = [(pkgs.callPackage mkPkg {})];
+    home.packages = lib.mkIf (osConfig == null || !(osConfig.mod.meta.has moduleName)) [
+      (pkgs.callPackage mkPkg {})
+    ];
   };
   flake.nixosModules.${moduleName} = {pkgs, ...}: {
     mod.meta.imported = [moduleName];

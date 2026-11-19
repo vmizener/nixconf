@@ -1,4 +1,4 @@
-# Aggregates VM runner (`vm-run-<host>`) and reset (`vm-reset-<host>`) packages
+# Aggregates VM runner (`vm-run-<host>`) and reset (`vm-reset-<host>`) apps
 # across NixOS (`_nixos-vm.nix`) and standalone Home-Manager (`_hm-vm.nix`).
 {
   inputs,
@@ -44,8 +44,17 @@
     nixconfSrc = "${inputs.nixconf}";
   };
 
-  collidingPackages = builtins.attrNames (builtins.intersectAttrs nixosVmPackages hmVmPackages);
+  collidingApps = builtins.attrNames (builtins.intersectAttrs nixosVmPackages hmVmPackages);
 in
-  if collidingPackages != []
-  then throw "${moduleName}: colliding NixOS and standalone Home-Manager VM package(s): ${lib.concatStringsSep ", " collidingPackages}"
-  else nixosVmPackages // hmVmPackages
+  if collidingApps != []
+  then throw "${moduleName}: colliding NixOS and standalone Home-Manager VM app(s): ${lib.concatStringsSep ", " collidingApps}"
+  else
+    (nixosVmPackages // hmVmPackages)
+    |> lib.mapAttrs (name: pkg: {
+      type = "app";
+      program = lib.getExe pkg;
+      meta.description =
+        if lib.hasPrefix "vm-reset-" name
+        then "Reset QEMU VM disk image for '${lib.removePrefix "vm-reset-" name}'"
+        else "Run QEMU VM for '${lib.removePrefix "vm-run-" name}'";
+    })

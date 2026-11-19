@@ -1,13 +1,12 @@
 {
-  config,
   inputs,
   lib,
-  options,
   self,
   ...
-}: {
+} @ flake: {
   # Module & option contract checks evaluated by `nix flake check`
   perSystem = {
+    options,
     pkgs,
     system,
     ...
@@ -118,7 +117,7 @@
       # 1. Enforce top-level flake option namespaces (`options.site.*` under `modules/common/site/`)
       allowedRepoFlakeTopOpts = ["flake" "perSystem" "site"];
       flakeTopOptionErrors =
-        options
+        flake.options
         |> lib.filterAttrs (k: _: !(lib.hasPrefix "_" k) && !(builtins.elem k allowedRepoFlakeTopOpts))
         |> lib.mapAttrsToList (
           k: v: let
@@ -132,7 +131,7 @@
         |> lib.concatLists;
 
       siteNamespaceErrors = let
-        siteOpts = lib.filterAttrs (k: _: !(lib.hasPrefix "_" k)) (options.site or {});
+        siteOpts = lib.filterAttrs (k: _: !(lib.hasPrefix "_" k)) (flake.options.site or {});
         siteDeclFiles = lib.unique (collectOptionDecls siteOpts);
         nsErrors = lib.concatLists (
           lib.mapAttrsToList (
@@ -173,18 +172,18 @@
               "${label}: does not declare any options under options.site.${expectedSite}"
           );
         siteSchemaErrors =
-          config.site.meta.assertions
+          flake.config.site.meta.assertions
           |> builtins.filter (a: !a.assertion)
           |> map (a: a.message);
       in
         nsErrors ++ siteFileErrors ++ siteSchemaErrors;
 
-      # 2. Verify module export keys and non-empty `common/options` blocks per file
+      # 2. Verify module export keys, `perSystem.packages` prefixes, and non-empty `common/options` blocks
       fileExportErrors = let
         nixosOptFiles = collectOptionDecls nixdOpts.nixos.options.mod;
         hmOptFiles = collectOptionDecls nixdOpts.home.options.mod;
         managedDefs =
-          options.flake.definitionsWithLocations
+          flake.options.flake.definitionsWithLocations
           |> builtins.filter (d: expectedModFor d.file != null)
           |> builtins.groupBy (d: d.file);
       in
@@ -218,6 +217,28 @@
                 "${label}: defines flake.homeModules.\"common/options\" without declaring any options under options.mod"
           )
           managedDefs
+        );
+
+      packageExportErrors =
+        options.packages.definitionsWithLocations
+        |> lib.concatMap (
+          d: let
+            file = stripVia d.file;
+            modInfo = expectedModFor file;
+            loc =
+              if modInfo != null
+              then modInfo.label
+              else file;
+            keys = builtins.attrNames d.value;
+          in
+            if file == siteMetaFile && keys != []
+            then [
+              "${loc}: owns options.site.meta.* and may not export perSystem.packages (exported: ${lib.concatStringsSep ", " keys})"
+            ]
+            else
+              keys
+              |> builtins.filter (k: builtins.match "pkg:.+" k == null)
+              |> map (k: "${loc}: exports unprefixed package '${k}' in perSystem.packages (expected 'pkg:<name>')")
         );
 
       # 3. Verify `options.mod.*` keys match `meta`, `"common/<name>"`, or `"feat/<path>"`
@@ -382,6 +403,7 @@
         flakeTopOptionErrors
         ++ siteNamespaceErrors
         ++ fileExportErrors
+        ++ packageExportErrors
         ++ checkOptNamespaces "NixOS" nixdOpts.nixos.options.mod
         ++ checkOptNamespaces "Home-Manager" nixdOpts.home.options.mod
         ++ checkModImported "nixosModules" trackedNixos allNixosEval.options.mod.meta.imported.definitionsWithLocations
