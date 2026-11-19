@@ -13,8 +13,8 @@ Exposes:
   - Enables standalone Home-Manager non-NixOS guest VM configuration.
 
 - perSystem.apps:
-  - Generates `vm-run-<hostname>` app (to run the <hostname> VM).
-  - Generates `vm-reset-<hostname>` app (to reset the <hostname> VM).
+  - Generates `vm:run-<hostname>` app (to run the <hostname> VM).
+  - Generates `vm:reset-<hostname>` app (to reset the <hostname> VM).
 */
 {
   inputs,

@@ -1,4 +1,4 @@
-# Aggregates VM runner (`vm-run-<host>`) and reset (`vm-reset-<host>`) apps
+# Aggregates VM runner (`vm:run-<host>`) and reset (`vm:reset-<host>`) apps
 # across NixOS (`_nixos-vm.nix`) and standalone Home-Manager (`_hm-vm.nix`).
 {
   inputs,
@@ -54,7 +54,7 @@ in
       type = "app";
       program = lib.getExe pkg;
       meta.description =
-        if lib.hasPrefix "vm-reset-" name
-        then "Reset QEMU VM disk image for '${lib.removePrefix "vm-reset-" name}'"
-        else "Run QEMU VM for '${lib.removePrefix "vm-run-" name}'";
+        if lib.hasPrefix "vm:reset-" name
+        then "Reset QEMU VM disk image for '${lib.removePrefix "vm:reset-" name}'"
+        else "Run QEMU VM for '${lib.removePrefix "vm:run-" name}'";
     })

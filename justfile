@@ -5,8 +5,8 @@ default:
     just --list
 
 # Show flake outputs
-show:
-    ./scripts/show-flake.sh | jq
+show *args="":
+    ./scripts/show-flake.sh {{args}} | jq
 
 # Bootstrap or migrate nix-user-chroot Home-Manager environment
 chroot-init *args="":
@@ -40,12 +40,12 @@ update-manifest *args="":
 # Launch VM for given host (see `just show` for host options)
 [group('vm')]
 vm-run hostname *args="":
-    nix run "{{flake_dir}}#vm-run-{{hostname}}" -- {{args}}
+    nix run "{{flake_dir}}#vm:run-{{hostname}}" -- {{args}}
 
 # Reset VM of given host
 [group('vm')]
 vm-reset hostname:
-    nix run "{{flake_dir}}#vm-reset-{{hostname}}"
+    nix run "{{flake_dir}}#vm:reset-{{hostname}}"
 
 # Reset then launch VM of given host
 [group('vm')]

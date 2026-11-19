@@ -1,4 +1,4 @@
-# Generate QEMU VM runner (`vm-run-<host>`) and reset (`vm-reset-<host>`) packages
+# Generate QEMU VM runner (`vm:run-<host>`) and reset (`vm:reset-<host>`) packages
 # for standalone `homeConfigurations` matching `system` that import `feat/vm`.
 {
   lib,
@@ -194,8 +194,8 @@
   in {
     inherit hostName;
     packages = {
-      "vm-run-${hostName}" = runnerPkg;
-      "vm-reset-${hostName}" = resetterPkg;
+      "vm:run-${hostName}" = runnerPkg;
+      "vm:reset-${hostName}" = resetterPkg;
     };
   };
 

@@ -1,4 +1,4 @@
-# Generate VM runner (`vm-run-<host>`) and reset (`vm-reset-<host>`) packages
+# Generate VM runner (`vm:run-<host>`) and reset (`vm:reset-<host>`) packages
 # for `nixosConfigurations` matching `system` that import `feat/vm`.
 {
   lib,
@@ -18,7 +18,7 @@
     cfg = hostconf.config.mod.${moduleName};
     hostName = hostconf.config.networking.hostName;
   in
-    lib.nameValuePair "vm-run-${hostname}" (mkBinScript "vm-run-${hostname}" ./scripts/vm-run.sh {
+    lib.nameValuePair "vm:run-${hostname}" (mkBinScript "vm-run-${hostname}" ./scripts/vm-run.sh {
       MODE = "nixos";
       HOST_NAME = hostName;
       STORAGE_DIR = cfg.storageDir;
@@ -35,7 +35,7 @@
     });
 
   mkNixosVmResetter = hostname: hostconf:
-    lib.nameValuePair "vm-reset-${hostname}" (mkResetPkg {
+    lib.nameValuePair "vm:reset-${hostname}" (mkResetPkg {
       name = "vm-reset-${hostname}";
       inherit (hostconf.config.networking) hostName;
       inherit (hostconf.config.mod.${moduleName}) storageDir;
