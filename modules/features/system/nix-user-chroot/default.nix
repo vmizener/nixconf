@@ -60,20 +60,6 @@ in {
     nixProfile = ''
       . "${config.home.profileDirectory}/etc/profile.d/nix.sh"
     '';
-    enterScript = pkgs.writeText "nix-user-chroot-enter" ''
-      #!/bin/bash
-      export HOME="${config.home.homeDirectory}"
-      cd "$HOME" || exit 1
-      echo "home: $HOME"
-      if [ $# -eq 0 ]; then
-        set -- ${cfg.shell}
-      fi
-      exec "${cfg.nixDir}/nix-user-chroot" "${cfg.nixDir}/root-nix" /bin/sh -c '
-        rm -rf /homeless-shelter 2>/dev/null || true
-        mount -o remount,bind,ro / 2>/dev/null || true
-        exec "$@"
-      ' -- "$@"
-    '';
   in {
     mod.meta = {
       imported = [moduleName];
@@ -85,16 +71,23 @@ in {
       packages = with pkgs; [
         nettools
       ];
-      activation.setupNixUserChroot = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        # Maintain symlink from chroot $HOME/$USER -> host $HOME
-        run ln -sfn "${cfg.hostHomeDirectory}" "${config.home.homeDirectory}/${config.home.username}"
+      activation.setupNixUserChroot = let
+        enterScript = pkgs.replaceVars ./enter.sh {
+          HOME_DIR = config.home.homeDirectory;
+          NIX_DIR = cfg.nixDir;
+          DEFAULT_SHELL = cfg.shell;
+        };
+      in
+        lib.hm.dag.entryAfter ["writeBoundary"] ''
+          # Maintain symlink from chroot $HOME/$USER -> host $HOME
+          run ln -sfn "${cfg.hostHomeDirectory}" "${config.home.homeDirectory}/${config.home.username}"
 
-        # Keep enter script updated outside the store
-        if [ -d "${cfg.nixDir}" ]; then
-          run install -m 0755 "${enterScript}" "${cfg.nixDir}/enter.tmp"
-          run mv -f "${cfg.nixDir}/enter.tmp" "${cfg.nixDir}/enter"
-        fi
-      '';
+          # Keep enter script updated outside the store
+          if [ -d "${cfg.nixDir}" ]; then
+            run install -m 0755 "${enterScript}" "${cfg.nixDir}/enter.tmp"
+            run mv -f "${cfg.nixDir}/enter.tmp" "${cfg.nixDir}/enter"
+          fi
+        '';
     };
 
     # Inside nix-user-chroot, /nix is only mounted in the user namespace and is

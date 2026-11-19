@@ -102,19 +102,17 @@
         shellcheck -s bash "$out/activate-guest.sh"
       '';
 
-    fallbackProfileScript = lib.optionalString (!useUserChroot && shellHandler == null) ''
-      if [ "$(id -un 2>/dev/null || true)" = "${username}" ]; then
-        # shellcheck disable=SC1091
-        [ -f "${profileDir}/etc/profile.d/nix.sh" ] && . "${profileDir}/etc/profile.d/nix.sh"
-        # shellcheck disable=SC1091
-        [ -f "${profileDir}/etc/profile.d/hm-session-vars.sh" ] && . "${profileDir}/etc/profile.d/hm-session-vars.sh"
-        export PATH="${profileDir}/bin:$PATH"
-      fi
-    '';
-
     seedIso = import ./_seed-iso.nix {
-      inherit fallbackProfileScript hostName lib pkgs system username;
+      inherit hostName lib pkgs system username;
       inherit (cfg) autologin;
+      fallbackProfileFile =
+        if !useUserChroot && shellHandler == null
+        then
+          pkgs.replaceVars ./scripts/guest-profile.sh {
+            USER_NAME = username;
+            PROFILE_DIR = profileDir;
+          }
+        else null;
     };
 
     machineArgs =

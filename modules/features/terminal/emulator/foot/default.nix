@@ -15,7 +15,9 @@ in {
     lib,
     pkgs,
     ...
-  }: {
+  }: let
+    footBin = lib.getExe config.programs.foot.package;
+  in {
     mod.meta.imported = [moduleName];
     fonts.fontconfig.enable = true;
     home.packages = with pkgs; [
@@ -26,55 +28,28 @@ in {
       nerd-fonts.inconsolata
     ];
     xdg.configFile = {
-      "foot/fzf-scrollback.sh" = {
-        executable = true;
-        text = ''
-          #!/bin/sh
-
-          f=$(mktemp)
-          trap 'rm -f "$f"' EXIT
-
-          cat >"$f"
-
-          foot sh -c 'fzf --no-sort --no-mouse -i --tac < "$1"' sh "$f"
-        '';
+      "foot/fzf-scrollback.sh".source = pkgs.replaceVarsWith {
+        src = ./fzf-scrollback.sh;
+        isExecutable = true;
+        replacements = {
+          FOOT_BIN = footBin;
+        };
       };
-      "foot/edit-scrollback.sh" = let
+      "foot/edit-scrollback.sh".source = let
         inherit (config.mod."common/handlers".get) editor;
         editorCmd =
           if editor != null && editor.cmd != null
           then editor.cmd
           else ["vim"];
-        isVim = builtins.elem (baseNameOf (builtins.head editorCmd)) ["nvim" "vim"];
-        launchCmd =
-          if isVim
-          then ''
-            foot ${lib.escapeShellArgs editorCmd} -u NONE "$f" \
-              -c 'set nonumber nolist showtabline=0 foldcolumn=0 virtualedit=block' \
-              -c 'autocmd VimEnter * normal G' \
-              -c 'map q :qa!<CR>' \
-              -c 'map i <NOP>' \
-              -c 'map I <NOP>' \
-              -c 'map a <NOP>' \
-              -c 'map A <NOP>' \
-              -c 'set clipboard+=unnamedplus'
-          ''
-          else ''
-            foot ${lib.escapeShellArgs editorCmd} "$f"
-          '';
-      in {
-        executable = true;
-        text = ''
-          #!/bin/sh
-
-          f=$(mktemp)
-          trap 'rm -f "$f"' EXIT
-
-          cat >"$f"
-
-          ${launchCmd}
-        '';
-      };
+      in
+        pkgs.replaceVarsWith {
+          src = ./edit-scrollback.sh;
+          isExecutable = true;
+          replacements = {
+            FOOT_BIN = footBin;
+            EDITOR_CMD_FILE = pkgs.writeText "foot-editor-cmd" (lib.concatLines editorCmd);
+          };
+        };
     };
     programs.foot = {
       enable = true;

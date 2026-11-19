@@ -53,7 +53,6 @@ in {
       then config.sops.templates."maestral.ini".path
       else "${mkMaestralIni ""}";
     usesSops = config.sops.secrets != {} || config.sops.templates != {};
-    crudiniBin = lib.getExe pkgs.crudini;
   in {
     mod.meta.imported = [moduleName];
     home.packages = with pkgs; [
@@ -84,30 +83,20 @@ in {
         Type = "notify";
         NotifyAccess = "exec";
         PermissionsStartOnly = true;
-        ExecStartPre = pkgs.writeShellScript "maestral-merge-config.sh" (
-          ''
-            set -euo pipefail
-            mkdir -p "$(dirname ${lib.escapeShellArg configPath})"
-            if [ -f ${lib.escapeShellArg configPath} ] && [ ! -L ${lib.escapeShellArg configPath} ]; then
-              chmod 0600 ${lib.escapeShellArg configPath}
-              # Use crudini to merge ini files
-              ${crudiniBin} --merge ${lib.escapeShellArg configPath} < ${lib.escapeShellArg renderedConfig}
-            else
-              rm -f ${lib.escapeShellArg configPath}
-              install -m 0600 ${lib.escapeShellArg renderedConfig} ${lib.escapeShellArg configPath}
-            fi
-          ''
-          + lib.optionalString (cfg.extraConfigFile != null) ''
-            ${crudiniBin} --merge ${lib.escapeShellArg configPath} < ${lib.escapeShellArg (toString cfg.extraConfigFile)}
-          ''
-        );
+        ExecStartPre = "${pkgs.runtimeShell} ${pkgs.replaceVars ./merge-config.sh {
+          CONFIG_PATH = configPath;
+          RENDERED_CONFIG = renderedConfig;
+          EXTRA_CONFIG_FILE =
+            if cfg.extraConfigFile != null
+            then toString cfg.extraConfigFile
+            else "";
+          CRUDINI_BIN = lib.getExe pkgs.crudini;
+        }}";
         ExecStart = "${lib.getExe pkgs.maestral} start --foreground";
         ExecStop = "${lib.getExe pkgs.maestral} stop";
-        ExecStopPost = pkgs.writeShellScript "maestral-stop-post.sh" ''
-          if [ "$SERVICE_RESULT" != "success" ]; then
-            ${pkgs.libnotify}/bin/notify-send 'Maestral daemon failed'
-          fi
-        '';
+        ExecStopPost = "${pkgs.runtimeShell} ${pkgs.replaceVars ./stop-post.sh {
+          NOTIFY_SEND_BIN = "${pkgs.libnotify}/bin/notify-send";
+        }}";
         WatchdogSec = "30s";
         Environment = "PYTHONOPTIMIZE=2 LC_CTYPE=UTF-8";
       };

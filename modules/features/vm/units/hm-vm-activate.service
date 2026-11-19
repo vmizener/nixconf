@@ -1,0 +1,14 @@
+[Unit]
+Description=Activate Standalone Home-Manager Generation
+After=local-fs.target cloud-init-local.service cloud-init-network.service cloud-init.service
+Before=systemd-user-sessions.service getty@tty1.service @SERIAL_GETTY_UNIT@
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/mkdir -p /mnt/hm-vm
+ExecStartPre=/bin/sh -c 'mountpoint -q /mnt/hm-vm || mount -t 9p -o trans=virtio,version=9p2000.L,ro hm-vm /mnt/hm-vm'
+ExecStart=/mnt/hm-vm/activate-guest.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   cfg = config.mod."feat/desktop/manager/xfce";
@@ -67,18 +68,13 @@ in
           |> lib.concatLines;
         xdg.dataFile = lib.mapAttrs' (cat: h:
           lib.nameValuePair "xfce4/helpers/custom-${cat}.desktop" {
-            text = ''
-              [Desktop Entry]
-              NoDisplay=true
-              Version=1.0
-              Encoding=UTF-8
-              Type=X-XFCE-Helper
-              X-XFCE-Category=${cat}
-              X-XFCE-Commands=${h.cmd}
-              X-XFCE-CommandsWithParameter=${h.cmdWithParam}
-              Icon=${h.icon}
-              Name=${h.label}
-            '';
+            source = pkgs.replaceVars ./helper.desktop {
+              CATEGORY = cat;
+              COMMANDS = h.cmd;
+              COMMANDS_WITH_PARAMETER = h.cmdWithParam;
+              ICON = h.icon;
+              NAME = h.label;
+            };
           })
         helpers;
       })

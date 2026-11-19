@@ -15,7 +15,7 @@ in {
       img = lib.mkOption {
         type = lib.types.path;
         description = "Path to image used for wallpaper";
-        default = ../../../../assets/wallpapers/fog_forest.webp;
+        default = ../../../../../assets/wallpapers/fog_forest.webp;
       };
       flags = lib.mkOption {
         type = lib.types.str;
@@ -45,17 +45,11 @@ in {
       Service = {
         Type = "simple";
         ExecStart = "${pkg}/bin/awww-daemon";
-        ExecStartPost = pkgs.writeShellScript "awww-set-wallpaper" ''
-          for i in $(seq 1 40); do
-            if ${pkg}/bin/awww img ${cfg.flags} ${cfg.img}; then
-              exit 0
-            fi
-            sleep 0.25
-          done
-
-          echo "awww-daemon did not become ready" >&2
-          exit 1
-        '';
+        ExecStartPost = "${pkgs.runtimeShell} ${pkgs.replaceVars ./set-wallpaper.sh {
+          AWWW_BIN = "${pkg}/bin/awww";
+          FLAGS = cfg.flags;
+          IMG = "${cfg.img}";
+        }}";
         ExecStop = "${pkg}/bin/awww kill";
         Restart = "on-failure";
         RestartSec = "3";

@@ -57,15 +57,6 @@ in {
         stash.showPatch = true;
       };
     };
-    xdg.configFile."git/gitignore".text = ''
-      # Git ignore file
-      # Lines that start with '#' are comments
-      # Assign project local ignore patterns in .git/info/exlude
-      .direnv
-      .pre-commit-config.yaml
-      *.pyc
-      *.swp
-      result*
-    '';
+    xdg.configFile."git/gitignore".source = config.mod.meta.link ./gitignore;
   };
 }

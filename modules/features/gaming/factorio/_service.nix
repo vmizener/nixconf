@@ -75,14 +75,11 @@ in {
     in
       if !srv.rcon.enable
       then lib.escapeShellArgs startArgs
-      else
-        toString (pkgs.writeShellScript "factorio-${name}-start" ''
-          set -euo pipefail
-          rcon_pw="$(tr -d '\r\n' < "$CREDENTIALS_DIRECTORY/rcon-password")"
-          exec ${lib.escapeShellArgs startArgs} \
-            ${lib.escapeShellArg "--rcon-bind=${srv.rcon.bind}:${toString srv.rcon.port}"} \
-            "--rcon-password=$rcon_pw"
-        '');
+      else "${lib.getExe pkgs.bash} ${pkgs.replaceVars ./start.sh {
+        TR_BIN = lib.getExe' pkgs.coreutils "tr";
+        START_ARGS_FILE = pkgs.writeText "factorio-${name}-start-args" (lib.concatLines startArgs);
+        RCON_BIND = "${srv.rcon.bind}:${toString srv.rcon.port}";
+      }}";
 
     # Hardening
     NoNewPrivileges = true;
