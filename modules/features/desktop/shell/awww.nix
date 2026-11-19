@@ -7,7 +7,7 @@ Exposes:
 
 - flake.homeModules."feat/desktop/shell/awww":
 */
-let
+{...}: let
   moduleName = "feat/desktop/shell/awww";
 in {
   flake.homeModules."common/options" = {lib, ...}: {

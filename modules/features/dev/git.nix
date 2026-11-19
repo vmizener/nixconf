@@ -10,7 +10,7 @@ Exposes:
 
 - flake.homeModules."feat/dev/git":
 */
-let
+{...}: let
   moduleName = "feat/dev/git";
 in {
   flake.homeModules.${moduleName} = {

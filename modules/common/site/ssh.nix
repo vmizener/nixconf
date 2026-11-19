@@ -13,18 +13,16 @@ Exposes:
 - flake.nixosModules."common/site/ssh"
 */
 {
-  config,
   lib,
-  options,
   self,
   ...
-}: let
+} @ flake: let
   moduleName = "common/site/ssh";
-  siteSsh = config.site.ssh;
+  siteSsh = flake.config.site.ssh;
   toml = import ./_toml.nix {inherit lib;};
   loaded = toml.loadTomlFiles {
-    files = config.site.meta.keysFiles;
-    optSet = options.site.ssh;
+    files = flake.config.site.meta.keysFiles;
+    optSet = flake.options.site.ssh;
     sourceLabel = "site.meta.keysFiles";
   };
   resolveKeys = aliases:

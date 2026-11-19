@@ -7,7 +7,7 @@ Exposes:
 
 - flake.homeModules."feat/desktop/launcher/fuzzel":
 */
-let
+{...}: let
   moduleName = "feat/desktop/launcher/fuzzel";
 in {
   flake.homeModules.${moduleName} = {

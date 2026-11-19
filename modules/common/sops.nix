@@ -1,11 +1,10 @@
 {
-  config,
   inputs,
   lib,
   ...
-}: let
+} @ flake: let
   moduleName = "common/sops";
-  inherit (config.site.meta) secretsFile;
+  inherit (flake.config.site.meta) secretsFile;
 in {
   flake.nixosModules.${moduleName} = {...}: {
     imports = [

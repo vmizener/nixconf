@@ -8,7 +8,7 @@ Exposes:
 - flake.homeModules."feat/desktop/menu/waypie":
 - local package: "nix run '.#pkg:waypie'"
 */
-let
+{...}: let
   moduleName = "feat/desktop/menu/waypie";
 
   pkgName = "waypie";

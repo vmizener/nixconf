@@ -7,7 +7,7 @@ Exposes:
 
 - flake.nixosModules."feat/media/services/jackett":
 */
-let
+{...}: let
   moduleName = "feat/media/services/jackett";
 in {
   flake.nixosModules.${moduleName} = {...}: {

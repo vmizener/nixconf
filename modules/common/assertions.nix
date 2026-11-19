@@ -1,10 +1,9 @@
 {
-  config,
   lib,
   self,
   ...
-}: let
-  siteAssertions = config.site.meta.assertions;
+} @ flake: let
+  siteAssertions = flake.config.site.meta.assertions;
 
   importedAssertions = modAttr: validModules: config:
     map (name: {

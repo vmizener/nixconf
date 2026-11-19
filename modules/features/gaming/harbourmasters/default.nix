@@ -18,7 +18,7 @@ in {
   flake.homeModules."common/options" = {lib, ...}: {
     options.mod.${moduleName} = lib.genAttrs projects (project: {
       enable = lib.mkEnableOption "HarbourMasters project: ${project}";
-      gamepaths = lib.mkOption {
+      gamePaths = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "Images to include";
@@ -42,7 +42,7 @@ in {
             lib.mkIf cfg.${project}.enable {
               ${project} = {
                 enable = true;
-                gamepaths = cfg.${project}.gamepaths;
+                gamepaths = cfg.${project}.gamePaths;
               };
             }
         )

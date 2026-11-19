@@ -9,7 +9,7 @@ Exposes:
 - flake.nixosModules."feat/media/playback/ani-cli":
 - local package: "nix run '.#ani-cli-rs'"
 */
-let
+{...}: let
   moduleName = "feat/media/playback/ani-cli";
 
   pkgName = "ani-cli-rs";

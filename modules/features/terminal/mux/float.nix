@@ -9,7 +9,7 @@ Exposes:
 - flake.nixosModules."feat/terminal/mux/float":
 - local package: "nix run '.#float'"
 */
-let
+{...}: let
   moduleName = "feat/terminal/mux/float";
 
   pkgName = "float";

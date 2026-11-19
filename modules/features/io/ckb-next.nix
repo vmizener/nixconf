@@ -8,7 +8,7 @@ Exposes:
 - flake.nixosModules."feat/io/ckb-next":
 - local package: "nix run '.#pkg:ckb-next'"
 */
-let
+{...}: let
   moduleName = "feat/io/ckb-next";
 
   pkgName = "ckb-next";

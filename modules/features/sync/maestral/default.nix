@@ -7,7 +7,7 @@ Exposes:
 
 - flake.homeModules."feat/sync/maestral":
 */
-let
+{...}: let
   moduleName = "feat/sync/maestral";
 in {
   flake.homeModules."common/options" = {
@@ -16,7 +16,7 @@ in {
     ...
   }: {
     options.mod.${moduleName} = {
-      maestral_path = lib.mkOption {
+      maestralPath = lib.mkOption {
         type = lib.types.str;
         default = "${config.home.homeDirectory}/Dropbox";
         defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/Dropbox"'';
@@ -45,7 +45,7 @@ in {
     useDefaultTemplate = cfg.accountIdSecret != null && cfg.extraConfigFile == null;
     mkMaestralIni = accountIdLine:
       pkgs.replaceVars ./maestral.ini {
-        MAESTRAL_PATH = cfg.maestral_path;
+        MAESTRAL_PATH = cfg.maestralPath;
         MAESTRAL_ACCOUNT_ID = accountIdLine;
       };
     renderedConfig =

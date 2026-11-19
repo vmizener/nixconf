@@ -43,6 +43,8 @@ in {
       package = lib.mkOption {
         type = lib.types.package;
         default = pkgs.pi-coding-agent;
+        defaultText = lib.literalExpression "pkgs.pi-coding-agent";
+        description = "Pi coding agent package to install.";
       };
       defaultProvider = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -50,6 +52,12 @@ in {
           if hasProviders
           then firstProvider
           else null;
+        defaultText = lib.literalExpression ''
+          if activeProviders != {}
+          then <first active provider in mod."common/ai".providers>
+          else null
+        '';
+        description = "Default AI provider key in `mod.\"common/ai\".providers` selected by Pi (`null` leaves it unset).";
       };
       defaultModel = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -57,6 +65,12 @@ in {
           if hasProviders
           then builtins.head activeProviders.${firstProvider}.models
           else null;
+        defaultText = lib.literalExpression ''
+          if activeProviders != {}
+          then builtins.head activeProviders.<firstProvider>.models
+          else null
+        '';
+        description = "Default model ID selected by Pi (`null` leaves it unset).";
       };
     };
   };

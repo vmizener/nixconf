@@ -11,13 +11,9 @@ Exposes:
 - flake.nixosModules."common/options" (options.mod."common/site/net")
 - flake.nixosModules."common/site/net"
 */
-{
-  config,
-  lib,
-  ...
-}: let
+{lib, ...} @ flake: let
   moduleName = "common/site/net";
-  siteNet = config.site.net;
+  siteNet = flake.config.site.net;
   netOptions = import ./_options.nix {inherit lib siteNet;};
   dns = import ./_dns.nix {inherit lib siteNet;};
   mkPreset = lib.mkOverride 1100;

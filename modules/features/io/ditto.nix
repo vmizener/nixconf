@@ -9,7 +9,7 @@ Exposes:
 - flake.nixosModules."feat/io/ditto":
 - local package: "nix run '.#float'"
 */
-let
+{...}: let
   moduleName = "feat/io/ditto";
 
   pkgName = "ditto";

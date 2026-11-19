@@ -7,7 +7,7 @@ Exposes:
 
 - flake.homeModules."feat/terminal/mux/tmux":
 */
-let
+{...}: let
   moduleName = "feat/terminal/mux/tmux";
 in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {

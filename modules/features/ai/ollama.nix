@@ -22,22 +22,28 @@ Exposes:
       package = lib.mkOption {
         type = lib.types.package;
         default = pkgs.ollama;
+        defaultText = lib.literalExpression "pkgs.ollama";
+        description = "Ollama package to use.";
       };
       host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
+        description = "Host address for the Ollama server to bind to.";
       };
       port = lib.mkOption {
         type = lib.types.port;
         default = 11434;
+        description = "Port for the Ollama server to listen on.";
       };
       loadModels = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [];
+        description = "Ollama model tags to pull in the background and register under `mod.\"common/ai\".providers.\"ollama-local\"`.";
       };
       syncModels = lib.mkOption {
         type = lib.types.bool;
         default = true;
+        description = "Whether to prune locally installed Ollama models not listed in `loadModels`.";
       };
     };
   };
@@ -81,6 +87,7 @@ in {
     options.mod.${moduleName}.openFirewall = lib.mkOption {
       type = lib.types.bool;
       default = false;
+      description = "Whether to open the Ollama server port in the firewall.";
     };
   };
   ################

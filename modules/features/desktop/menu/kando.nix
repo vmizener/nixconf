@@ -7,7 +7,7 @@ Exposes:
 
 - flake.homeModules."feat/desktop/menu/kando":
 */
-let
+{...}: let
   moduleName = "feat/desktop/menu/kando";
 in {
   flake.homeModules.${moduleName} = {
