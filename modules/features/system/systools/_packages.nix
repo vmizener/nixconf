@@ -42,7 +42,6 @@ pkgs: {
     lsix # Thumbnail support in terminal via SIXEL graphics
     tdf # TUI-based PDF viewer
     timg # Display images in terminal
-    yazi # Terminal file manager
   ];
 
   # GUI apps and X11/Wayland/XDG desktop session utilities
