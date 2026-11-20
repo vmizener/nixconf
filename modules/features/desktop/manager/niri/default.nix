@@ -19,14 +19,18 @@ Exposes:
   moduleName = "feat/desktop/manager/niri";
 
   # Overrides niri-portals.conf from configPackages so FileChooser uses GTK
-  # instead of xdg-desktop-portal-gnome (which requires Nautilus).
-  niriPortalConfig = {
-    default = lib.mkDefault ["gnome" "gtk"];
-    "org.freedesktop.impl.portal.Access" = lib.mkDefault "gtk";
-    "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault "gtk";
-    "org.freedesktop.impl.portal.Notification" = lib.mkDefault "gtk";
-    "org.freedesktop.impl.portal.Secret" = lib.mkDefault "gnome-keyring";
-  };
+  # instead of xdg-desktop-portal-gnome (which requires Nautilus), and wires
+  # the active `common/keyring` Secret portal backend when present.
+  mkNiriPortalConfig = secretPortal:
+    {
+      default = lib.mkDefault ["gnome" "gtk"];
+      "org.freedesktop.impl.portal.Access" = lib.mkDefault "gtk";
+      "org.freedesktop.impl.portal.FileChooser" = lib.mkDefault "gtk";
+      "org.freedesktop.impl.portal.Notification" = lib.mkDefault "gtk";
+    }
+    // lib.optionalAttrs (secretPortal != null) {
+      "org.freedesktop.impl.portal.Secret" = lib.mkDefault secretPortal;
+    };
 in {
   flake.homeModules."common/options" = {...}: {
     options.mod.${moduleName} = {
@@ -106,11 +110,8 @@ in {
           # Standalone HM leaves portals disabled unless explicitly enabled (NixOS enables via niri-flake).
           portal = {
             enable = lib.mkDefault true;
-            extraPortals = with pkgs; [
-              gnome-keyring
-              xdg-desktop-portal-gtk
-            ];
-            config.niri = niriPortalConfig;
+            extraPortals = [pkgs.xdg-desktop-portal-gtk];
+            config.niri = mkNiriPortalConfig config.mod."common/keyring".portal;
             xdgOpenUsePortal = lib.mkDefault true;
           };
         };
@@ -131,8 +132,12 @@ in {
     ];
   };
 
-  flake.nixosModules.${moduleName} = {pkgs, ...}: let
-    pkg = pkgs.niri-unstable;
+  flake.nixosModules.${moduleName} = {
+    config,
+    pkgs,
+    ...
+  }: let
+    keyring = config.mod."common/keyring";
   in {
     imports = [inputs.niri.nixosModules.niri];
     config = {
@@ -140,11 +145,13 @@ in {
       nixpkgs.overlays = [inputs.niri.overlays.niri];
       programs.niri = {
         enable = true;
-        package = pkg;
+        package = pkgs.niri-unstable;
       };
+      # Prevent niri-flake from implicitly enabling gnome-keyring unless selected via common/keyring
+      services.gnome.gnome-keyring.enable = lib.mkIf (keyring.provider != "gnome-keyring") (lib.mkForce false);
       xdg.portal = {
         extraPortals = [pkgs.xdg-desktop-portal-gtk];
-        config.niri = niriPortalConfig;
+        config.niri = mkNiriPortalConfig keyring.portal;
       };
       environment = {
         sessionVariables.NIXOS_OZONE_WL = "1";

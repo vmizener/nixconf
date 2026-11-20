@@ -24,6 +24,7 @@ in {
   }: {
     imports = [
       self.homeModules."common/handlers"
+      self.homeModules."common/keyring"
       self.homeModules."common/options"
       self.homeModules."common/sops"
       self.homeModules."common/site/ssh"
@@ -83,6 +84,7 @@ in {
     imports = [
       inputs.home-manager.nixosModules.home-manager
       self.nixosModules."common/handlers"
+      self.nixosModules."common/keyring"
       self.nixosModules."common/options"
       self.nixosModules."common/site/net"
       self.nixosModules."common/site/ssh"

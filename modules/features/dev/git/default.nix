@@ -50,7 +50,10 @@ in {
           fsmonitor = false;
           untrackedCache = true;
         };
-        credential.helper = "store";
+        credential.helper =
+          if config.mod."common/keyring".enable
+          then "${pkgs.gitFull}/bin/git-credential-libsecret"
+          else "cache";
         mergetool.prompt = false;
         pull.rebase = true;
         push.default = "current";

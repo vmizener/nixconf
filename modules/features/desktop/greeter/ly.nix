@@ -6,18 +6,16 @@ Enables the Ly TUI display manager.
 Exposes:
 
 - flake.nixosModules."feat/desktop/greeter/ly":
-  - Enables Ly display manager and unlocks GNOME Keyring via PAM when `feat/system/keyring` is active
+  - Enables Ly display manager and registers `ly` for PAM keyring unlocking in `common/keyring`
 */
 {...}: let
   moduleName = "feat/desktop/greeter/ly";
 in {
-  flake.nixosModules.${moduleName} = {
-    config,
-    lib,
-    ...
-  }: {
-    mod.meta.imported = [moduleName];
+  flake.nixosModules.${moduleName} = {...}: {
+    mod = {
+      meta.imported = [moduleName];
+      "common/keyring".pamServices = ["ly"];
+    };
     services.displayManager.ly.enable = true;
-    security.pam.services.ly.enableGnomeKeyring = lib.mkIf (config.mod.meta.has "feat/system/keyring") true;
   };
 }

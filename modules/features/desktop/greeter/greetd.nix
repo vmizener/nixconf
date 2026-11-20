@@ -8,7 +8,7 @@ Exposes:
 
 - flake.nixosModules."feat/desktop/greeter/greetd":
   - Enables greetd login manager with Wayland and X11 session discovery
-  - Unlocks GNOME Keyring via PAM when `feat/system/keyring` is active
+  - Registers `greetd` for PAM keyring unlocking in `common/keyring`
 */
 {...}: let
   moduleName = "feat/desktop/greeter/greetd";
@@ -56,7 +56,10 @@ in {
     lib.mkMerge [
       # Base config
       {
-        mod.meta.imported = [moduleName];
+        mod = {
+          meta.imported = [moduleName];
+          "common/keyring".pamServices = ["greetd"];
+        };
 
         assertions = [
           {
@@ -70,8 +73,6 @@ in {
         ];
 
         services.xserver.displayManager.startx.enable = lib.mkIf hasX11 (lib.mkDefault true);
-
-        security.pam.services.greetd.enableGnomeKeyring = lib.mkIf (config.mod.meta.has "feat/system/keyring") true;
 
         services.greetd = {
           enable = true;

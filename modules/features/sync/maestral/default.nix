@@ -37,6 +37,7 @@ in {
   flake.homeModules.${moduleName} = {
     config,
     lib,
+    osConfig ? null,
     pkgs,
     ...
   }: let
@@ -55,6 +56,12 @@ in {
     usesSops = config.sops.secrets != {} || config.sops.templates != {};
   in {
     mod.meta.imported = [moduleName];
+
+    assertions = lib.optional (osConfig != null) {
+      assertion = config.mod."common/keyring".enable;
+      message = ''flake.homeModules."${moduleName}" requires an active keyring provider in mod."common/keyring" (e.g. flake.nixosModules."feat/system/keyring") for SecretService storage.'';
+    };
+
     home.packages = with pkgs; [
       maestral
       maestral-gui

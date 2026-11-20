@@ -1,26 +1,34 @@
 /*
   feat/system/keyring
 
-Provides system keyring services via GNOME Keyring.
+Provides system keyring services via GNOME Keyring and registers it with
+`common/keyring`.
 
 Exposes:
 
 - flake.nixosModules."feat/system/keyring":
-  - Enables GNOME Keyring service (including TTY login PAM integration)
+  - Registers `gnome-keyring` as the active `common/keyring` provider and `Secret` portal
+  - Enables GNOME Keyring service (including TTY login PAM integration) and unlocks
+    registered `mod."common/keyring".pamServices`
   - Installs `libsecret` CLI utilities (`secret-tool`)
-  - Routes the XDG `Secret` desktop portal interface to `gnome-keyring` by default
 */
 {...}: let
   moduleName = "feat/system/keyring";
 in {
   flake.nixosModules.${moduleName} = {
+    config,
     lib,
     pkgs,
     ...
   }: {
-    mod.meta.imported = [moduleName];
+    mod = {
+      meta.imported = [moduleName];
+      "common/keyring".providers.gnome-keyring.portal = "gnome-keyring";
+    };
     services.gnome.gnome-keyring.enable = true;
     environment.systemPackages = [pkgs.libsecret];
-    xdg.portal.config.common."org.freedesktop.impl.portal.Secret" = lib.mkDefault "gnome-keyring";
+    security.pam.services = lib.genAttrs config.mod."common/keyring".pamServices (_: {
+      enableGnomeKeyring = true;
+    });
   };
 }
