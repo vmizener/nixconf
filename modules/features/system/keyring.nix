@@ -7,19 +7,14 @@ Exposes:
 
 - flake.nixosModules."feat/system/keyring":
   - Enables GNOME Keyring service
-  - Configures PAM integration for login and greetd.
+  - Configures PAM integration for TTY login
 */
 {...}: let
   moduleName = "feat/system/keyring";
 in {
   flake.nixosModules.${moduleName} = {...}: {
-    config = {
-      mod.meta.imported = [moduleName];
-      services.gnome.gnome-keyring.enable = true;
-      security.pam.services = {
-        login.enableGnomeKeyring = true;
-        greetd.enableGnomeKeyring = true;
-      };
-    };
+    mod.meta.imported = [moduleName];
+    services.gnome.gnome-keyring.enable = true;
+    security.pam.services.login.enableGnomeKeyring = true;
   };
 }
