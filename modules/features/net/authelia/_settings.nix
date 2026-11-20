@@ -4,7 +4,6 @@
   credsDir,
   flakeNet,
   lib,
-  port,
   stateDir,
 }: let
   cookieDomain =
@@ -76,7 +75,7 @@ in {
       theme = "auto";
       default_2fa_method = "webauthn";
       server = {
-        address = "tcp://127.0.0.1:${toString port}/";
+        address = "tcp://127.0.0.1:${toString cfg.port}/";
         endpoints.authz.forward-auth.implementation = "ForwardAuth";
       };
       log = {

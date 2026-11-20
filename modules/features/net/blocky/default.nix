@@ -51,6 +51,19 @@ in {
     package = pkgs.blocky;
     allCustomDNS = flake.config.site.net.allDnsRecords // netCfg.dnsRecords // cfg.customDNS;
 
+    extractPort = v:
+      if builtins.isInt v
+      then v
+      else let
+        m = builtins.match "^(.*:)?([0-9]+)$" v;
+      in
+        if m != null
+        then lib.toInt (builtins.elemAt m 1)
+        else null;
+
+    dnsPortNum = extractPort cfg.dnsPort;
+    httpPortNum = extractPort cfg.httpPort;
+
     customDnsBlock =
       if allCustomDNS == {}
       then "# No customDNS mappings configured"
@@ -71,7 +84,15 @@ in {
       CONFIG_FILE = templateFile;
     };
   in {
-    mod.meta.imported = [moduleName];
+    mod = {
+      meta.imported = [moduleName];
+      "common/site/net".ports.blocky = {
+        tcp =
+          lib.optional (dnsPortNum != null) dnsPortNum
+          ++ lib.optional (httpPortNum != null) httpPortNum;
+        udp = lib.optional (dnsPortNum != null) dnsPortNum;
+      };
+    };
 
     environment.systemPackages = [package];
     services.blocky = {

@@ -234,6 +234,13 @@ in {
         mod = {
           meta.imported = [moduleName];
           "common/site/net" = {
+            ports.caddy = {
+              tcp = [
+                httpPort
+                httpsPort
+              ];
+              udp = [httpsPort];
+            };
             dnsRecords = lib.mkIf (hostIpv4 != null) (
               lib.mapAttrs' (
                 key: _:

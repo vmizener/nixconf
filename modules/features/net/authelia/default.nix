@@ -11,7 +11,6 @@ Exposes:
 */
 {...} @ flake: let
   moduleName = "feat/net/authelia";
-  port = 9091;
   stateDir = "/var/lib/authelia-main";
   credsDir = "/run/credentials/authelia-main.service";
 in {
@@ -29,6 +28,11 @@ in {
       };
   in {
     options.mod.${moduleName} = {
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 9091;
+        description = "Local loopback TCP port Authelia listens on";
+      };
       domainTag = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = "sso";
@@ -102,7 +106,6 @@ in {
         credsDir
         flakeNet
         lib
-        port
         stateDir
         ;
     };
@@ -126,9 +129,10 @@ in {
     mod = {
       meta.imported = [moduleName];
       "common/site/net" = {
+        ports.authelia.tcp = [cfg.port];
         forwardAuth = {
           enable = lib.mkDefault true;
-          address = lib.mkDefault "127.0.0.1:${toString port}";
+          address = lib.mkDefault "127.0.0.1:${toString cfg.port}";
         };
         oidc = {
           available = lib.mkDefault true;
@@ -142,9 +146,9 @@ in {
             d:
               lib.nameValuePair "auth-${d}" (
                 {
-                  inherit port;
+                  backend = "authelia";
+                  inherit (cfg) port subdomain;
                   domain = d;
-                  inherit (cfg) subdomain;
                   auth = "none";
                 }
                 // lib.optionalAttrs (builtins.elem d authelia.publicSsoInventoryDomains) {

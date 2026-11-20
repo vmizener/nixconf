@@ -1,4 +1,4 @@
-# Cross-host IPv4, domain, tag, service, and DNS collision assertions for `common/site/net`.
+# Cross-host IPv4, domain, tag, service, DNS, and port collision assertions for `common/site/net`.
 {
   hostCfg,
   hostName,
@@ -49,6 +49,43 @@
 
   localServiceEntries =
     lib.mapAttrsToList (mkServiceEntry "mod.\"common/site/net\".services") netCfg.services;
+
+  # Proxied services targeting `hostName` (`site.net.hosts.<hostName>` + `mod."common/site/net".services`),
+  # checked against `netCfg.ports.<backend>.tcp` to catch proxy/daemon port drift.
+  localHostServiceEntries =
+    (
+      if hostCfg != null
+      then lib.mapAttrsToList (mkServiceEntry "site.net.hosts.${hostName}.services") hostCfg.services
+      else []
+    )
+    ++ localServiceEntries;
+
+  # Exclusive `(proto, port)` collisions across active daemons on `hostName`.
+  mkLocalPortCollisions = proto:
+    lib.mapAttrsToList (
+      daemon: pCfg:
+        map (port: {inherit daemon port;}) pCfg.${proto}
+    )
+    netCfg.ports
+    |> lib.concatLists
+    |> duplicatesBy (e: toString e.port);
+
+  localTcpCollisions = mkLocalPortCollisions "tcp";
+  localUdpCollisions = mkLocalPortCollisions "udp";
+
+  # Per-host port collisions across distinct `backend`s on remote `site.net.hosts`
+  # entries (covers non-NixOS appliances while allowing multi-domain vhosts on one backend).
+  remoteHostPortCollisions =
+    siteNet.hosts
+    |> lib.filterAttrs (host: _: host != hostName)
+    |> lib.mapAttrsToList (
+      host: h:
+        lib.mapAttrsToList (mkServiceEntry "site.net.hosts.${host}.services") h.services
+        |> builtins.groupBy (e: toString e.svc.port)
+        |> lib.filterAttrs (_: group: builtins.length (lib.unique (map (e: e.svc.backend) group)) > 1)
+        |> lib.mapAttrsToList (port: entries: {inherit entries host port;})
+    )
+    |> lib.concatLists;
 
   serviceEntries = siteServiceEntries ++ localServiceEntries;
 
@@ -161,3 +198,25 @@ in
     message = "site.net.allDnsRecords: colliding DNS record '${fqdn}' published by multiple sources: ${lib.concatMapStringsSep ", " (e: e.source) entries}";
   })
   dnsCollisions
+  ++ map (e: let
+    backendTcp = (netCfg.ports.${e.svc.backend} or {}).tcp or [];
+  in {
+    assertion = builtins.elem e.svc.port backendTcp;
+    message = "${e.source}: proxied port ${toString e.svc.port} does not match local '${e.svc.backend}' TCP port(s) (${lib.concatMapStringsSep ", " toString backendTcp}).";
+  })
+  localHostServiceEntries
+  ++ lib.mapAttrsToList (port: entries: {
+    assertion = false;
+    message = "mod.\"common/site/net\".ports: TCP port ${port} on '${hostName}' is claimed by multiple services: ${lib.concatMapStringsSep ", " (e: e.daemon) entries}";
+  })
+  localTcpCollisions
+  ++ lib.mapAttrsToList (port: entries: {
+    assertion = false;
+    message = "mod.\"common/site/net\".ports: UDP port ${port} on '${hostName}' is claimed by multiple services: ${lib.concatMapStringsSep ", " (e: e.daemon) entries}";
+  })
+  localUdpCollisions
+  ++ map (c: {
+    assertion = false;
+    message = "site.net.hosts.${c.host}.services: port ${c.port} is assigned to multiple backends: ${lib.concatMapStringsSep ", " (e: "${e.svc.backend} (${e.source})") c.entries}";
+  })
+  remoteHostPortCollisions

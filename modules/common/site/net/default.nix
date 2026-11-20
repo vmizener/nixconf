@@ -3,7 +3,19 @@
 
 Cross-host network topology, domain policy & tag registry, static IPv4
 assignment, merged DNS record synthesis (`options.site.net`), and host-local
-proxy/SSO/VPN/DNS brokering (`options.mod."common/site/net"`).
+proxy/SSO/VPN/DNS/port brokering (`options.mod."common/site/net"`).
+
+Port management model:
+- Host-scoped, not flake-wide: ports are tracked per NixOS host under
+  `mod."common/site/net".ports.<daemon>.{tcp,udp}` so independent hosts can
+  freely reuse ports while catching `(proto, port)` collisions on each host.
+  Cross-host port knowledge is limited to reverse-proxied upstreams under
+  `site.net.hosts.<host>.services.<name>.port`.
+- Explicit sockets only: feature modules register configurable or single-socket
+  daemon ports (especially loopback daemons invisible to `networking.firewall`).
+  Opaque upstream multi-port firewall presets (e.g. `services.sunshine`,
+  `programs.steam.remotePlay`) and shared multicast sockets (e.g. mDNS 5353/udp)
+  are intentionally left to nixpkgs rather than mirrored here.
 
 Exposes:
 
@@ -69,6 +81,20 @@ in {
                 lib.nameValuePair (siteNet.lib.extractHostname (siteNet.lib.qualifyService svc)) (lib.mkDefault hostCfg.ipv4)
             )
           );
+          # Seed `ports.<backend>.tcp` at `mkDefault` priority from proxied services on
+          # this host so standalone `site.net.hosts` entries participate in collision
+          # checks, while explicit `ports.<backend>.tcp` claims from feature modules
+          # take precedence and let `_assertions.nix` detect proxy-vs-daemon port drift.
+          ports = let
+            localProxiedServices =
+              lib.optionalAttrs (hostCfg != null) hostCfg.services
+              // netCfg.services;
+          in
+            builtins.attrValues localProxiedServices
+            |> builtins.groupBy (svc: svc.backend)
+            |> builtins.mapAttrs (_: svcs: {
+              tcp = lib.mkDefault (map (svc: svc.port) svcs);
+            });
         };
       };
 

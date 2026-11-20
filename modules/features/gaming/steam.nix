@@ -17,22 +17,47 @@ in {
         description = "Enable extest library (needed for Steam Input on Wayland)";
         default = false;
       };
+      openFirewall = {
+        remotePlay = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Whether to open firewall ports for Steam Remote Play";
+        };
+        dedicatedServer = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+          description = "Whether to open firewall ports (27015 TCP/UDP) for Source Dedicated Server hosting";
+        };
+        localNetworkGameTransfers = lib.mkOption {
+          type = lib.types.bool;
+          default = false;
+          description = "Whether to open firewall ports for Steam peer-to-peer LAN game transfers";
+        };
+      };
     };
   };
   flake.nixosModules.${moduleName} = {
     config,
+    lib,
     pkgs,
     ...
   }: let
     cfg = config.mod.${moduleName};
   in {
-    mod.meta.imported = [moduleName];
+    mod = {
+      meta.imported = [moduleName];
+      "common/site/net".ports.steam-dedicated = lib.mkIf cfg.openFirewall.dedicatedServer {
+        tcp = [27015];
+        udp = [27015];
+      };
+    };
     programs.steam = {
       enable = true;
       extest.enable = cfg.enableExtest;
-      dedicatedServer.openFirewall = true; # Open ports for Source Dedicated Server hosting
+      dedicatedServer.openFirewall = cfg.openFirewall.dedicatedServer;
+      localNetworkGameTransfers.openFirewall = cfg.openFirewall.localNetworkGameTransfers;
       protontricks.enable = true; # Enable protontricks wrapper
-      remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+      remotePlay.openFirewall = cfg.openFirewall.remotePlay;
       extraPackages = with pkgs; [
         hidapi # Steam Controller dependency
         libdrm

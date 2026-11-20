@@ -11,8 +11,6 @@ Exposes:
 */
 {...} @ flake: let
   moduleName = "feat/net/headscale";
-  port = 8085;
-  webUiPort = 3000;
   webUiCookieSecretPath = "/var/lib/headplane/cookie_secret";
   ipv4Prefix = "100.64.0.0/10";
   ipv6Prefix = "fd7a:115c:a1e0::/48";
@@ -23,8 +21,17 @@ in {
     ...
   }: let
     selfCfg = config.mod.${moduleName};
+    domainCfg =
+      if selfCfg.domain != null
+      then flake.config.site.net.domains.${selfCfg.domain} or null
+      else null;
   in {
     options.mod.${moduleName} = {
+      port = lib.mkOption {
+        type = lib.types.port;
+        default = 8085;
+        description = "Local loopback TCP port Headscale listens on";
+      };
       domainTag = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = "vpn";
@@ -47,6 +54,15 @@ in {
         type = lib.types.str;
         default = "vpn";
         description = "Subdomain label under `domain` where Tailscale clients reach Headscale";
+      };
+      access = lib.mkOption {
+        type = lib.types.enum ["lan" "public"];
+        default =
+          if domainCfg != null && domainCfg.tls == "acme"
+          then "public"
+          else "lan";
+        defaultText = lib.literalExpression ''if domain.tls == "acme" then "public" else "lan"'';
+        description = "Client reachability policy when auto-registering Headscale on `site.net.proxyHost`";
       };
       adminUsers = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -77,6 +93,11 @@ in {
           type = lib.types.bool;
           default = false;
           description = "Enable the Headplane web UI for Headscale behind the local reverse proxy";
+        };
+        port = lib.mkOption {
+          type = lib.types.port;
+          default = 3000;
+          description = "Local loopback TCP port Headplane listens on";
         };
         domain = lib.mkOption {
           type = lib.types.nullOr lib.types.str;
@@ -135,6 +156,20 @@ in {
       |> lib.filterAttrs (_: dCfg: dCfg.splitDns)
       |> builtins.attrNames;
 
+    declaredInventoryFqdns =
+      lib.concatMap (
+        h:
+          builtins.attrValues h.services
+          |> map (svc: flakeNet.lib.extractHostname (flakeNet.lib.qualifyService svc))
+      )
+      (builtins.attrValues flakeNet.hosts);
+
+    autoRegisterService =
+      flakeNet.proxyHost
+      == currentHost
+      && cfg.domain != null
+      && !(builtins.elem serverDomain declaredInventoryFqdns);
+
     policyFile = import ./_policy.nix {
       inherit cfg lib pkgs;
     };
@@ -171,19 +206,31 @@ in {
           ipv6Prefix
         ];
         oidc.requested = lib.mkIf cfg.enableOidc true;
-        services = lib.mkIf cfg.webUi.enable {
-          headplane = {
-            port = webUiPort;
-            domain = cfg.webUi.domain;
-            subdomain = cfg.webUi.subdomain;
-            rootRedirect = "/admin";
-            access = "lan";
-            auth =
-              if netCfg.forwardAuth.enable
-              then "sso"
-              else "none";
+        ports =
+          {
+            headscale.tcp = [cfg.port];
+          }
+          // lib.optionalAttrs cfg.webUi.enable {
+            headplane.tcp = [cfg.webUi.port];
           };
-        };
+        services =
+          lib.optionalAttrs autoRegisterService {
+            headscale = {
+              inherit (cfg) access domain port subdomain;
+              auth = "none";
+            };
+          }
+          // lib.optionalAttrs cfg.webUi.enable {
+            headplane = {
+              inherit (cfg.webUi) domain port subdomain;
+              rootRedirect = "/admin";
+              access = "lan";
+              auth =
+                if netCfg.forwardAuth.enable
+                then "sso"
+                else "none";
+            };
+          };
       };
     };
 
@@ -196,7 +243,8 @@ in {
     services = {
       headscale = {
         enable = true;
-        inherit package port;
+        inherit package;
+        inherit (cfg) port;
         address = "127.0.0.1";
         settings =
           {
@@ -244,14 +292,14 @@ in {
         settings = {
           server = {
             host = "127.0.0.1";
-            port = webUiPort;
+            inherit (cfg.webUi) port;
             base_url = lib.mkIf (webUiFqdn != null) "https://${webUiFqdn}";
             cookie_secret_path = webUiCookieSecretPath;
             cookie_secure = true;
             cookie_max_age = 30 * 24 * 3600;
           };
           headscale = {
-            url = "http://127.0.0.1:${toString port}";
+            url = "http://127.0.0.1:${toString cfg.port}";
             public_url = "https://${toString serverDomain}";
             config_path = config.services.headscale.configFile;
           };

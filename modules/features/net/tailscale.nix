@@ -66,7 +66,10 @@ in {
       }
     ];
 
-    mod.meta.imported = [moduleName];
+    mod = {
+      meta.imported = [moduleName];
+      "common/site/net".ports.tailscale.udp = [config.services.tailscale.port];
+    };
 
     services.tailscale = {
       enable = true;

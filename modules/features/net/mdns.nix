@@ -24,6 +24,7 @@ in {
     cfg = config.mod.${moduleName};
   in {
     mod.meta.imported = [moduleName];
+    # Multicast UDP 5353 is shared (`SO_REUSEADDR`) and intentionally omitted from `mod."common/site/net".ports`.
     services.avahi = {
       enable = true;
       nssmdns4 = true;

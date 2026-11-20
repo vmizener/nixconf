@@ -102,6 +102,7 @@ in {
     cfg = config.mod.${moduleName};
   in {
     imports = [ollamaCommon];
+    mod."common/site/net".ports.ollama.tcp = [cfg.port];
     services.ollama = {
       inherit (cfg) loadModels syncModels openFirewall;
     };

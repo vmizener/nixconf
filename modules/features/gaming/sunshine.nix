@@ -1,7 +1,7 @@
 /*
   feat/gaming/sunshine
 
-Sunshine is a remote streaming client.
+Sunshine self-hosted game streaming server.
 
 Exposes:
 
@@ -10,32 +10,27 @@ Exposes:
 {...}: let
   moduleName = "feat/gaming/sunshine";
 in {
-  flake.nixosModules.${moduleName} = {...}: {
-    mod.meta.imported = [moduleName];
-    services = {
-      sunshine = {
-        enable = true;
-        autoStart = true; # optional: starts Sunshine automatically on login
-        capSysAdmin = true;
-        openFirewall = true;
+  flake.nixosModules."common/options" = {lib, ...}: {
+    options.mod.${moduleName} = {
+      openFirewall = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Whether to open Sunshine's streaming and web UI ports in the firewall";
       };
-      udev.extraRules = ''
-        KERNEL=="uinput", MODE="0660", GROUP="input", SYMLINK+="uinput"
-      '';
     };
-    networking.firewall = {
+  };
+
+  flake.nixosModules.${moduleName} = {config, ...}: let
+    cfg = config.mod.${moduleName};
+  in {
+    mod.meta.imported = [moduleName];
+    # Upstream `services.sunshine` manages `hardware.uinput`, udev rules, and dynamic
+    # TCP/UDP port offsets from `settings.port`—avoid mirroring them manually.
+    services.sunshine = {
       enable = true;
-      allowedTCPPorts = [47984 47989 47990 48010];
-      allowedUDPPortRanges = [
-        {
-          from = 47998;
-          to = 48000;
-        }
-        {
-          from = 8000;
-          to = 8010;
-        }
-      ];
+      autoStart = true; # optional: starts Sunshine automatically on login
+      capSysAdmin = true;
+      inherit (cfg) openFirewall;
     };
   };
 }

@@ -19,6 +19,11 @@
         type = lib.types.port;
         description = "Port the service listens on";
       };
+      backend = lib.mkOption {
+        type = lib.types.str;
+        default = name;
+        description = "Logical backend daemon identifier owning `port` (shared across multiple virtual hosts served by the same process, e.g. `\"authelia\"`)";
+      };
       domainTag = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = null;
@@ -270,6 +275,33 @@ in {
       default = {};
       type = lib.types.attrsOf serviceSubmodule;
       description = "Host-local network services registered by feature modules for local reverse proxying and DNS synthesis.";
+    };
+
+    # Exclusive host-local TCP/UDP port claims keyed by logical daemon name.
+    # Register configurable or fixed single-daemon sockets here (including loopback
+    # daemons that never touch `networking.firewall`); omit shared multicast ports
+    # (e.g. mDNS 5353/udp) and opaque upstream multi-port firewall bundles.
+    ports = lib.mkOption {
+      default = {};
+      description = "Exclusive host-local TCP/UDP ports claimed by active daemons on this host (keyed by logical backend name) for collision and proxy-drift assertions.";
+      type = lib.types.attrsOf (
+        lib.types.submodule {
+          options = {
+            tcp = lib.mkOption {
+              type = lib.types.listOf lib.types.port;
+              default = [];
+              apply = lib.unique;
+              description = "TCP ports bound by this service.";
+            };
+            udp = lib.mkOption {
+              type = lib.types.listOf lib.types.port;
+              default = [];
+              apply = lib.unique;
+              description = "UDP ports bound by this service.";
+            };
+          };
+        }
+      );
     };
 
     forwardAuth = {

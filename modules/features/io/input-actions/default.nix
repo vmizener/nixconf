@@ -20,6 +20,7 @@ in {
     inputactions-standalone = inputs.inputactions-standalone.packages.${system}.default;
   in {
     mod.meta.imported = [moduleName];
+    hardware.uinput.enable = true;
     environment.systemPackages = [
       inputactions-ctl
       inputactions-standalone

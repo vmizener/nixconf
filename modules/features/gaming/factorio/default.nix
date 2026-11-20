@@ -109,7 +109,18 @@ in {
     cfg = config.mod.${moduleName};
     enabledServers = lib.filterAttrs (_: srv: srv.enable) cfg.servers;
   in {
-    mod.meta.imported = [moduleName];
+    mod = {
+      meta.imported = [moduleName];
+      "common/site/net".ports =
+        lib.mapAttrs' (
+          name: srv:
+            lib.nameValuePair "factorio-${name}" {
+              udp = [srv.port];
+              tcp = lib.optional srv.rcon.enable srv.rcon.port;
+            }
+        )
+        enabledServers;
+    };
 
     assertions = import ./_assertions.nix {
       inherit enabledServers lib moduleName;
