@@ -1,5 +1,5 @@
 /*
-  feat/shell/zsh
+  feat/terminal/shell/zsh
 
 Enables interactive Zsh shell environment with Powerlevel10k theme.
 
@@ -7,6 +7,8 @@ Exposes:
 
 - flake.homeModules."feat/terminal/shell/zsh":
   - Enables Zsh for the user.
+- flake.nixosModules."feat/terminal/shell/zsh":
+  - Enables Zsh system-wide and defers `compinit` to Home-Manager.
 */
 {...}: let
   moduleName = "feat/terminal/shell/zsh";

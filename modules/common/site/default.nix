@@ -4,10 +4,6 @@
 Declares `options.site.meta` consumer-flake file layout pointers (`config.toml`,
 `keys.toml`, `secrets.yaml`) and loads `site.meta.configFiles` across declared
 `options.site.*` namespaces.
-
-Exposes:
-
-- options.site.meta
 */
 {
   config,

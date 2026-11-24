@@ -1,3 +1,10 @@
+/*
+  common (assertions)
+
+Runtime `mod.meta.*`, `site.meta.assertions`, Home-Manager/NixOS boundary
+(`mod.meta.asserts`), and unimported-feature option assertions evaluated on
+NixOS and Home-Manager builds.
+*/
 {
   lib,
   self,
@@ -62,7 +69,6 @@
     )
     |> lib.concatLists;
 in {
-  # Runtime `mod.meta.*` and unimported-feature option assertions evaluated on NixOS & Home-Manager builds
   flake.nixosModules."common" = {
     config,
     options,

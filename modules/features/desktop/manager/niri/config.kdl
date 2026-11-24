@@ -205,7 +205,7 @@ window-rule {
     // This app-id regular expression will work for both:
     // - host Firefox (app-id is "firefox")
     // - Flatpak Firefox (app-id is "org.mozilla.firefox")
-    match app-id=r#"^(|firefox|zen|zen-beta)$"# title=r#"^Picture.in.[Pp]icture$"#
+    match app-id=r#"firefox$"# title=r#"^Picture.in.[Pp]icture$"#
     default-floating-position x=0 y=0 relative-to="top-right"
     default-column-width { proportion 0.5; }
     default-window-height { proportion 0.5; }
@@ -332,17 +332,8 @@ window-rule {
 }
 
 window-rule {
-    match app-id=r#"^(firefox|zen)$"#
+    match app-id=r#"^firefox$"#
     open-maximized true
-}
-
-window-rule {
-    match app-id=r#"^kitty$"#
-    open-maximized true
-    background-effect {
-        blur true
-        xray false
-    }
 }
 
 window-rule {
@@ -352,7 +343,6 @@ window-rule {
         blur true
         xray false
     }
-
 }
 // Make the wallpaper stationary, rather than moving with workspaces.
 layer-rule {

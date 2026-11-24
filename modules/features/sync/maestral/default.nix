@@ -1,7 +1,7 @@
 /*
   feat/sync/maestral
 
-Enables the Maeastral 3rd-party Dropbox client.
+Enables the Maestral 3rd-party Dropbox client.
 
 Exposes:
 
@@ -89,7 +89,6 @@ in {
       Service = {
         Type = "notify";
         NotifyAccess = "exec";
-        PermissionsStartOnly = true;
         ExecStartPre = "${pkgs.runtimeShell} ${pkgs.replaceVars ./merge-config.sh {
           CONFIG_PATH = configPath;
           RENDERED_CONFIG = renderedConfig;

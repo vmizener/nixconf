@@ -7,7 +7,7 @@ Exposes:
 
 - flake.homeModules."feat/io/ditto":
 - flake.nixosModules."feat/io/ditto":
-- local package: "nix run '.#float'"
+- local package: "nix run '.#pkg:ditto'"
 */
 {...}: let
   moduleName = "feat/io/ditto";

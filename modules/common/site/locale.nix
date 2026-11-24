@@ -2,10 +2,6 @@
   common/site/locale
 
 Site-wide default time zone and POSIX locale options (`options.site.locale`).
-
-Exposes:
-
-- options.site.locale
 */
 {lib, ...}: {
   options.site.locale = {

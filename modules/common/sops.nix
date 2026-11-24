@@ -1,3 +1,14 @@
+/*
+  common/sops
+
+Shared `sops-nix` secret management setup across NixOS (host SSH ed25519 age
+key) and Home-Manager (per-user XDG age key), wired to `site.meta.secretsFile`.
+
+Exposes:
+
+- flake.homeModules."common/sops"
+- flake.nixosModules."common/sops"
+*/
 {
   inputs,
   lib,

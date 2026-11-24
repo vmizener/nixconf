@@ -1,3 +1,15 @@
+/*
+  common
+
+Base NixOS and Home-Manager configuration shared across all targets: Nix daemon
+and flake settings, `nh`, XDG base directories/portals, baseline CLI utilities,
+and core `common/*` module imports.
+
+Exposes:
+
+- flake.homeModules."common"
+- flake.nixosModules."common"
+*/
 {
   inputs,
   self,

@@ -1,3 +1,15 @@
+/*
+  common/options
+
+Core module framework options (`options.mod.meta.*`) tracking imported modules,
+deployment/nixconf checkout paths, out-of-store symlinks, VM targets, and
+Home-Manager/NixOS boundary assertions.
+
+Exposes:
+
+- flake.homeModules."common/options" (options.mod.meta)
+- flake.nixosModules."common/options" (options.mod.meta)
+*/
 {
   lib,
   self,

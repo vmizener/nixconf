@@ -1,12 +1,8 @@
 /*
   common/ai
 
-Shared AI provider option definitions for NixOS and Home-Manager AI modules.
-
-Exposes:
-
-- flake.nixosModules."common/options" (options.mod."common/ai")
-- flake.homeModules."common/options" (options.mod."common/ai")
+Shared AI provider option definitions (`options.mod."common/ai"`) for NixOS and
+Home-Manager AI modules.
 */
 {...}: let
   moduleName = "common/ai";

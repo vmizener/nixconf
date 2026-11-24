@@ -27,7 +27,6 @@ in {
       in [
         "--prefer"
         (plist [
-          ".zen-wrapped"
           "Web Content"
         ])
         "--avoid"
