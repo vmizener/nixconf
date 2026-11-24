@@ -2,7 +2,7 @@
   feat/net/tailscale
 
 Enables the Tailscale client/router daemon using `site.net.vpnUrl` and
-strict `nftables` forward-chain isolation on subnet routers.
+registers `vpn` zone ingress and subnet-router forwarding with `common/firewall`.
 
 Exposes:
 
@@ -69,11 +69,28 @@ in {
     mod = {
       meta.imported = [moduleName];
       "common/site/net".ports.tailscale.udp = [config.services.tailscale.port];
+      "common/firewall" = {
+        zones.vpn.interfaces = [interfaceName];
+        ingress.tailscale = {
+          enable = cfg.openFirewall;
+          zones = ["public"];
+          udp = [config.services.tailscale.port];
+        };
+        forward = {
+          enable = lib.mkIf isRouter true;
+          rules.tailscale = {
+            enable = isRouter;
+            fromZones = ["vpn"];
+            toCidrs = cfg.advertiseRoutes;
+          };
+        };
+      };
     };
 
     services.tailscale = {
       enable = true;
-      inherit (cfg) authKeyFile openFirewall;
+      inherit (cfg) authKeyFile;
+      openFirewall = false;
       inherit interfaceName;
       useRoutingFeatures = routingFeatures;
       disableUpstreamLogging = true;
@@ -87,16 +104,6 @@ in {
       extraSetFlags =
         [acceptRoutesArg]
         ++ lib.optional (cfg.advertiseRoutes != []) routesArg;
-    };
-
-    # When IP forwarding is enabled on an nftables firewall host, default-drop forwarded
-    # packets and explicitly permit forwarding only from `tailscale0` so future untrusted
-    # tunnel interfaces cannot route packets onto the home LAN.
-    networking.firewall = lib.mkIf (isRouter && config.networking.nftables.enable) {
-      filterForward = lib.mkDefault true;
-      extraForwardRules = ''
-        iifname "${interfaceName}" accept
-      '';
     };
   };
 }

@@ -2,7 +2,7 @@
 {lib}: let
   isLoopbackHost = h: builtins.elem h ["localhost" "127.0.0.1" "::1"];
   isIpv4Literal = h: builtins.match "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$" h != null;
-  isIpv6Literal = h: lib.hasInfix ":" h;
+  isIpv6Literal = h: lib.hasInfix ":" h && builtins.match "^[0-9a-fA-F:]+$" h != null;
 in {
   inherit isIpv4Literal isIpv6Literal isLoopbackHost;
 

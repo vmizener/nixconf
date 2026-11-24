@@ -83,6 +83,7 @@ in {
   }: {
     imports = [
       inputs.home-manager.nixosModules.home-manager
+      self.nixosModules."common/firewall"
       self.nixosModules."common/handlers"
       self.nixosModules."common/keyring"
       self.nixosModules."common/options"

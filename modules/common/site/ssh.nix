@@ -117,7 +117,14 @@ in {
       };
 
       config = {
-        mod.meta.imported = [moduleName];
+        mod = {
+          meta.imported = [moduleName];
+          "common/firewall".ingress.sshd = {
+            enable = config.services.openssh.enable && !config.services.openssh.openFirewall;
+            zones = ["lan" "vpn"];
+            tcp = config.services.openssh.ports;
+          };
+        };
 
         assertions = let
           unknownHosts =
@@ -150,6 +157,7 @@ in {
 
         services.openssh = {
           enable = lib.mkDefault true;
+          openFirewall = lib.mkDefault false;
           settings = {
             KbdInteractiveAuthentication = lib.mkDefault false;
             PasswordAuthentication = lib.mkDefault false;

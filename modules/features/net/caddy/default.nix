@@ -3,7 +3,7 @@
 
 Enables Caddy web server and multi-domain reverse proxy driven by
 `site.net.domains`, with per-domain internal/ACME TLS, client CIDR
-isolation, `forward_auth` SSO hooks, and kernel `nftables` sandboxing.
+isolation, `forward_auth` SSO hooks, and `common/firewall` egress sandboxing.
 
 Exposes:
 
@@ -200,98 +200,153 @@ in {
         then "adapt"
         else "validate";
     };
-  in
-    lib.mkMerge [
-      (import ./_firewall.nix {
-        inherit
-          cfg
-          config
-          endpoints
-          httpPort
-          httpsPort
-          lib
-          netCfg
-          pkgs
-          vhosts
-          ;
-      })
-      {
-        assertions = import ./_assertions.nix {
-          inherit
-            cfg
-            currentHost
-            endpoints
-            flakeNet
-            lib
-            managedAcmeDomains
-            moduleName
-            netCfg
-            resolveAcmeFor
-            vhosts
-            ;
-        };
+  in {
+    assertions = import ./_assertions.nix {
+      inherit
+        cfg
+        currentHost
+        endpoints
+        flakeNet
+        lib
+        managedAcmeDomains
+        moduleName
+        netCfg
+        resolveAcmeFor
+        vhosts
+        ;
+    };
 
-        mod = {
-          meta.imported = [moduleName];
-          "common/site/net" = {
-            ports.caddy = {
-              tcp = [
-                httpPort
-                httpsPort
-              ];
-              udp = [httpsPort];
-            };
-            dnsRecords = lib.mkIf (hostIpv4 != null) (
-              lib.mapAttrs' (
-                key: _:
-                  lib.nameValuePair (flakeNet.lib.extractHostname key) (lib.mkDefault hostIpv4)
-              )
-              vhosts.explicitDnsVHosts
-            );
-            oidc.systemdUnits = lib.mkIf netCfg.oidc.available ["caddy.service"];
-          };
+    mod = {
+      meta.imported = [moduleName];
+      "common/site/net" = {
+        ports.caddy = {
+          tcp = [
+            httpPort
+            httpsPort
+          ];
+          udp = [httpsPort];
         };
-
-        sops.secrets = lib.mkIf cfg.acme.enable (
-          managedAcmeDomains
-          |> lib.concatMap (d: (resolveAcmeFor d).sopsSecretKeys)
-          |> lib.unique
-          |> (keys: lib.genAttrs keys (_: {}))
+        dnsRecords = lib.mkIf (hostIpv4 != null) (
+          lib.mapAttrs' (
+            key: _:
+              lib.nameValuePair (flakeNet.lib.extractHostname key) (lib.mkDefault hostIpv4)
+          )
+          vhosts.explicitDnsVHosts
         );
-
-        security.acme = lib.mkIf (cfg.acme.enable && managedAcmeDomains != []) {
-          acceptTerms = true;
-          defaults = lib.optionalAttrs (cfg.acme.email != null) {
-            inherit (cfg.acme) email;
+        oidc.systemdUnits = lib.mkIf netCfg.oidc.available ["caddy.service"];
+      };
+      "common/firewall" = let
+        openPublic =
+          if cfg.openPublicFirewall != null
+          then cfg.openPublicFirewall
+          else vhosts.hasPublicVHosts;
+        forwardAuthEp =
+          if netCfg.forwardAuth.enable && netCfg.forwardAuth.address != null
+          then endpoints.parseEndpoint netCfg.forwardAuth.address
+          else null;
+      in {
+        ingress = {
+          caddy-http = {
+            enable = cfg.openLanFirewall;
+            zones = ["lan" "vpn"];
+            tcp = [httpPort];
           };
-          certs = lib.genAttrs managedAcmeDomains (d: let
-            resolved = resolveAcmeFor d;
-          in {
-            domain = d;
-            extraDomainNames = ["*.${d}"];
-            inherit (resolved) credentialFiles dnsProvider environmentFile;
-            group = config.services.caddy.group;
-          });
+          caddy-https = {
+            enable = openPublic || cfg.openLanFirewall;
+            zones =
+              if openPublic
+              then ["public"]
+              else ["lan" "vpn"];
+            tcp = [httpsPort];
+            udp = [httpsPort];
+          };
         };
-
-        services.caddy = {
-          enable = true;
-          inherit httpPort httpsPort package;
-          # Managed via `_firewall.nix` so port 80 stays restricted to `trustedCidrs`
-          openFirewall = false;
-          globalConfig = lib.optionalString vhosts.hasHttpsVHosts ''
-            servers :${toString httpsPort} {
-              strict_sni_host
+        egress.caddy = {
+          enable = cfg.egressSandbox.enable;
+          required = true;
+          loopbackPorts.tcp = [2019];
+          allowedTargets =
+            (
+              vhosts.discoveredServices
+              |> builtins.filter (d: d.isLocal || d.targetIpv4 != null)
+              |> map (d: {
+                address =
+                  if d.isLocal
+                  then "127.0.0.1"
+                  else d.targetIpv4;
+                inherit (d.svc) port;
+                proto = "tcp";
+              })
+            )
+            ++ (
+              vhosts.explicitEntries
+              |> builtins.filter (e: e.upstream != null && endpoints.isValidSandboxHost e.upstream.host)
+              |> map (e: {
+                address = e.upstream.host;
+                inherit (e.upstream) port;
+                proto = "tcp";
+              })
+            )
+            ++ lib.optional (forwardAuthEp != null && endpoints.isValidSandboxHost forwardAuthEp.host) {
+              address = forwardAuthEp.host;
+              inherit (forwardAuthEp) port;
+              proto = "tcp";
             }
-          '';
-          virtualHosts = vhosts.allVHosts;
+            ++ cfg.egressSandbox.extraAllowedTargets;
+          internet = "restricted";
+          publicPorts = {
+            tcp = [
+              httpPort
+              httpsPort
+            ];
+            udp = [
+              53
+              httpsPort
+            ];
+          };
         };
+      };
+    };
 
-        system.checks = [
-          (pkgs.runCommand "check-caddy-config" {} ''
-            ${pkgs.runtimeShell} ${checkScript} "$out"
-          '')
-        ];
-      }
+    sops.secrets = lib.mkIf cfg.acme.enable (
+      managedAcmeDomains
+      |> lib.concatMap (d: (resolveAcmeFor d).sopsSecretKeys)
+      |> lib.unique
+      |> (keys: lib.genAttrs keys (_: {}))
+    );
+
+    security.acme = lib.mkIf (cfg.acme.enable && managedAcmeDomains != []) {
+      acceptTerms = true;
+      defaults = lib.optionalAttrs (cfg.acme.email != null) {
+        inherit (cfg.acme) email;
+      };
+      certs = lib.genAttrs managedAcmeDomains (d: let
+        resolved = resolveAcmeFor d;
+      in {
+        domain = d;
+        extraDomainNames = ["*.${d}"];
+        inherit (resolved) credentialFiles dnsProvider environmentFile;
+        group = config.services.caddy.group;
+      });
+    };
+
+    services.caddy = {
+      enable = true;
+      inherit httpPort httpsPort package;
+      # Managed via `common/firewall` so port 80 stays restricted to `lan`/`vpn` zones
+      openFirewall = false;
+      globalConfig = lib.optionalString vhosts.hasHttpsVHosts ''
+        servers :${toString httpsPort} {
+          strict_sni_host
+        }
+      '';
+      virtualHosts = vhosts.allVHosts;
+    };
+
+    system.checks = [
+      (pkgs.runCommand "check-caddy-config" {} ''
+        ${pkgs.runtimeShell} ${checkScript} "$out"
+      '')
     ];
+  };
 }

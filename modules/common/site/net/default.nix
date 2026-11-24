@@ -59,9 +59,24 @@ in {
       hostName = config.networking.hostName;
       hostCfg = siteNet.hosts.${hostName} or null;
       inherit (config.mod.meta) isVm;
+      remoteProxiedPorts =
+        if hostCfg != null && hostName != siteNet.proxyHost
+        then lib.unique (map (svc: svc.port) (builtins.attrValues hostCfg.services))
+        else [];
     in {
       mod = {
         meta.imported = [moduleName];
+        "common/firewall" = {
+          zones = {
+            lan.cidrs = netCfg.trustedCidrs ++ lib.optional isVm "10.0.2.0/24";
+            proxy.cidrs = lib.optional (siteNet.lib.proxyIpv4 != null) "${siteNet.lib.proxyIpv4}/32";
+          };
+          ingress.proxy-upstreams = lib.mkIf (remoteProxiedPorts != []) {
+            zones = ["proxy"];
+            tcp = remoteProxiedPorts;
+            withoutProvider = "assert";
+          };
+        };
         ${moduleName} = {
           trustedCidrs = [
             "127.0.0.0/8"

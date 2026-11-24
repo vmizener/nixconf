@@ -154,6 +154,10 @@ in
     assertion = hostCfg.interface != null;
     message = "site.net.hosts.${hostName}.interface must be set when ipv4 is specified.";
   }
+  ++ lib.optional (hostCfg != null && hostName != siteNet.proxyHost && hostCfg.services != {} && siteNet.proxyHost != null) {
+    assertion = proxyIpv4 != null;
+    message = "site.net.hosts.${siteNet.proxyHost}.ipv4 must be set so backend host '${hostName}' can allow inbound connections from proxyHost.";
+  }
   ++ lib.concatMap (
     e: (
       if e.svc.domainTag != null && e.svc.domain == null

@@ -92,6 +92,19 @@ in {
           ++ lib.optional (httpPortNum != null) httpPortNum;
         udp = lib.optional (dnsPortNum != null) dnsPortNum;
       };
+      "common/firewall".ingress = {
+        blocky-dns = {
+          enable = cfg.openDnsFirewall && builtins.isInt cfg.dnsPort;
+          zones = ["lan" "vpn"];
+          tcp = lib.optional (builtins.isInt cfg.dnsPort) cfg.dnsPort;
+          udp = lib.optional (builtins.isInt cfg.dnsPort) cfg.dnsPort;
+        };
+        blocky-http = {
+          enable = cfg.openHttpFirewall && builtins.isInt cfg.httpPort;
+          zones = ["lan" "vpn"];
+          tcp = lib.optional (builtins.isInt cfg.httpPort) cfg.httpPort;
+        };
+      };
     };
 
     environment.systemPackages = [package];
@@ -111,13 +124,5 @@ in {
         ${pkgs.runtimeShell} ${checkScript} "$out"
       '')
     ];
-
-    networking.firewall = {
-      allowedTCPPorts =
-        (lib.optional (cfg.openDnsFirewall && builtins.isInt cfg.dnsPort) cfg.dnsPort)
-        ++ (lib.optional (cfg.openHttpFirewall && builtins.isInt cfg.httpPort) cfg.httpPort);
-      allowedUDPPorts =
-        lib.optional (cfg.openDnsFirewall && builtins.isInt cfg.dnsPort) cfg.dnsPort;
-    };
   };
 }
