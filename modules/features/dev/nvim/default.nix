@@ -1,29 +1,62 @@
 /*
   feat/dev/nvim
 
-Provides Neovim.
+Provides Neovim with LSP servers, Treesitter grammars, and an optional
+standalone fallback `treefmt` formatter.
 
 Exposes:
 
+- flake.homeModules."common/options" (options.mod."feat/dev/nvim")
 - flake.homeModules."feat/dev/nvim":
-  - Enables Neovim
+  - Enables Neovim and registers it as the preferred editor handler.
 */
-{withSystem, ...}: let
+{inputs, ...}: let
   moduleName = "feat/dev/nvim";
 in {
+  flake.homeModules."common/options" = {lib, ...}: {
+    options.mod.${moduleName} = {
+      treefmt = {
+        enable = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Whether to bundle a standalone fallback `treefmt` wrapper and formatters with Neovim.";
+        };
+        config = lib.mkOption {
+          type = lib.types.deferredModule;
+          default = {};
+          description = "Additional `treefmt-nix` configuration merged into Neovim's fallback `treefmt` instance.";
+        };
+      };
+    };
+  };
+
   flake.homeModules.${moduleName} = {
     config,
     lib,
     pkgs,
     ...
   }: let
-    treefmtCfg = withSystem pkgs.stdenv.hostPlatform.system (
-      {config, ...}: config.treefmt
-    );
+    cfg = config.mod.${moduleName};
+    treefmtCfg =
+      (inputs.treefmt-nix.lib.evalModule pkgs {
+        imports = [cfg.treefmt.config];
+        programs = {
+          alejandra.enable = lib.mkDefault true;
+          black.enable = lib.mkDefault true;
+          shfmt.enable = lib.mkDefault true;
+          stylua = {
+            enable = lib.mkDefault true;
+            settings = {
+              indent_type = lib.mkDefault "Spaces";
+              indent_width = lib.mkDefault 2;
+            };
+          };
+        };
+      }).config;
     defaultTreefmt = pkgs.writeShellScriptBin "treefmt" ''
       set -euo pipefail
       unset PRJ_ROOT
-      exec ${treefmtCfg.package}/bin/treefmt \
+      exec ${lib.getExe treefmtCfg.package} \
         --config-file=${treefmtCfg.build.configFile} \
         --tree-root="''${TREEFMT_TREE_ROOT:-$PWD}" \
         "$@"
@@ -48,8 +81,9 @@ in {
           pyright
           ripgrep
         ])
-        ++ [defaultTreefmt]
-        ++ builtins.attrValues treefmtCfg.build.programs;
+        ++ lib.optionals cfg.treefmt.enable (
+          [defaultTreefmt] ++ builtins.attrValues treefmtCfg.build.programs
+        );
       extraWrapperArgs = [
         # pass path via global so Lazy preserves it across rtp reset (before FileType)
         "--add-flags"

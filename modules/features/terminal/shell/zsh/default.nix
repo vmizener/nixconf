@@ -45,70 +45,73 @@ in {
         cmd = ["${config.home.profileDirectory}/bin/zsh"];
       };
     };
-    programs = {
-      direnv = {
+    programs.zsh = {
+      enable = true;
+      dotDir = "${config.xdg.configHome}/zsh";
+      defaultKeymap = "viins";
+
+      # Leave `enableCompletion = true` so HM installs `nix-zsh-completions` and signals
+      # completion support to other HM modules, but skip HM's `compinit` at `mkOrder 570`—
+      # ./zshrc (`mkOrder 550`) runs `compinit` once right after p10k instant prompt.
+      completionInit = "";
+
+      autosuggestion = {
         enable = true;
-        enableZshIntegration = true;
-        nix-direnv.enable = true;
+        highlight = "fg=#696969";
       };
-      zsh = {
+      history = {
+        size = 5000;
+        path = "${config.xdg.stateHome}/zsh/history";
+        append = true;
+        share = true;
+        ignoreSpace = true;
+        ignoreAllDups = true;
+        saveNoDups = true;
+        ignoreDups = true;
+        findNoDups = true;
+      };
+      historySubstringSearch = {
         enable = true;
-        dotDir = "${config.xdg.configHome}/zsh";
-        defaultKeymap = "viins";
-
-        # Leave `enableCompletion = true` so HM installs `nix-zsh-completions` and signals
-        # completion support to other HM modules, but skip HM's `compinit` at `mkOrder 570`—
-        # ./zshrc (`mkOrder 550`) runs `compinit` once right after p10k instant prompt.
-        completionInit = "";
-
-        autosuggestion = {
-          enable = true;
-          highlight = "fg=#696969";
-        };
-        history = {
-          size = 5000;
-          path = "${config.xdg.stateHome}/zsh/history";
-          append = true;
-          share = true;
-          ignoreSpace = true;
-          ignoreAllDups = true;
-          saveNoDups = true;
-          ignoreDups = true;
-          findNoDups = true;
-        };
-        historySubstringSearch = {
-          enable = true;
-          searchUpKey = [
-            "^[[A"
-            "^k"
-          ];
-          searchDownKey = [
-            "^[[B"
-            "^j"
-          ];
-        };
-        syntaxHighlighting.enable = true;
-        envExtra = ''
+        searchUpKey = [
+          "^[[A"
+          "^k"
+        ];
+        searchDownKey = [
+          "^[[B"
+          "^j"
+        ];
+      };
+      syntaxHighlighting.enable = true;
+      envExtra = ''
+        [[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"
+      '';
+      initContent = lib.mkMerge [
+        (lib.mkOrder 500 ''
+          [[ -f "${hmSessionVars}" ]] && source "${hmSessionVars}"
           [[ -f "${hmNixProfile}" ]] && source "${hmNixProfile}"
-        '';
-        initContent = lib.mkOrder 550 "source ${pkgs.replaceVars ./zshrc {
+        '')
+        # Pre-export direnv before Powerlevel10k instant prompt (`mkOrder 550`) so
+        # `.envrc` output doesn't trigger p10k console-output warnings.
+        (lib.mkIf (config.programs.direnv.enable && config.programs.direnv.enableZshIntegration) (
+          lib.mkOrder 545 ''
+            emulate zsh -c "$(${lib.getExe config.programs.direnv.package} export zsh)"
+          ''
+        ))
+        (lib.mkOrder 550 "source ${pkgs.replaceVars ./zshrc {
           ALIASES = lib.concatStringsSep "\n" (import ./_aliases.nix {
             inherit config lib;
             installed = config.home.packages ++ lib.optionals (osConfig != null) osConfig.environment.systemPackages;
           });
-          DIRENV = lib.getExe config.programs.direnv.package;
           EXTRA_CONFIG = lib.concatStringsSep "\n" cfg.extraConfig;
           FZF_HISTORY_SEARCH = "${pkgs.zsh-fzf-history-search}/share/zsh-fzf-history-search/zsh-fzf-history-search.plugin.zsh";
           FZF_TAB =
             if osConfig != null
             then "${pkgs.zsh-fzf-tab}/share/fzf-tab/fzf-tab.plugin.zsh"
             else "${pkgs.zsh-fzf-tab.src}/fzf-tab.plugin.zsh";
-          HM_NIX_PROFILE = hmNixProfile;
-          HM_SESSION_VARS = hmSessionVars;
           P10K_CONFIG = "${./p10k.zsh}";
           P10K_THEME = "${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
-        }}";
-      };
+        }}")
+      ];
     };
     home = {
       packages = with pkgs; [
@@ -116,10 +119,6 @@ in {
         zsh-completions
       ];
     };
-    xdg.configFile."direnv/direnv.toml".text = ''
-      [global]
-      log_filter="^loading"
-    '';
   };
   flake.nixosModules.${moduleName} = {...}: {
     mod.meta.imported = [moduleName];
