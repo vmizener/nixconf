@@ -202,10 +202,8 @@ binds {
 
 // Window & Layer Rules
 window-rule {
-    // This app-id regular expression will work for both:
-    // - host Firefox (app-id is "firefox")
-    // - Flatpak Firefox (app-id is "org.mozilla.firefox")
-    match app-id=r#"firefox$"# title=r#"^Picture.in.[Pp]icture$"#
+    // Matches Firefox (host "firefox", Flatpak "org.mozilla.firefox") and Helium ("helium")
+    match app-id=r#"(firefox|helium)$"# title=r#"^Picture.in.[Pp]icture$"#
     default-floating-position x=0 y=0 relative-to="top-right"
     default-column-width { proportion 0.5; }
     default-window-height { proportion 0.5; }
@@ -327,12 +325,12 @@ window-rule {
     open-floating true
 }
 window-rule {
-    match app-id=r#"^discord$"#
+    match app-id=r#"^(discord|vesktop)$"#
     open-maximized true
 }
 
 window-rule {
-    match app-id=r#"^firefox$"#
+    match app-id=r#"^(firefox|helium)$"#
     open-maximized true
 }
 

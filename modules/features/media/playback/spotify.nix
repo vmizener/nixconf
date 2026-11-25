@@ -1,7 +1,7 @@
 /*
   feat/media/playback/spotify
 
-Enables Spotify service.
+Enables the Spotify desktop client.
 
 Exposes:
 
@@ -13,6 +13,5 @@ in {
   flake.homeModules.${moduleName} = {pkgs, ...}: {
     mod.meta.imported = [moduleName];
     home.packages = [pkgs.spotify];
-    services.spotifyd.enable = true;
   };
 }
